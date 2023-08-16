@@ -45,7 +45,7 @@ contract Allocator is Ownable {
    *
    * @dev Only owner can call.
    *
-   * @param amount - amount of dusd tokens deposited.
+   * @param _jellyToken - address of the erc20 token
    *
    * No return, reverts on error.
    */

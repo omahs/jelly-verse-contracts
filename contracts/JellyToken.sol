@@ -31,7 +31,7 @@ contract JellyToken is ERC20Capped, AccessControl {
    *
    * @dev Only addresses with MINTER_ROLE can call.
    *
-   * @param address - address to mint tokens for.
+   * @param to - address to mint tokens for.
    *
    * @param amount - amount of tokens to mint.
    *
