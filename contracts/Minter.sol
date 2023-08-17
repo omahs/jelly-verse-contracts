@@ -14,7 +14,7 @@ contract Minter {
   address public governance;
 
   modifier onlyGovernance() {
-    require(msg.sender == governance, "Only governance can mint.");
+    require(msg.sender == governance, "Only governance can call.");
     _;
   }
 
@@ -40,8 +40,33 @@ contract Minter {
     uint256 amount = (timeSinceLastMint * inflationRate) / inflationPeriod;
     lastMintedAt = block.timestamp;
 
-    for (uint256 i = 0; i < beneficiaries.length; i++) {
-        jellyToken.mint(beneficiaries[i], amount);
+    for (uint256 i = 0; i < beneficiaries.length;) {
+      jellyToken.mint(beneficiaries[i], amount);
+      unchecked {
+        ++i;
+      }
     }
+  }
+
+  function addBeneficiary(address beneficiary) public onlyGovernance {
+    beneficiaries.push(beneficiary);
+  }
+
+  function removeBeneficiary(address beneficiary) public onlyGovernance {
+    uint256 beneficiaryIndex = beneficiaries.length; // value denoting invalid address
+
+    for (uint256 i = 0; i < beneficiaries.length;) {
+      if (beneficiaries[i] == beneficiary) {
+        beneficiaryIndex = i;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+
+    require(beneficiaryIndex < beneficiaries.length, "Address not in beneficiary list.");
+
+    beneficiaries[beneficiaryIndex] = beneficiaries[beneficiaries.length - 1];
+    beneficiaries.pop();
   }
 }

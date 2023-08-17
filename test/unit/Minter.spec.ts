@@ -54,7 +54,7 @@ describe("Minter", () => {
     it("Reverts when non governance address tries to mint", async () => {
       await expect(
         minter.connect(otherAccount).mint()
-      ).to.be.revertedWith("Only governance can mint.")
+      ).to.be.revertedWith("Only governance can call.")
     });
 
     it("Increases the supply of tokens following fixed inflation curve", async () => {
@@ -81,6 +81,41 @@ describe("Minter", () => {
 
       expect(balance1).to.eq(10);
       expect(balance2).to.eq(10);
+    });
+  });
+
+  describe("addBeneficiary", () => {
+    it("Reverts when non governance address tries to add beneficiary", async () => {
+      await expect(
+        minter.connect(otherAccount).addBeneficiary(otherAccount)
+      ).to.be.revertedWith("Only governance can call.")
+    });
+
+    it("Adds beneficiary", async () => {
+      await minter.connect(governance).addBeneficiary(otherAccount.address)
+      const newBeneficiary = await minter.beneficiaries(2);
+      expect(otherAccount.address).to.eq(newBeneficiary);
+    });
+  });
+
+  describe("removeBeneficiary", () => {
+    it("Reverts when non governance address tries to remove beneficiary", async () => {
+      await expect(
+        minter.connect(otherAccount).removeBeneficiary(beneficiaries[0])
+      ).to.be.revertedWith("Only governance can call.")
+    });
+
+    it("Reverts when beneficiary doesn't exist", async () => {
+      await expect(
+        minter.connect(governance).removeBeneficiary(otherAccount)
+      ).to.be.revertedWith("Address not in beneficiary list.");
+    });
+
+    it("Removes beneficiary", async () => {
+      await minter.connect(governance).removeBeneficiary(beneficiaries[0].address)
+      const firstBeneficiarry = await minter.beneficiaries(0);
+
+      expect(beneficiaries[1].address).to.eq(firstBeneficiarry);
     });
   });
 });
