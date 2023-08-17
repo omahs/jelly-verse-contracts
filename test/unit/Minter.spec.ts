@@ -91,6 +91,12 @@ describe("Minter", () => {
       ).to.be.revertedWith("Only governance can call.")
     });
 
+    it("Reverts when beneficiary already present in list.", async () => {
+      await expect(
+        minter.connect(governance).addBeneficiary(beneficiaries[0].address)
+      ).to.be.revertedWith("Address already in beneficiary list.")
+    });
+
     it("Adds beneficiary", async () => {
       await minter.connect(governance).addBeneficiary(otherAccount.address)
       const newBeneficiary = await minter.beneficiaries(2);

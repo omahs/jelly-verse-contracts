@@ -3,6 +3,10 @@ pragma solidity ^0.8.9;
 
 import {IJellyToken} from "./interfaces/IJellyToken.sol";
 
+/**
+ * @title The Minter contract
+ * @notice Contract for distributing jelly token rewards
+ */
 contract Minter {
   IJellyToken public jellyToken;
 
@@ -35,6 +39,13 @@ contract Minter {
     beneficiaries = _beneficiaries;
   }
 
+  /**
+   * @notice Mints jelly tokens to beneficiaries based on a fixed inflation curve
+   *
+   * @dev Only the governance address can call
+   *
+   * No return, reverts on error.
+   */
   function mint() public onlyGovernance {
     uint256 timeSinceLastMint = block.timestamp - lastMintedAt;
     uint256 amount = (timeSinceLastMint * inflationRate) / inflationPeriod;
@@ -48,10 +59,31 @@ contract Minter {
     }
   }
 
+  /**
+   * @notice Adds a new address as a beneficiary
+   *
+   * @dev Only the governance address can call
+   *
+   * No return, reverts if address already in beneficiary list
+   */
   function addBeneficiary(address beneficiary) public onlyGovernance {
+    for (uint256 i = 0; i < beneficiaries.length;) {
+      require(beneficiaries[i] != beneficiary, "Address already in beneficiary list.");
+      unchecked {
+        ++i;
+      }
+    }
+
     beneficiaries.push(beneficiary);
   }
 
+  /**
+   * @notice Removes an address as a beneficiary
+   *
+   * @dev Only the governance address can call
+   *
+   * No return, reverts if invalid address is passed.
+   */
   function removeBeneficiary(address beneficiary) public onlyGovernance {
     uint256 beneficiaryIndex = beneficiaries.length; // value denoting invalid address
 
