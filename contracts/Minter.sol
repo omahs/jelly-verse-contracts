@@ -43,9 +43,9 @@ contract Minter {
   }
 
   /**
-   * @notice Mints jelly tokens to beneficiaries based on a fixed inflation curve
+   * @notice Mints jelly tokens to beneficiaries based on a fixed inflation curve.
    *
-   * @dev Only the governance address can call
+   * @dev Only the governance address can call.
    *
    * No return, reverts on error.
    */
@@ -65,11 +65,13 @@ contract Minter {
   }
 
   /**
-   * @notice Adds a new address as a beneficiary
+   * @notice Adds a new address as a beneficiary.
    *
-   * @dev Only the governance address can call
+   * @dev Only the governance address can call.
    *
-   * No return, reverts if address already in beneficiary list
+   * @param beneficiary - address of the beneficiary to add.
+   *
+   * No return, reverts if address already in beneficiary list.
    */
   function addBeneficiary(address beneficiary) public onlyGovernance {
     for (uint256 i = 0; i < beneficiaries.length;) {
@@ -83,9 +85,11 @@ contract Minter {
   }
 
   /**
-   * @notice Removes an address as a beneficiary
+   * @notice Removes an address as a beneficiary.
    *
-   * @dev Only the governance address can call
+   * @dev Only the governance address can call.
+   *
+   * @param beneficiary - address of the beneficiary to remove.
    *
    * No return, reverts if invalid address is passed.
    */
@@ -108,9 +112,11 @@ contract Minter {
   }
 
   /**
-   * @notice Sets time that must pass after last mint
+   * @notice Sets time that must pass after last mint.
    *
-   * @dev Only the governance address can call
+   * @dev Only the governance address can call.
+   *
+   * @param _mintTimeframe - new mint timeframe.
    *
    * No return, reverts if invalid address is passed.
    */
@@ -119,9 +125,11 @@ contract Minter {
   }
 
   /**
-   * @notice Sets inflation rate
+   * @notice Sets inflation rate.
    *
-   * @dev Only the governance address can call
+   * @dev Only the governance address can call.
+   *
+   * @param _inflationRate - new inflation rate.
    *
    * No return, reverts if invalid address is passed.
    */
@@ -130,9 +138,11 @@ contract Minter {
   }
 
   /**
-   * @notice Sets inflation period
+   * @notice Sets inflation period.
    *
-   * @dev Only the governance address can call
+   * @dev Only the governance address can call.
+   *
+   * @param _inflationPeriod - new inflation period.
    *
    * No return, reverts if invalid address is passed.
    */
