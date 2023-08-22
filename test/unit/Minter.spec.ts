@@ -13,6 +13,7 @@ describe("Minter", () => {
 
   let inflationRate: number;
   let inflationPeriod: number;
+  let mintTimeframe: number;
 
   let owner: SignerWithAddress;
   let governance: SignerWithAddress;
@@ -24,6 +25,7 @@ describe("Minter", () => {
       minter,
       inflationRate,
       inflationPeriod,
+      mintTimeframe,
       jellyToken,
       owner,
       governance,
@@ -55,6 +57,12 @@ describe("Minter", () => {
       await expect(
         minter.connect(otherAccount).mint()
       ).to.be.revertedWith("Only governance can call.")
+    });
+
+    it("Reverts when not enoguht time has passed", async () => {
+      await expect(
+        minter.connect(governance).mint()
+      ).to.be.revertedWith("Not enough time has passed.");
     });
 
     it("Increases the supply of tokens following fixed inflation curve", async () => {
@@ -122,6 +130,51 @@ describe("Minter", () => {
       const firstBeneficiarry = await minter.beneficiaries(0);
 
       expect(beneficiaries[1].address).to.eq(firstBeneficiarry);
+    });
+  });
+
+  describe("setMintTimeframe", () => {
+    it("Reverts when called by non governance", async () => {
+      await expect(
+        minter.connect(otherAccount).setMintTimeframe(50)
+      ).to.be.revertedWith("Only governance can call.");
+    });
+
+    it("Sets new mint timeframe", async () => {
+      await minter.connect(governance).setMintTimeframe(50)
+      const mTimeframe = await minter.mintTimeframe();
+
+      expect(mTimeframe).to.eq(50);
+    });
+  });
+
+  describe("setInflationRate", () => {
+    it("Reverts when called by non governance", async () => {
+      await expect(
+        minter.connect(otherAccount).setInflationRate(50)
+      ).to.be.revertedWith("Only governance can call.");
+    });
+
+    it("Sets new inflation rate", async () => {
+      await minter.connect(governance).setInflationRate(50)
+      const infRate = await minter.inflationRate();
+
+      expect(infRate).to.eq(50);
+    });
+  });
+
+  describe("setInflationPeriod", () => {
+    it("Reverts when called by non governance", async () => {
+      await expect(
+        minter.connect(otherAccount).setInflationPeriod(50)
+      ).to.be.revertedWith("Only governance can call.");
+    });
+
+    it("Sets new inflation period", async () => {
+      await minter.connect(governance).setInflationPeriod(50)
+      const infPeriod = await minter.inflationPeriod();
+
+      expect(infPeriod).to.eq(50);
     });
   });
 });

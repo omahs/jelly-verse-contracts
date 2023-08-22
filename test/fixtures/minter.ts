@@ -12,6 +12,7 @@ export async function deployMinter() {
 
   const inflationRate = 100;
   const inflationPeriod = 10000;
+  const mintTimeframe = 1000;
 
   const [
     owner,
@@ -40,6 +41,7 @@ export async function deployMinter() {
     jellyToken.target,
     inflationRate,
     inflationPeriod,
+    mintTimeframe,
     governance.address,
     [beneficiary1.address, beneficiary2.address]
   );
@@ -50,6 +52,7 @@ export async function deployMinter() {
     minter,
     inflationRate,
     inflationPeriod,
+    mintTimeframe,
     jellyToken,
     owner,
     governance,

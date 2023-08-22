@@ -13,6 +13,7 @@ contract Minter {
   uint256 public inflationRate;
   uint256 public inflationPeriod;
   uint256 public lastMintedAt;
+  uint256 public mintTimeframe;
 
   address[] public beneficiaries;
   address public governance;
@@ -26,6 +27,7 @@ contract Minter {
     IJellyToken _jellyToken,
     uint256 _inflationRate,
     uint256 _inflationPeriod,
+    uint256 _mintTimeframe,
     address _governance,
     address[] memory _beneficiaries
   ) {
@@ -33,6 +35,7 @@ contract Minter {
 
     inflationRate = _inflationRate;
     inflationPeriod = _inflationPeriod;
+    mintTimeframe = _mintTimeframe;
     lastMintedAt = block.timestamp;
 
     governance = _governance;
@@ -48,6 +51,8 @@ contract Minter {
    */
   function mint() public onlyGovernance {
     uint256 timeSinceLastMint = block.timestamp - lastMintedAt;
+    require(mintTimeframe < timeSinceLastMint, "Not enough time has passed.");
+
     uint256 amount = (timeSinceLastMint * inflationRate) / inflationPeriod;
     lastMintedAt = block.timestamp;
 
@@ -100,5 +105,38 @@ contract Minter {
 
     beneficiaries[beneficiaryIndex] = beneficiaries[beneficiaries.length - 1];
     beneficiaries.pop();
+  }
+
+  /**
+   * @notice Sets time that must pass after last mint
+   *
+   * @dev Only the governance address can call
+   *
+   * No return, reverts if invalid address is passed.
+   */
+  function setMintTimeframe(uint256 _mintTimeframe) public onlyGovernance {
+    mintTimeframe = _mintTimeframe;
+  }
+
+  /**
+   * @notice Sets inflation rate
+   *
+   * @dev Only the governance address can call
+   *
+   * No return, reverts if invalid address is passed.
+   */
+  function setInflationRate(uint256 _inflationRate) public onlyGovernance {
+    inflationRate = _inflationRate;
+  }
+
+  /**
+   * @notice Sets inflation period
+   *
+   * @dev Only the governance address can call
+   *
+   * No return, reverts if invalid address is passed.
+   */
+  function setInflationPeriod(uint256 _inflationPeriod) public onlyGovernance {
+    inflationPeriod = _inflationPeriod;
   }
 }
