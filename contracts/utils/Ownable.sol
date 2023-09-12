@@ -13,18 +13,19 @@ abstract contract Ownable {
     event OwnershipTransferred(address indexed from, address indexed to);
     event OwnershipTransferCanceled(address indexed from, address indexed to);
 
-    error CannotSetOwnerToZeroAddress();
-    error MustBeProposedOwner();
-    error CallerIsNotOwner();
-    error CannotTransferToSelf();
+    error Ownable__CannotSetOwnerToZeroAddress();
+    error Ownable__MustBeProposedOwner();
+    error Ownable__CallerIsNotOwner();
+    error Ownable__CannotTransferToSelf();
 
     modifier onlyOwner() {
-        _checkOwner();
+        if (msg.sender != _owner) revert Ownable__CallerIsNotOwner();
         _;
     }
 
     constructor(address newOwner, address pendingOwner) {
-        if (newOwner == address(0)) revert CannotSetOwnerToZeroAddress();
+        if (newOwner == address(0))
+            revert Ownable__CannotSetOwnerToZeroAddress();
 
         _owner = newOwner;
 
@@ -52,7 +53,7 @@ abstract contract Ownable {
      * No return, revets on error.
      */
     function acceptOwnership() external {
-        if (msg.sender != _pendingOwner) revert MustBeProposedOwner();
+        if (msg.sender != _pendingOwner) revert Ownable__MustBeProposedOwner();
 
         address oldOwner = _owner;
         _owner = msg.sender;
@@ -93,13 +94,10 @@ abstract contract Ownable {
         return _pendingOwner;
     }
 
-    function _checkOwner() internal view {
-        if (msg.sender != owner()) revert CallerIsNotOwner();
-    }
-
     function _transferOwnership(address newOwner) private {
-        if (newOwner == address(0)) revert CannotSetOwnerToZeroAddress();
-        if (newOwner == msg.sender) revert CannotTransferToSelf();
+        if (newOwner == address(0))
+            revert Ownable__CannotSetOwnerToZeroAddress();
+        if (newOwner == msg.sender) revert Ownable__CannotTransferToSelf();
 
         _pendingOwner = newOwner;
 
