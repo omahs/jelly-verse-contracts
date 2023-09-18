@@ -10,6 +10,7 @@
 
 | Name    | Sepolia | DMC   |
 | ------- | ------------------------------------------------------------------------------------ | ----------- |
-| dBTC | [Contract Address](https://sepolia.etherscan.io/address/0x5ca70a668c1875764D87c738d62FdF7e0c227091) | [Contract Address](https://testnet-dmc.mydefichain.com:8444/address/0x5ca70a668c1875764D87c738d62FdF7e0c227091) |
-| dETH | [Contract Address](https://sepolia.etherscan.io/address/0xD0A4a86B62c01C3d6B3Bbd39c08e0dBd302c3b70) | [Contract Address](https://testnet-dmc.mydefichain.com:8444/address/0xC001bE9FaD650D669a20EBD159c2B6CECb0ff293) |
-| dUSDT | [Contract Address](https://sepolia.etherscan.io/address/0xC001bE9FaD650D669a20EBD159c2B6CECb0ff293) | [Contract Address](https://testnet-dmc.mydefichain.com:8444/address/0xF8504bd3662a6A0719e8C22d1DFF182836fefb04) |
+| jBTC | [Contract Address](https://sepolia.etherscan.io/address/0x001aB49b91c0eB85D53CDef57ab8FAd9D456cD01) | [Contract Address](https://testnet-dmc.mydefichain.com:8444/address/0x71564514B940a2baf47711170bbf51DCe4bCc84B) |
+| jETH | [Contract Address](https://sepolia.etherscan.io/address/0x1E41AA782B07d1e693D2b265A4A5D7E2a50acAe3) | [Contract Address](https://testnet-dmc.mydefichain.com:8444/address/0xF759226347da14c2C3C6892c7D0f2604c0686b02) |
+| jdUSD | [Contract Address](https://sepolia.etherscan.io/address/0x96e20800fc46D450B18E61344b3B1f53EffA54f7) | [Contract Address](https://testnet-dmc.mydefichain.com:8444/address/0xFba0BD461deebA8370E9fD4f695b0CfB34E58517) |
+| jDFI | [Contract Address](https://sepolia.etherscan.io/address/0x9B470B2f7860cBa2C18f1Ee8BEFc074a67CFD5d0) | [Contract Address](https://testnet-dmc.mydefichain.com:8444/address/0x92C655E6238B9F59215fC98326a68154247ef0f9) |
