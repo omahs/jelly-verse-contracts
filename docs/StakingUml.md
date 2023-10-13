@@ -77,7 +77,7 @@ sequenceDiagram
     E->>B: Emit event (Chest Created)
     B->>B: Staking Event heard
     B->>A: User notified that staking  is complete
-    Note over A: Has Chest (Staking position NFT) with some voting power
+    Note over A: Has Chest (Staking position NFT) <br/>with some voting power
 ```
 2. Freeze Chest flow (when Chest is unfrozen)
 
@@ -92,7 +92,7 @@ sequenceDiagram
     B->>B: Updates internal states (freezePeriod)
     B->>B: Updates Metadata for NFT
     B->>A: Emit event (Chest frozen)
-    Note over A: Has Frozen the Chest (and increased voting power)
+    Note over A: Has Frozen the Chest <br/>(and increased voting power)
 
 ```
 3. Extend Freeze Period on Chest flow (when Chest is frozen)
@@ -109,7 +109,7 @@ sequenceDiagram
     B->>B: Updates internal states (freezePeriod)
     B->>B: Updates Metadata for NFT
     B->>A: Emit event (Chest freeze period extended)
-    Note over A: Has Extended Freeze Period for the Chest (and voting power)
+    Note over A: Has Extended Freeze Period for the Chest<br/> (and voting power)
 
 ```
 4. Add JLY to Chest (frozen or unfrozen)
@@ -133,7 +133,7 @@ sequenceDiagram
     C->>C: Updates internal states (totalStaked, userStaked)
     C->>C: Updates Metadata for NFT
     C->>A: Emit event (Chest staked amount increased)
-    Note over A: Has Chest with increased staked amount (and voting power)
+    Note over A: Has Chest with increased staked amount <br/>(and voting power)
 
 ```
 4. Unstake Chest (unfrozen)
@@ -147,12 +147,12 @@ sequenceDiagram
     participant B as JLY Token
     Note over A: Has Unfrozen Chest
     A->>C: Unstake some amount from Chest
-    C->>C: Updates internal states (userStakedAmount = userStakedAmount - unstakeAmount)
+    C->>C: Updates internal states (userStakedAmount = userStakedAmount - unstakeAmount, booster = 1)
     C->>B: Transfer unstakeAmount of JLY to user 
     B->>B: _transfer(userAddress, unstakeAmount)
     B->>C: Confirms transfer 
     C->>C: Updates Metadata for NFT
     C->>A: Emit event (Unstaked from Chest)
-    Note over A: Has Chest with decreased staked amount
+    Note over A: Has Chest with decreased staked amount, <br/>and voting power (booster reset to 1)
 
 ```
