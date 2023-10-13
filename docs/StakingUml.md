@@ -31,7 +31,7 @@ sequenceDiagram
     C->>B: Transfer user tokens to staking contract
     B->>B: _transferFrom(userAddress, stakingAddress, amount)
     B->>C: Confirms transfer
-    C->>C: Updates internal states (totalStaked, userStaked, freezePeriod, etc.)
+    C->>C: Updates internal states:  <br/> totalStaked, userStaked, freezePeriod, etc.
     C->>C: Mints NFT to User
     C->>C: Creates Metadata for NFT
     C->>A: Emit event (Staking position/Chest Created)
@@ -71,7 +71,7 @@ sequenceDiagram
     E-->>D: Transfer tokens from user to staking contract
     D->>D: _transferFrom(userAddress, stakingAddress, amount)
     D-->>E: Confirms transfer
-    E->>E: Updates internal states (totalStaked, userStaked, freezePeriod, etc.)
+    E->>E: Updates internal states: <br/> totalStaked, userStaked, freezePeriod, etc.
     E->>E: Mints NFT to User
     E->>E: Creates Metadata for NFT
     E->>B: Emit event (Chest Created)
@@ -147,7 +147,7 @@ sequenceDiagram
     participant B as JLY Token
     Note over A: Has Unfrozen Chest
     A->>C: Unstake some amount from Chest
-    C->>C: Updates internal states (userStakedAmount = userStakedAmount - unstakeAmount, booster = 1)
+    C->>C: Updates internal states:  <br/> userStakedAmount = userStakedAmount - unstakeAmount, <br/> booster = 1
     C->>B: Transfer unstakeAmount of JLY to user 
     B->>B: _transfer(userAddress, unstakeAmount)
     B->>C: Confirms transfer 
