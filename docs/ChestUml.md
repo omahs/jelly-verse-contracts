@@ -12,7 +12,7 @@ Latest Figma Flows: https://www.figma.com/file/qGvBuurYYNwsOhAhUO9u8Q/Jellyverse
 
 ## Sequence Diagrams
 
-1. Staking JLY tokens flow (recieved Chest can be frozen or unfrozen)
+1. Staking JLY tokens flow (recieved Chest can be frozen or open)
 
 Reference:
 `The users should be able to open a new staking position, which is represented by an NFT. They can deposit JLY to that NFT and set a freezing period.`
@@ -79,7 +79,7 @@ sequenceDiagram
     B->>A: User notified that staking  is complete
     Note over A: Has Chest (Staking position NFT) <br/>with some voting power
 ```
-2. Freeze Chest flow (when Chest is unfrozen)
+2. Freeze Chest flow (when Chest is open)
 
 Reference:
 https://www.figma.com/file/qGvBuurYYNwsOhAhUO9u8Q/Jellyverse?type=design&node-id=5739-143385&mode=design&t=rFTVHNOSgicTgiHC-4
@@ -112,7 +112,7 @@ sequenceDiagram
     Note over A: Has Extended Freeze Period for the Chest<br/> (and voting power)
 
 ```
-4. Add JLY to Chest (frozen or unfrozen)
+4. Add JLY to Chest (frozen or open)
 
 Reference:
 `They can, at any point in time, increase the amount of staked JLY`
@@ -136,7 +136,7 @@ sequenceDiagram
     Note over A: Has Chest with increased staked amount <br/>(and voting power)
 
 ```
-4. Unstake Chest (unfrozen)
+4. Unstake Chest (open)
 
 Reference:
 `Once the freezing period is over they can withdraw some or all of the deposited amount.`
