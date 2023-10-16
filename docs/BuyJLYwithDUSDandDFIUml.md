@@ -48,7 +48,7 @@ sequenceDiagram
     E->>C: Emit event (Staking position/Chest Created)
     C->>A: Confirm buy with DUSD
     deactivate C
-    Note over A: Has Special Chest with some voting power  <br/> (booster is <1) and  freeze &vesting period
+    Note over A: Has Special Chest with some voting power<br/> (booster is <1) and freeze &vesting period
 ```
 
 1. Buying JLY with DFI flow
@@ -69,7 +69,7 @@ sequenceDiagram
     C->>B: Send DFI to Allocator tokens
     B->>B: _transferFrom(userAddress, AllocatorAddress, amountToStake)
     B->>C: Confirms transfer
-    C->>C: Calculatest JLY amount based on DFI transferred
+    C->>C: Calculatest JLY amount (for join pool) <br/>based on DFI transferred
     C->>E: Join DFI-JLY Pool (where LP tokens are burned)
     E->>E: _join(jellySwapPoolId, AllocatorAddress, zeroAddress, joinRequest)
     E->>C: Confirm join
@@ -80,3 +80,7 @@ sequenceDiagram
     deactivate C
     Note over A: Has JLY tokens with no vesting period
 ```
+
+## Questions
+- Where do we take the extra JLY from? Is it going to be preminted on Allocator, or is it going to be minted on the fly?
+- Are options for burning DUSD going to be like described in the change request, where user has longer vesting period, and receives less JLY tokens (price ratio worse than option 1) if he choses option 2? Maybe we can go through this with them on workshop.
