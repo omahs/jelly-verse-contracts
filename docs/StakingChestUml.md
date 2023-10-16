@@ -156,3 +156,24 @@ sequenceDiagram
     Note over A: Has Chest with decreased staked amount, <br/>and voting power (booster reset to 1)
 
 ```
+
+5. Unstake Special Chest
+
+Reference:
+https://www.figma.com/file/qGvBuurYYNwsOhAhUO9u8Q/Jellyverse?type=design&node-id=5739-143385&mode=design&t=rFTVHNOSgicTgiHC-4
+```mermaid
+sequenceDiagram
+    actor A as User
+    participant C as Staking
+    participant B as JLY Token
+    Note over A: Has Special Chest (and some time has passed <br/> after freeze period ended and vesting started)
+    A->>C: Unstake some available amount from Chest
+    C->>C: Updates internal states:  <br/> userStakedAmount = userStakedAmount - unstakeAmount, <br/> booster = 1
+    C->>B: Transfer unstakeAmount of JLY to user 
+    B->>B: _transfer(userAddress, unstakeAmount)
+    B->>C: Confirms transfer 
+    C->>C: Updates Metadata for NFT
+    C->>A: Emit event (Unstaked from Chest)
+    Note over A: Has Chest with decreased staked amount, <br/>and voting power booster reset to <1
+
+```
