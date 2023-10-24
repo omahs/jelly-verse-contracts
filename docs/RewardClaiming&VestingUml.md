@@ -8,6 +8,7 @@ Flow chart can be found in docs folder:
 ## Characteristics
 
 - Rewards can be claimed immediately with 50% reduction in rewards or fully after a 30 day vesting period. If user wants to claim in between they can do so with a linearly decreasing percentage of rewards lost.
+- Tax on rewards is burned.
 
 ## Sequence Diagrams
 
@@ -24,7 +25,11 @@ sequenceDiagram
         A->>B: Claim all rewards now
         B->>C: Transfer 500 jly to user (half of rewards)
         C->>C: _transfer(userAddress, halfOfRewards)
-        C->>A: Confirm transfer
+        C->>B: Confirm transfer
+        B->>C: Burn rest (500 jly, half of rewards)
+        C->>C: _transfer(zeroAddress, halfOfRewards)
+        C->>B: Confirm transfer
+        B->>A: Confirm claim
     Note over A: User received 500 JLY tokens, <br/> and has 0 jly in claim queue
     else start vesting
         A->>B: Start vesting of rewards
@@ -54,8 +59,11 @@ sequenceDiagram
             D->>C: Transfer 750 tokens to user (50% + 15 / 30 * 50%)
             C->>C: _transfer(userAddress, calculatedAmount)
             C->>D: Confirm transfer
+            D->>C: Burn remaining tokens (250 JLY)
+            C->>C: _transfer(zeroAddress, remainingAmount)
+            C->>D: Confirm transfer
             D->>A: Confirm claim
-            Note over A: User has received 750 JLY tokens <br/>(calculated amount based on linerar decresing percentage) <br/> and has 0 JLY in vesting contract
+            Note over A: User has received 750 JLY tokens <br/>(calculated amount based on linerar decresing percentage) <br/> and has 0 JLY in vesting contract (burned 250 JLY)
         end
     end
 ```
