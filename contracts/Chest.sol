@@ -84,7 +84,8 @@ contract Chest is ERC721URIStorage, Ownable, ReentrancyGuard {
         uint48 _startTimestamp,
         uint32 _cliffDuration,
         address _owner,
-        address _pendingOwner
+        address _pendingOwner,
+        uint256 _premint
     ) ERC721("Chest", "CHEST") Ownable(_owner, _pendingOwner) {
         if (_jellyToken == address(0)) revert Chest__ZeroAddress();
 
@@ -96,6 +97,20 @@ contract Chest is ERC721URIStorage, Ownable, ReentrancyGuard {
         timeFactor = _timeFactor;
         startTimestamp = _startTimestamp;
         cliffTimestamp = _startTimestamp + SafeCast.toUint48(_cliffDuration);
+        for (uint256 index = 0; index < _premint; index++) {
+            _safeMint(address(this), index);
+            uint256 _freezingPeriod = block.timestamp + 10000000;
+            uint256 _amount = 10000000;
+            uint256 freezedUntil = cliffTimestamp + _freezingPeriod;
+
+            positions[index].totalStaked = _amount;
+            positions[index].freezedUntil = SafeCast.toUint48(
+                freezedUntil
+            );
+            positions[index].latestUnstake = SafeCast.toUint48(
+                block.timestamp
+            );
+        }
     }
 
     /**
