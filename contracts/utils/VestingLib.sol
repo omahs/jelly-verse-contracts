@@ -104,8 +104,6 @@ abstract contract VestingLib {
             SafeCast.toUint48(cliffDuration);
         uint32 totalDuration = cliffDuration + vestingDuration;
 
-        ++index;
-
         vestingPositions[index].beneficiary = beneficiary;
         vestingPositions[index].totalVestedAmount = amount;
         vestingPositions[index].startTimestamp = startTimestamp;
@@ -117,6 +115,8 @@ abstract contract VestingLib {
         ];
 
         emit NewVestingPosition(vestingPosition_, index);
+        
+        ++index;
 
         return vestingPosition_;
     }
@@ -125,7 +125,7 @@ abstract contract VestingLib {
         uint48 vestingIndex,
         uint256 releaseAmount
     ) internal {
-        if (vestingIndex <= 0) revert VestingLib__InvalidIndex();
+        if (vestingIndex <= 0 || vestingIndex >= index) revert VestingLib__InvalidIndex();
         if (releaseAmount <= 0) revert VestingLib__InvalidReleaseAmount();
 
         VestingPosition memory vestingPosition_ = VestingLib.vestingPositions[
