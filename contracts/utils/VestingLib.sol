@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 
 /**
- * @title Vesting
+ * @title VestingLib
  * @notice Vesting Library
  *
  *  token amount
@@ -35,7 +35,6 @@ abstract contract VestingLib {
         uint48 startTimestamp; // ─╮
         uint48 cliffTimestamp; //  │
         uint32 totalDuration; //  ─╯
-        bool finished;
     }
     event NewVestingPosition (
         VestingPosition position,
@@ -110,7 +109,7 @@ abstract contract VestingLib {
         vestingPositions[index].cliffTimestamp = cliffTimestamp;
         vestingPositions[index].totalDuration = totalDuration;
 
-        VestingPosition memory vestingPosition_ = VestingLib.vestingPositions[
+        VestingPosition memory vestingPosition_ = vestingPositions[
             index
         ];
 
@@ -121,6 +120,7 @@ abstract contract VestingLib {
         return vestingPosition_;
     }
 
+    // @dev This is a function which should be called when user claims some amount of releasable tokens
     function updateReleasedAmount(
         uint32 vestingIndex,
         uint256 releaseAmount
