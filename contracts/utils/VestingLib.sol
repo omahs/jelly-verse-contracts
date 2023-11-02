@@ -64,7 +64,7 @@ abstract contract VestingLib {
     function vestedAmount(
         uint32 vestingIndex
     ) internal view returns (uint256 vestedAmount_) {
-        VestingPosition memory vestingPosition_ = VestingLib.vestingPositions[
+        VestingPosition memory vestingPosition_ = vestingPositions[
             vestingIndex
         ];
 
@@ -128,7 +128,7 @@ abstract contract VestingLib {
         if (vestingIndex <= 0 || vestingIndex >= index) revert VestingLib__InvalidIndex();
         if (releaseAmount <= 0) revert VestingLib__InvalidReleaseAmount();
 
-        VestingPosition memory vestingPosition_ = VestingLib.vestingPositions[
+        VestingPosition memory vestingPosition_ = vestingPositions[
             vestingIndex
         ];
 
@@ -140,6 +140,6 @@ abstract contract VestingLib {
         if (totalReleasedAmount > vestingPosition_.totalVestedAmount)
             revert VestingLib__InvalidReleaseAmount();
 
-        VestingLib.vestingPositions[vestingIndex].releasedAmount = totalReleasedAmount;
+        vestingPositions[vestingIndex].releasedAmount = totalReleasedAmount;
     }
 }
