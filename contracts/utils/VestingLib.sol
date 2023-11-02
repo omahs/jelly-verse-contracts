@@ -26,7 +26,7 @@ import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
  */
 
 abstract contract VestingLib {
-    uint48 public index;
+    uint32 public index;
 
     struct VestingPosition {
         address beneficiary;
@@ -39,10 +39,10 @@ abstract contract VestingLib {
     }
     event NewVestingPosition (
         VestingPosition position,
-        uint48 index
+        uint32 index
     );
 
-    mapping(uint48 => VestingPosition) internal vestingPositions;
+    mapping(uint32 => VestingPosition) internal vestingPositions;
 
     error VestingLib__StartTimestampMustNotBeInThePast();
     error VestingLib__InvalidDuration();
@@ -57,13 +57,13 @@ abstract contract VestingLib {
      *
      * @return uint256 The amount that has vested but hasn't been released yet
      */
-    function releasableAmount(uint48 vestingIndex) public view returns (uint256) {
+    function releasableAmount(uint32 vestingIndex) public view returns (uint256) {
         VestingPosition memory vestingPosition = vestingPositions[vestingIndex];
         return vestedAmount(vestingIndex) - vestingPosition.releasedAmount;
     }
 
     function vestedAmount(
-        uint48 vestingIndex
+        uint32 vestingIndex
     ) internal view returns (uint256 vestedAmount_) {
         VestingPosition memory vestingPosition_ = VestingLib.vestingPositions[
             vestingIndex
@@ -115,14 +115,14 @@ abstract contract VestingLib {
         ];
 
         emit NewVestingPosition(vestingPosition_, index);
-        
+
         ++index;
 
         return vestingPosition_;
     }
 
     function updateReleasedAmount(
-        uint48 vestingIndex,
+        uint32 vestingIndex,
         uint256 releaseAmount
     ) internal {
         if (vestingIndex <= 0 || vestingIndex >= index) revert VestingLib__InvalidIndex();
