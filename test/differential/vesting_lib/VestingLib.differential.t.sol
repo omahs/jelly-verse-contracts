@@ -27,6 +27,20 @@ contract VestingLibDifferentialTest is VestingLib, Test {
     vestingPosition = createVestingPosition(amount, beneficiary, startTimestamp, cliffDuration, vestingDuration);
   }
 
+  function test_vestedAmount(uint256 blockTimestamp) external {
+    uint48 maxClaimTime = startTimestamp + (SafeCast.toUint48(vestingPosition.totalDuration)*15); // @dev ~30 years for claiming
+    blockTimestamp = bound(blockTimestamp, vestingPosition.startTimestamp, maxClaimTime);
+    vm.warp(blockTimestamp);
+
+    uint256 vestedAmountRust = ffi_vestedAmount(block.timestamp);
+    uint256 vestedAmountSol = releasableAmount(0);
+
+    console.logUint(vestedAmountRust);
+    console.logUint(vestedAmountSol);
+
+    assertEq(vestedAmountRust, vestedAmountSol);
+  }
+
   function ffi_vestedAmount(uint256 blockTimestamp) private returns (uint256 vestedAmountRust) {
     string[] memory inputs = new string[](10);
     inputs[0] = "cargo";
@@ -43,19 +57,5 @@ contract VestingLibDifferentialTest is VestingLib, Test {
     bytes memory result = vm.ffi(inputs);    
 
     vestedAmountRust = abi.decode(result, (uint256));
-  }
-
-  function test_vestedAmount(uint256 blockTimestamp) external {
-    uint48 maxClaimTime = startTimestamp + (SafeCast.toUint48(vestingPosition.totalDuration)*15); // @dev ~30 years for claiming
-    blockTimestamp = bound(blockTimestamp, vestingPosition.startTimestamp, maxClaimTime);
-    vm.warp(blockTimestamp);
-
-    uint256 vestedAmountRust = ffi_vestedAmount(block.timestamp);
-    uint256 vestedAmountSol = releasableAmount(0);
-
-    console.logUint(vestedAmountRust);
-    console.logUint(vestedAmountSol);
-
-    assertEq(vestedAmountRust, vestedAmountSol);
   }
 }
