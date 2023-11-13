@@ -1,8 +1,9 @@
 import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { unitVestingFixture } from '../fixtures/unit__Vesting';
 import { expect, assert } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, constants  } from 'ethers';
 import { calculateVestedAmountJs } from '../shared/helpers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 export function shouldBehaveLikeVesting(): void {
 	describe(`Vesting`, () => {
@@ -12,8 +13,10 @@ export function shouldBehaveLikeVesting(): void {
 		let _cliffDuration: number;
 		let _startTimestamp: BigNumber;
 		let _cliffTimestamp: BigNumber;
+		let _vestingDuration: number;
 		let _totalDuration: number;
 		let _amount: BigNumber;
+		let _beneficiary: SignerWithAddress;
 
 		beforeEach(async function () {
 			const {
@@ -26,18 +29,112 @@ export function shouldBehaveLikeVesting(): void {
 			} = await loadFixture(unitVestingFixture);
 
 			this.vesting = vesting;
+			_beneficiary = beneficiary;
 			_cliffDuration = cliffDuration;
+			_vestingDuration = vestingDuration;
 			_startTimestamp = startTimestamp;
 			_amount = amount;
 
 			_cliffTimestamp = _startTimestamp.add(_cliffDuration);
 			_totalDuration = _cliffDuration + vestingDuration;
-			await this.vesting.createNewVestingPosition(_amount, beneficiary.address, _startTimestamp, _cliffDuration, vestingDuration)
+			await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestamp, _cliffDuration, _vestingDuration)
 
 			await time.increaseTo(startTimestamp);
 		});
 
-		describe(`Deployment`, async function () {});
+		describe(`#createVestingPosition`, async function () {
+			describe(`success`, async function () {
+				let _startTimestampFuture: number;
+				let _cliffTimestamp: number;
+				let _totalDuration: number;
+
+				it('should create vesting position with correct parameters', async function () {
+					_startTimestampFuture = await time.latest() + 10;
+					_cliffTimestamp = _startTimestampFuture + _cliffDuration;
+					_totalDuration = _cliffDuration + _vestingDuration;
+					await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, _cliffDuration, _vestingDuration);
+
+					const vestingPosition = await this.vesting.getVestingPosition(1);
+					expect(vestingPosition.totalVestedAmount).to.equal(_amount);
+					expect(vestingPosition.releasedAmount).to.equal(0);
+					expect(vestingPosition.beneficiary).to.equal(_beneficiary.address);
+					expect(vestingPosition.startTimestamp).to.equal(_startTimestampFuture);
+					expect(vestingPosition.cliffTimestamp).to.equal(_cliffTimestamp);
+					expect(vestingPosition.totalDuration).to.equal(_totalDuration);
+				});
+
+				it('should emit proper event', async function () {
+					_startTimestampFuture = await time.latest() + 10;
+					_cliffTimestamp = _startTimestampFuture + _cliffDuration;
+					_totalDuration = _cliffDuration + _vestingDuration;
+					expect(await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, _cliffDuration, _vestingDuration))
+						.to.emit(this.vesting, 'NewVestingPosition')
+						.withArgs(await this.vesting.getVestingPosition(2), 1);
+				});
+			});
+
+			describe(`failure`, async function () {
+				let _startTimestampFuture: number;
+
+				before(async function () {
+					_startTimestampFuture = await time.latest() + 100;
+				});
+
+				it('should revert if startTimestamp is in the past', async function () {
+					await expect(this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestamp, _cliffDuration, _vestingDuration))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__StartTimestampMustNotBeInThePast');
+				});
+
+				it('should revert if cliffDuration is <= 0', async function () {
+					await expect(this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, 0, _vestingDuration))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidDuration');
+				});
+
+				it('should revert if vestingDuration is <= 0', async function () {
+					await expect(this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, _cliffDuration, 0))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidDuration');
+				});
+
+				it('should revert if amount is <= 0', async function () {
+					await expect(this.vesting.createNewVestingPosition(0, _beneficiary.address, _startTimestampFuture, _cliffDuration, _vestingDuration))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidVestingAmount');
+				});
+
+				it('should revert if beneficiary is zero address 0x00...', async function () {
+					await expect(this.vesting.createNewVestingPosition(_amount, constants.AddressZero, _startTimestampFuture, _cliffDuration, _vestingDuration))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidBeneficiary');
+				});
+			});
+		})
+
+		describe(`#updateReleasedAmount`, async function () {
+			describe(`success`, async function () {
+				it('should only update released amount', async function () {
+					await this.vesting.connect(_beneficiary).updateReleasedAmountPublic(0, _amount.div(2));
+
+					const vestingPosition = await this.vesting.getVestingPosition(0);
+					expect(vestingPosition.totalVestedAmount).to.equal(_amount);
+					expect(vestingPosition.releasedAmount).to.equal(_amount.div(2));
+					expect(vestingPosition.beneficiary).to.equal(_beneficiary.address);
+					expect(vestingPosition.startTimestamp).to.equal(_startTimestamp);
+					expect(vestingPosition.cliffTimestamp).to.equal(_cliffTimestamp);
+					expect(vestingPosition.totalDuration).to.equal(_totalDuration);
+				});	
+			});
+
+			describe(`failure`, async function () {
+				it('should revert if vesting position doesn\'t exists, vesting index > index', async function () {
+					await expect(this.vesting.updateReleasedAmountPublic(1, 1000))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidIndex');
+				});
+
+				it('should revert if releaseAmount is <= 0', async function () {
+					await expect(this.vesting.updateReleasedAmountPublic(0, 0))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidReleaseAmount');
+				});
+
+			});
+		})
 
 		describe(`#vestedAmount`, async function () {
 			context(
@@ -151,120 +248,140 @@ export function shouldBehaveLikeVesting(): void {
 							`vestedAmount: ${vestedAmount} != ${_amount}`
 						);
 					});
+				}
+			);
+		});
 
-					// it(`01 January 2024`, async function () {
-					// 	console.log(await time.latest());
-					// 	compareVestedAmountCalculations();
-					// });
+		
+		describe(`#releasableAmount`, async function () {
+			context(
+				`should calculate the releasable amount in different moments of time. The cliff duration is 6 months. The vesting duration is 18 months, resulting in 2 years in total`,
+				async function () {
+					let compareVestedAmountCalculations: (amount?: BigNumber) => Promise<BigNumber>;
+					let numberOfMonths: number;
 
-					// it(`01 June 2024: 1717200000`, async function () {
-					// 	console.log(await time.latest());
-					// 	const testTimestamp = 1717200000;
-					// 	await time.increaseTo(testTimestamp);
+					before(async function () {
+						numberOfMonths = (_totalDuration - _cliffDuration) / ONE_MONTH;
 
-					// 	compareVestedAmountCalculations();
-					// });
+						compareVestedAmountCalculations = async (amount: BigNumber = _amount) => {
+							const blockTimestamp = await time.latest();
 
-					// it(`25 June 2024: 1719273600`, async function () {
-					// 	console.log(await time.latest());
-					// 	const testTimestamp = 1719273600;
-					// 	await time.increaseTo(testTimestamp);
+							const vestedAmountSol = await this.vesting.releasableAmount(0);
+							const vestedAmountJs = calculateVestedAmountJs(
+								BigNumber.from(blockTimestamp),
+								_cliffTimestamp,
+								_startTimestamp,
+								BigNumber.from(_totalDuration),
+								amount
+							);
 
-					// 	await compareVestedAmountCalculations();
-					// });
+							assert(
+								vestedAmountSol.eq(vestedAmountJs),
+								`vestedAmountSol: ${vestedAmountSol} != vestedAmountJs: ${vestedAmountJs}`
+							);
 
-					// it(`07 July 2024: 1720310400`, async function () {
-					// 	const testTimestamp = 1720310400;
-					// 	await time.increaseTo(testTimestamp);
+							return vestedAmountSol;
+						};
+					});
 
-					// 	compareVestedAmountCalculations();
-					// });
+					it(`At start timestamp`, async function () {
+						await compareVestedAmountCalculations();
+					});
 
-					// it(`08 August 2024: 1723075200`, async function () {
-					// 	const testTimestamp = 1723075200;
-					// 	await time.increaseTo(testTimestamp);
+					it(`Slightly before cliff timestamp`, async function () {
+						const beforeCliffTimestamp = _cliffDuration - ONE_DAY;
+						await time.increase(beforeCliffTimestamp);
 
-					// 	compareVestedAmountCalculations();
-					// });
+						await compareVestedAmountCalculations();
 
-					// it(`08 September 2024: 1725753600`, async function () {
-					// 	const testTimestamp = 1725753600;
-					// 	await time.increaseTo(testTimestamp);
+						const vestedAmount = await this.vesting.releasableAmount(0);
+						assert(
+							vestedAmount.eq(constants.Zero),
+							`vestedAmount: ${vestedAmount} != 0`
+						);
+					});
 
-					// 	compareVestedAmountCalculations();
-					// });
+					it(`At cliff timestamp`, async function () {
+						await time.increase(_cliffDuration);
 
-					// it(`09 October 2024: 1728432000`, async function () {
-					// 	const testTimestamp = 1728432000;
-					// 	await time.increaseTo(testTimestamp);
+						await compareVestedAmountCalculations();
+						const vestedAmount = await this.vesting.releasableAmount(0);
+						assert(
+							vestedAmount.gt(constants.Zero),
+							`vestedAmount: ${vestedAmount} == 0`
+						);
+					});
 
-					// 	compareVestedAmountCalculations();
-					// });
+					let previousVestedAmount = constants.Zero;
 
-					// it(`09 November 2024: 1731110400`, async function () {
-					// 	const testTimestamp = 1731110400;
-					// 	await time.increaseTo(testTimestamp);
+					for (let i = 1; i <= 18; i++) {
+						it(`Month ${i} after cliff timestamp`, async () => {
+							await time.increase(_cliffDuration + i * ONE_MONTH);
+							const currentVestedAmount =
+								await compareVestedAmountCalculations();
+							assert(
+								currentVestedAmount.gte(previousVestedAmount),
+								`currentVestedAmount: ${currentVestedAmount} < previousVestedAmount: ${previousVestedAmount}`
+							);
+							previousVestedAmount = currentVestedAmount;
+						});
+					}
 
-					// 	compareVestedAmountCalculations();
-					// });
+					it(`Slightly before the end of vesting duration`, async function () {
+						const beforeEndOfVestingDuration = _totalDuration - ONE_DAY;
 
-					// it(`10 December 2024: 1733788800`, async function () {
-					// 	const testTimestamp = 1733788800;
-					// 	await time.increaseTo(testTimestamp);
+						await time.increase(beforeEndOfVestingDuration);
 
-					// 	compareVestedAmountCalculations();
-					// });
+						await compareVestedAmountCalculations();
 
-					// it(`10 January 2025: 1736467200`, async function () {
-					// 	const testTimestamp = 1736467200;
-					// 	await time.increaseTo(testTimestamp);
+						const vestedAmount = await this.vesting.releasableAmount(0);
+						assert(
+							vestedAmount.lt(_amount),
+							`vestedAmount: ${vestedAmount} == ${_amount}`
+						);
+					});
 
-					// 	compareVestedAmountCalculations();
-					// });
+					it(`At the end of vesting duration`, async function () {
+						await time.increase(_totalDuration);
 
-					// it(`10 February 2025: 1739145600`, async function () {
-					// 	const testTimestamp = 1739145600;
-					// 	await time.increaseTo(testTimestamp);
+						await compareVestedAmountCalculations();
 
-					// 	compareVestedAmountCalculations();
-					// });
+						const vestedAmount = await this.vesting.releasableAmount(0);
+						assert(
+							vestedAmount.eq(_amount),
+							`vestedAmount: ${vestedAmount} != ${_amount}`
+						);
+					});
 
-					// it(`12 March 2025: 1741737600`, async function () {
-					// 	const testTimestamp = 1741737600;
-					// 	await time.increaseTo(testTimestamp);
+					it(`Slightly after the end of vesting duration`, async function () {
+						const afterEndOfVestingDuration = _totalDuration + ONE_DAY;
+						await time.increase(afterEndOfVestingDuration);
 
-					// 	compareVestedAmountCalculations();
-					// });
+						await compareVestedAmountCalculations();
 
-					// it(`12 April 2025: 1744416000`, async function () {
-					// 	const testTimestamp = 1744416000;
-					// 	await time.increaseTo(testTimestamp);
+						const vestedAmount = await this.vesting.releasableAmount(0);
+						assert(
+							vestedAmount.eq(_amount),
+							`vestedAmount: ${vestedAmount} != ${_amount}`
+						);
+					});
 
-					// 	compareVestedAmountCalculations();
-					// });
+					it(`Slightly after the end of vesting duration with half amount already released`, async function () {
+						const afterEndOfVestingDuration = _totalDuration + ONE_DAY;
+						const halfAmount = _amount.div(2);
+						await time.increase(afterEndOfVestingDuration);
+						await this.vesting.connect(_beneficiary).updateReleasedAmountPublic(0, halfAmount);
+						await compareVestedAmountCalculations(halfAmount);
 
-					// it(`13 May 2025: 1747094400`, async function () {
-					// 	const testTimestamp = 1747094400;
-					// 	await time.increaseTo(testTimestamp);
-
-					// 	compareVestedAmountCalculations();
-					// });
-
-					// it(`13 June 2025: 1749772800`, async function () {
-					// 	const testTimestamp = 1749772800;
-					// 	await time.increaseTo(testTimestamp);
-
-					// 	compareVestedAmountCalculations();
-					// });
-
-					// it(`14 July 2025: 1752451200`, async function () {
-					// 	const testTimestamp = 1752451200;
-					// 	await time.increaseTo(testTimestamp);
-
-					// 	compareVestedAmountCalculations();
-					// });
+						const vestedAmount = await this.vesting.releasableAmount(0);
+						assert(
+							vestedAmount.eq(halfAmount),
+							`vestedAmount: ${vestedAmount} != ${halfAmount}`
+						);
+					});
 				}
 			);
 		});
 	});
+	
 }

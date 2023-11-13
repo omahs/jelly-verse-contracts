@@ -36,6 +36,7 @@ abstract contract VestingLib {
         uint48 cliffTimestamp; //  │
         uint32 totalDuration; //  ─╯
     }
+
     event NewVestingPosition (
         VestingPosition position,
         uint32 index
@@ -125,7 +126,7 @@ abstract contract VestingLib {
         uint32 vestingIndex,
         uint256 releaseAmount
     ) internal {
-        if (vestingIndex <= 0 || vestingIndex >= index) revert VestingLib__InvalidIndex();
+        if (vestingIndex < 0 || vestingIndex >= index) revert VestingLib__InvalidIndex();
         if (releaseAmount <= 0) revert VestingLib__InvalidReleaseAmount();
 
         VestingPosition memory vestingPosition_ = vestingPositions[

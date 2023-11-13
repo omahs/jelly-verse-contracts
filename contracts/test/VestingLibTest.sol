@@ -28,4 +28,13 @@ contract VestingLibTest is VestingLib {
             vestingDuration
         );
     }
+    function updateReleasedAmountPublic(
+        uint32 vestingIndex,
+        uint256 releaseAmount
+    ) public {
+        return VestingLib.updateReleasedAmount(
+            vestingIndex,
+            releaseAmount
+        );
+    }
 }
