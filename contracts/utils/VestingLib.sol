@@ -32,14 +32,18 @@ abstract contract VestingLib {
         address beneficiary;
         uint256 totalVestedAmount;
         uint256 releasedAmount;
-        uint48 startTimestamp; // ─╮
+        uint40 startTimestamp; // ─╮
         uint48 cliffTimestamp; //  │
-        uint32 totalDuration; //  ─╯
+        uint48 totalDuration; //  ─╯
     }
 
     event NewVestingPosition (
         VestingPosition position,
         uint32 index
+    );
+    event Beneficiary (
+        address benVest,
+        address sender
     );
 
     mapping(uint32 => VestingPosition) internal vestingPositions;
@@ -89,7 +93,7 @@ abstract contract VestingLib {
     function createVestingPosition(
         uint256 amount,
         address beneficiary,
-        uint48 startTimestamp,
+        uint40 startTimestamp,
         uint32 cliffDuration,
         uint32 vestingDuration
     ) internal returns (VestingPosition memory) {
@@ -100,9 +104,9 @@ abstract contract VestingLib {
         if (beneficiary == address(0)) revert VestingLib__InvalidBeneficiary();
         if (amount <= 0) revert VestingLib__InvalidVestingAmount();
 
-        uint48 cliffTimestamp = startTimestamp +
+        uint48 cliffTimestamp = SafeCast.toUint48(startTimestamp) +
             SafeCast.toUint48(cliffDuration);
-        uint32 totalDuration = cliffDuration + vestingDuration;
+        uint48 totalDuration = cliffDuration + SafeCast.toUint48(vestingDuration);
 
         vestingPositions[index].beneficiary = beneficiary;
         vestingPositions[index].totalVestedAmount = amount;
@@ -132,6 +136,7 @@ abstract contract VestingLib {
         VestingPosition memory vestingPosition_ = vestingPositions[
             vestingIndex
         ];
+        emit Beneficiary(vestingPosition_.beneficiary, msg.sender);
 
         if (vestingPosition_.beneficiary != msg.sender)
             revert VestingLib__InvalidSender();
