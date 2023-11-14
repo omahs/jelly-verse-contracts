@@ -24,12 +24,12 @@ contract VestingLibDifferentialTest is VestingLib, Test {
     cliffDuration = SafeCast.toUint32(15638400); // @dev 6 month Wednesday, 1 July 1970 00:00:00
     vestingDuration = SafeCast.toUint32(44582400); // @dev 18 month Tuesday, 1 June 1971 00:00:00
 
-    vestingPosition = createVestingPosition(amount, beneficiary, startTimestamp, cliffDuration, vestingDuration);
+    vestingPosition = createVestingPosition(amount, beneficiary, cliffDuration, vestingDuration);
   }
 
   function test_vestedAmount(uint256 blockTimestamp) external {
-    uint48 maxClaimTime = startTimestamp + (SafeCast.toUint48(vestingPosition.totalDuration)*15); // @dev ~30 years for claiming
-    blockTimestamp = bound(blockTimestamp, vestingPosition.startTimestamp, maxClaimTime);
+    uint48 maxClaimTime = vestingPosition.cliffTimestamp + (SafeCast.toUint48(vestingPosition.vestingDuration)*15); // @dev ~30 years for claiming
+    blockTimestamp = bound(blockTimestamp, block.timestamp, maxClaimTime);
     vm.warp(blockTimestamp);
 
     uint256 vestedAmountRust = ffi_vestedAmount(block.timestamp);
@@ -50,9 +50,8 @@ contract VestingLibDifferentialTest is VestingLib, Test {
     inputs[4] = "test/differential/vesting_lib/Cargo.toml";
     inputs[5] = amount.toString();
     inputs[6] = blockTimestamp.toString();
-    inputs[7] = uint256(startTimestamp).toString();
-    inputs[8] = uint256(startTimestamp + SafeCast.toUint48(cliffDuration)).toString();
-    inputs[9] = uint256(cliffDuration + vestingDuration).toString(); // @dev 60220800 - 2 years
+    inputs[7] = uint256(startTimestamp + SafeCast.toUint48(cliffDuration)).toString();
+    inputs[8] = uint256(vestingDuration).toString(); // @dev 60220800 - 2 years
        
     bytes memory result = vm.ffi(inputs);    
 

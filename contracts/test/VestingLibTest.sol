@@ -16,14 +16,12 @@ contract VestingLibTest is VestingLib {
     function createNewVestingPosition(
         uint256 totalVestedAmount,
         address beneficiary,
-        uint40 startTimestamp,
         uint32 cliffDuration,
         uint32 vestingDuration
     ) public returns (VestingPosition memory) {
         return VestingLib.createVestingPosition(
             totalVestedAmount,
             beneficiary,
-            startTimestamp,
             cliffDuration,
             vestingDuration
         );

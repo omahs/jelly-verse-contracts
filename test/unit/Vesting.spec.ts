@@ -23,7 +23,6 @@ export function shouldBehaveLikeVesting(): void {
 				vesting,
 				beneficiary,
 				cliffDuration,
-				startTimestamp,
 				vestingDuration,
 				amount,
 			} = await loadFixture(unitVestingFixture);
@@ -32,76 +31,47 @@ export function shouldBehaveLikeVesting(): void {
 			_beneficiary = beneficiary;
 			_cliffDuration = cliffDuration;
 			_vestingDuration = vestingDuration;
-			_startTimestamp = startTimestamp;
+			_startTimestamp = BigNumber.from(await time.latest());
 			_amount = amount;
 
 			_cliffTimestamp = _startTimestamp.add(_cliffDuration);
-			_totalDuration = _cliffDuration + vestingDuration;
-			await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestamp, _cliffDuration, _vestingDuration)
-
-			await time.increaseTo(startTimestamp);
+			_totalDuration = _cliffTimestamp.add(vestingDuration).toNumber();
+			await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _cliffDuration, _vestingDuration)
 		});
 
 		describe(`#createVestingPosition`, async function () {
 			describe(`success`, async function () {
-				let _startTimestampFuture: number;
-				let _cliffTimestamp: number;
-				let _totalDuration: number;
-
 				it('should create vesting position with correct parameters', async function () {
-					_startTimestampFuture = await time.latest() + 10;
-					_cliffTimestamp = _startTimestampFuture + _cliffDuration;
-					_totalDuration = _cliffDuration + _vestingDuration;
-					await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, _cliffDuration, _vestingDuration);
+					await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _cliffDuration, _vestingDuration);
 
 					const vestingPosition = await this.vesting.getVestingPosition(1);
 					expect(vestingPosition.totalVestedAmount).to.equal(_amount);
 					expect(vestingPosition.releasedAmount).to.equal(0);
 					expect(vestingPosition.beneficiary).to.equal(_beneficiary.address);
-					expect(vestingPosition.startTimestamp).to.equal(_startTimestampFuture);
-					expect(vestingPosition.cliffTimestamp).to.equal(_cliffTimestamp);
-					expect(vestingPosition.totalDuration).to.equal(_totalDuration);
+					expect(vestingPosition.cliffTimestamp).to.equal(_cliffTimestamp.add(2));
+					expect(vestingPosition.vestingDuration).to.equal(_vestingDuration);
 				});
 
 				it('should emit proper event', async function () {
-					_startTimestampFuture = await time.latest() + 10;
-					_cliffTimestamp = _startTimestampFuture + _cliffDuration;
-					_totalDuration = _cliffDuration + _vestingDuration;
-					expect(await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, _cliffDuration, _vestingDuration))
+					expect(await this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _cliffDuration, _vestingDuration))
 						.to.emit(this.vesting, 'NewVestingPosition')
-						.withArgs(await this.vesting.getVestingPosition(2), 1);
+						.withArgs(await this.vesting.getVestingPosition(1), 1);
 				});
 			});
 
 			describe(`failure`, async function () {
-				let _startTimestampFuture: number;
-
-				before(async function () {
-					_startTimestampFuture = await time.latest() + 100;
-				});
-
-				it('should revert if startTimestamp is in the past', async function () {
-					await expect(this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestamp, _cliffDuration, _vestingDuration))
-					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__StartTimestampMustNotBeInThePast');
-				});
-
-				it('should revert if cliffDuration is <= 0', async function () {
-					await expect(this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, 0, _vestingDuration))
+				it('should revert if cliffDuration is == 0', async function () {
+					await expect(this.vesting.createNewVestingPosition(_amount, _beneficiary.address, 0, _vestingDuration))
 					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidDuration');
 				});
 
-				it('should revert if vestingDuration is <= 0', async function () {
-					await expect(this.vesting.createNewVestingPosition(_amount, _beneficiary.address, _startTimestampFuture, _cliffDuration, 0))
-					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidDuration');
-				});
-
-				it('should revert if amount is <= 0', async function () {
-					await expect(this.vesting.createNewVestingPosition(0, _beneficiary.address, _startTimestampFuture, _cliffDuration, _vestingDuration))
+				it('should revert if amount is == 0', async function () {
+					await expect(this.vesting.createNewVestingPosition(0, _beneficiary.address, _cliffDuration, _vestingDuration))
 					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidVestingAmount');
 				});
 
 				it('should revert if beneficiary is zero address 0x00...', async function () {
-					await expect(this.vesting.createNewVestingPosition(_amount, constants.AddressZero, _startTimestampFuture, _cliffDuration, _vestingDuration))
+					await expect(this.vesting.createNewVestingPosition(_amount, constants.AddressZero, _cliffDuration, _vestingDuration))
 					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidBeneficiary');
 				});
 			});
@@ -110,15 +80,18 @@ export function shouldBehaveLikeVesting(): void {
 		describe(`#updateReleasedAmount`, async function () {
 			describe(`success`, async function () {
 				it('should only update released amount', async function () {
+					await time.increase(_totalDuration);
+
+					const oldPosition = await this.vesting.getVestingPosition(0);
+
 					await this.vesting.connect(_beneficiary).updateReleasedAmountPublic(0, _amount.div(2));
 
 					const vestingPosition = await this.vesting.getVestingPosition(0);
-					expect(vestingPosition.totalVestedAmount).to.equal(_amount);
+					expect(vestingPosition.totalVestedAmount).to.equal(oldPosition.totalVestedAmount);
 					expect(vestingPosition.releasedAmount).to.equal(_amount.div(2));
-					expect(vestingPosition.beneficiary).to.equal(_beneficiary.address);
-					expect(vestingPosition.startTimestamp).to.equal(_startTimestamp);
-					expect(vestingPosition.cliffTimestamp).to.equal(_cliffTimestamp);
-					expect(vestingPosition.totalDuration).to.equal(_totalDuration);
+					expect(vestingPosition.beneficiary).to.equal(oldPosition.beneficiary);
+					expect(vestingPosition.cliffTimestamp).to.equal(oldPosition.cliffTimestamp);
+					expect(vestingPosition.vestingDuration).to.equal(oldPosition.vestingDuration);
 				});	
 			});
 
@@ -128,11 +101,29 @@ export function shouldBehaveLikeVesting(): void {
 					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidIndex');
 				});
 
-				it('should revert if releaseAmount is <= 0', async function () {
+				it('should revert if releaseAmount is == 0', async function () {
 					await expect(this.vesting.updateReleasedAmountPublic(0, 0))
 					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidReleaseAmount');
 				});
 
+				it('should revert if releaseAmount is > releasable amount before vesting period ended', async function () {
+					const oldPosition = await this.vesting.getVestingPosition(0);
+					await time.increaseTo(oldPosition.cliffTimestamp + oldPosition.vestingDuration / 3);
+					await expect(this.vesting.connect(_beneficiary).updateReleasedAmountPublic(0, _amount.div(2)))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidReleaseAmount');
+				});
+
+				it('should revert if releaseAmount is > releasable amount after vesting period ended', async function () {
+					await time.increase(_totalDuration);
+					await expect(this.vesting.connect(_beneficiary).updateReleasedAmountPublic(0, _amount.add(1)))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidReleaseAmount');
+				});
+
+				it('should revert if message signer is not benefitiary', async function () {
+					await time.increase(_totalDuration);
+					await expect(this.vesting.updateReleasedAmountPublic(0, _amount))
+					.to.be.revertedWithCustomError(this.vesting, 'VestingLib__InvalidSender');
+				});
 			});
 		})
 
@@ -149,13 +140,13 @@ export function shouldBehaveLikeVesting(): void {
 						compareVestedAmountCalculations = async () => {
 							const blockTimestamp = await time.latest();
 
-							const vestedAmountSol = await this.vesting.getVestedAmount(0);
+							const vestedAmountSol = await this.vesting.releasableAmount(0);
+							const position = await this.vesting.getVestingPosition(0);
 							const vestedAmountJs = calculateVestedAmountJs(
 								BigNumber.from(blockTimestamp),
-								_cliffTimestamp,
-								_startTimestamp,
-								BigNumber.from(_totalDuration),
-								_amount
+								BigNumber.from(position.cliffTimestamp),
+								BigNumber.from(position.vestingDuration),
+								BigNumber.from(position.totalVestedAmount)
 							);
 
 							assert(
@@ -190,7 +181,7 @@ export function shouldBehaveLikeVesting(): void {
 						await compareVestedAmountCalculations();
 						const vestedAmount = await this.vesting.getVestedAmount(0);
 						assert(
-							vestedAmount.gt(constants.Zero),
+							vestedAmount.eq(constants.Zero),
 							`vestedAmount: ${vestedAmount} == 0`
 						);
 					});
@@ -211,7 +202,7 @@ export function shouldBehaveLikeVesting(): void {
 					}
 
 					it(`Slightly before the end of vesting duration`, async function () {
-						const beforeEndOfVestingDuration = _totalDuration - ONE_DAY;
+						const beforeEndOfVestingDuration = _cliffDuration + _vestingDuration - ONE_DAY;
 
 						await time.increase(beforeEndOfVestingDuration);
 
@@ -267,11 +258,11 @@ export function shouldBehaveLikeVesting(): void {
 							const blockTimestamp = await time.latest();
 
 							const vestedAmountSol = await this.vesting.releasableAmount(0);
+							const position = await this.vesting.getVestingPosition(0);
 							const vestedAmountJs = calculateVestedAmountJs(
 								BigNumber.from(blockTimestamp),
-								_cliffTimestamp,
-								_startTimestamp,
-								BigNumber.from(_totalDuration),
+								BigNumber.from(position.cliffTimestamp),
+								BigNumber.from(position.vestingDuration),
 								amount
 							);
 
@@ -307,7 +298,7 @@ export function shouldBehaveLikeVesting(): void {
 						await compareVestedAmountCalculations();
 						const vestedAmount = await this.vesting.releasableAmount(0);
 						assert(
-							vestedAmount.gt(constants.Zero),
+							vestedAmount.eq(constants.Zero),
 							`vestedAmount: ${vestedAmount} == 0`
 						);
 					});
@@ -328,7 +319,7 @@ export function shouldBehaveLikeVesting(): void {
 					}
 
 					it(`Slightly before the end of vesting duration`, async function () {
-						const beforeEndOfVestingDuration = _totalDuration - ONE_DAY;
+						const beforeEndOfVestingDuration = _cliffDuration + _vestingDuration - ONE_DAY;
 
 						await time.increase(beforeEndOfVestingDuration);
 

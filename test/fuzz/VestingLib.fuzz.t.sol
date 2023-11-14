@@ -14,7 +14,6 @@ contract VestingLibFuzzTest is VestingLib, Test {
   VestingLibTest vestingLibTest;
   address beneficiary; 
   uint256 amount;
-  uint40 startTimestamp;
   uint32 cliffDuration;
   uint32 vestingDuration;
   VestingPosition vestingPosition;
@@ -22,29 +21,26 @@ contract VestingLibFuzzTest is VestingLib, Test {
   function setUp() public {
     amount = 133_000_000 * 10 ** 18;
     beneficiary = makeAddr("beneficiary");
-    startTimestamp = SafeCast.toUint40(block.timestamp);
     cliffDuration = SafeCast.toUint32(15638400); // @dev 6 month Wednesday, 1 July 1970 00:00:00
     vestingDuration = SafeCast.toUint32(44582400); // @dev 18 month Tuesday, 1 June 1971 00:00:00
     vestingLibTest = new VestingLibTest();
-    vestingPosition = vestingLibTest.createNewVestingPosition(amount, beneficiary, startTimestamp, cliffDuration, vestingDuration);
+    vestingPosition = vestingLibTest.createNewVestingPosition(amount, beneficiary, cliffDuration, vestingDuration);
   }
 
-  function testFuzz_createVestingPosition(uint256 _amount, address _beneficiary, uint40 _startTimestamp, uint32 _cliffDuration, uint32 _vestingDuration) external {
+  function testFuzz_createVestingPosition(uint256 _amount, address _beneficiary, uint32 _cliffDuration, uint32 _vestingDuration) external {
     vm.assume(_amount > 0);
     vm.assume(_beneficiary != address(0));
-    vm.assume(_startTimestamp >= block.timestamp);
     vm.assume(_cliffDuration > 0);
     vm.assume(_vestingDuration > 0);
     uint32 beforeIndex = index;
-    createVestingPosition(_amount, _beneficiary, _startTimestamp, _cliffDuration, _vestingDuration);
+    createVestingPosition(_amount, _beneficiary, _cliffDuration, _vestingDuration);
     uint32 afterIndex = index;
 
     assertEq(beforeIndex + 1, afterIndex);
   }
 
   function testFuzz_updateReleasedAmount(uint256 _releaseAmount) external {
-    vm.assume(_releaseAmount > 0);
-    vm.assume(_releaseAmount < amount);
+    _releaseAmount = bound(_releaseAmount, 1, amount);
     vm.warp(block.timestamp + cliffDuration + vestingDuration);
     vm.startPrank(vestingPosition.beneficiary); 
     uint256 beforeAmount = vestingPosition.releasedAmount;
