@@ -26,7 +26,7 @@ contract OfficialPoolsRegister is Ownable {
   * 
   * @param poolId_ to store
   */
-  function registerOfficialPool(bytes32 poolId_) internal onlyOwner {
+  function registerOfficialPool(bytes32 poolId_) external onlyOwner {
     if(isOfficialPoolRegistered[poolId_]) {
       revert OfficialPoolsRegister_InvalidPool();
     }
@@ -44,7 +44,7 @@ contract OfficialPoolsRegister is Ownable {
   *
   * @param poolIdIndex_ to delete
   */
-  function deregisterOfficialPool(uint256 poolIdIndex_) internal onlyOwner {
+  function deregisterOfficialPool(uint256 poolIdIndex_) external onlyOwner {
     uint256 officialPoolsSize = officialPoolsIds.length;
     if(poolIdIndex_ < 0 || poolIdIndex_ >= officialPoolsSize) {
         revert OfficialPoolsRegister_InvalidPool();
