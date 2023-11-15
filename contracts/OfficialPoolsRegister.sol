@@ -46,7 +46,7 @@ contract OfficialPoolsRegister is Ownable {
   */
   function deregisterOfficialPool(uint256 poolIdIndex_) external onlyOwner {
     uint256 officialPoolsSize = officialPoolsIds.length;
-    if(poolIdIndex_ < 0 || poolIdIndex_ >= officialPoolsSize) {
+    if(poolIdIndex_ >= officialPoolsSize) {
         revert OfficialPoolsRegister_InvalidPool();
     }
 
