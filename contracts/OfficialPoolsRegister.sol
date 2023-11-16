@@ -14,27 +14,35 @@ contract OfficialPoolsRegister is Ownable {
   
   event OfficialPoolRegistered(address indexed sender, bytes32 indexed poolId);
   event OfficalPoolDeregistered(address indexed sender, bytes32 indexed poolId);
-  
+
+  error OfficialPoolsRegister_MaxPools10(); 
   error OfficialPoolsRegister_InvalidPool();
 
   constructor(address newOwner_, address pendingOwner_) Ownable(newOwner_, pendingOwner_) {}
 
   /**
-  * @notice Store poolId in official pools array
+  * @notice Store array of poolId in official pools array
   *
   * @dev Only owner can call.
   * 
-  * @param poolId_ to store
+  * @param poolIds_ to store
   */
-  function registerOfficialPool(bytes32 poolId_) external onlyOwner {
-    if(isOfficialPoolRegistered[poolId_]) {
-      revert OfficialPoolsRegister_InvalidPool();
+  function registerOfficialPool(bytes32[] memory poolIds_) external onlyOwner {
+    uint256 size = poolIds_.length;
+    if(size > 10) {
+      revert OfficialPoolsRegister_MaxPools10();
     }
 
-    officialPoolsIds.push(poolId_);
-    isOfficialPoolRegistered[poolId_] = true;
-
-    emit OfficialPoolRegistered(msg.sender, poolId_);
+    for(uint256 i; i < size; i++) {
+        bytes32 poolId = poolIds_[i];
+        if(isOfficialPoolRegistered[poolId]) {
+            revert OfficialPoolsRegister_InvalidPool();
+        }
+        officialPoolsIds.push(poolId);
+        isOfficialPoolRegistered[poolId] = true;
+        
+        emit OfficialPoolRegistered(msg.sender, poolId);
+    }
   }
 
   /**
