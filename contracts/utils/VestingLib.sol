@@ -32,10 +32,10 @@ abstract contract VestingLib {
         address beneficiary;
         uint256 totalVestedAmount;
         uint256 releasedAmount;
-        uint48 startTimestamp; // ─╮
-        uint48 cliffTimestamp; //  │
-        uint32 totalDuration; //  ─╯
+        uint48 cliffTimestamp;
+        uint32 vestingDuration;
     }
+
     event NewVestingPosition (
         VestingPosition position,
         uint32 index
@@ -72,15 +72,15 @@ abstract contract VestingLib {
             vestedAmount_ = 0; // @dev reassiging to zero for clarity & better code readability
         } else if (
             block.timestamp >=
-            vestingPosition_.startTimestamp + vestingPosition_.totalDuration
+            vestingPosition_.cliffTimestamp + vestingPosition_.vestingDuration
         ) {
             vestedAmount_ = vestingPosition_.totalVestedAmount;
         } else {
             unchecked {
                 vestedAmount_ =
                     (vestingPosition_.totalVestedAmount *
-                        (block.timestamp - vestingPosition_.startTimestamp)) /
-                    vestingPosition_.totalDuration;
+                        (block.timestamp - vestingPosition_.cliffTimestamp)) /
+                    vestingPosition_.vestingDuration;
             }
         }
     }
@@ -88,26 +88,20 @@ abstract contract VestingLib {
     function createVestingPosition(
         uint256 amount,
         address beneficiary,
-        uint48 startTimestamp,
         uint32 cliffDuration,
         uint32 vestingDuration
     ) internal returns (VestingPosition memory) {
-        if (startTimestamp < block.timestamp)
-            revert VestingLib__StartTimestampMustNotBeInThePast();
-        if (cliffDuration <= 0) revert VestingLib__InvalidDuration();
-        if (vestingDuration <= 0) revert VestingLib__InvalidDuration();
+        if (cliffDuration == 0) revert VestingLib__InvalidDuration();
         if (beneficiary == address(0)) revert VestingLib__InvalidBeneficiary();
-        if (amount <= 0) revert VestingLib__InvalidVestingAmount();
+        if (amount == 0) revert VestingLib__InvalidVestingAmount();
 
-        uint48 cliffTimestamp = startTimestamp +
+        uint48 cliffTimestamp = SafeCast.toUint48(block.timestamp) +
             SafeCast.toUint48(cliffDuration);
-        uint32 totalDuration = cliffDuration + vestingDuration;
 
         vestingPositions[index].beneficiary = beneficiary;
         vestingPositions[index].totalVestedAmount = amount;
-        vestingPositions[index].startTimestamp = startTimestamp;
         vestingPositions[index].cliffTimestamp = cliffTimestamp;
-        vestingPositions[index].totalDuration = totalDuration;
+        vestingPositions[index].vestingDuration = vestingDuration;
 
         VestingPosition memory vestingPosition_ = vestingPositions[
             index
@@ -125,21 +119,17 @@ abstract contract VestingLib {
         uint32 vestingIndex,
         uint256 releaseAmount
     ) internal {
-        if (vestingIndex <= 0 || vestingIndex >= index) revert VestingLib__InvalidIndex();
-        if (releaseAmount <= 0) revert VestingLib__InvalidReleaseAmount();
+        if (vestingIndex >= index) revert VestingLib__InvalidIndex();
+        if (releaseAmount == 0) revert VestingLib__InvalidReleaseAmount();
+        if (releaseAmount > releasableAmount(vestingIndex)) revert VestingLib__InvalidReleaseAmount();
 
-        VestingPosition memory vestingPosition_ = vestingPositions[
+        VestingPosition storage vestingPosition_ = vestingPositions[
             vestingIndex
         ];
 
         if (vestingPosition_.beneficiary != msg.sender)
             revert VestingLib__InvalidSender();
 
-        uint256 totalReleasedAmount = vestingPosition_.releasedAmount + releaseAmount;
-
-        if (totalReleasedAmount > vestingPosition_.totalVestedAmount)
-            revert VestingLib__InvalidReleaseAmount();
-
-        vestingPositions[vestingIndex].releasedAmount = totalReleasedAmount;
+        vestingPosition_.releasedAmount += releaseAmount;
     }
 }

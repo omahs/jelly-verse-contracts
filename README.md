@@ -126,27 +126,11 @@ sequenceDiagram
 
 Tokens for Team members and Investors are linearly vested through Vesting and VestingJelly smart contract.
 
-```
-/**
- *  token amount
- *       ^
- *       |                           __________________
- *       |                          /
- *       |                         /
- *       |                        /
- *       |                       /
- *       |                      /
- *       | <----- cliff ----->
- *       |
- *       |
- *        --------------------.------.-------------------> time
- *                         vesting duration
- */
-```
+
 
 There is a set of Differential tests to confirm that the calculation for the vesting schedule is correct.
 
-![vesting](./assets/vesting.png)
+![vesting](./docs/VestingCliff.png)
 
 Team members and Investors can convert the portion or the whole amount of their vested tokens into Chest NFTs to gain voting power.
 
