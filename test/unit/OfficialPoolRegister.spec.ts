@@ -22,7 +22,8 @@ describe('OfficialPoolsRegister', function () {
   let owner: Signer;
   let pendingOwner: Signer;
   let otherSigners: Signer[];
-  const poolId = "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
+  const pool1Id = "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
+  const pool2Id = "0x8r23ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
 
   beforeEach(async function () {
     const fixture = await loadFixture(deployUnitFixture);
@@ -49,21 +50,27 @@ describe('OfficialPoolsRegister', function () {
 
   describe("#registerOfficialPool", async function () {
     describe("success", async () => {
-      it("should register pool successfully", async () => {
-        expect(officialPoolsRegister.registerOfficialPool(poolId))
+      it("should register pools", async () => {
+        const pools: string[] = [pool1Id, pool2Id];
+
+        for (const poolId of pools) {
+          expect(officialPoolsRegister.registerOfficialPool(pools))
           .to.emit(officialPoolsRegister, "OfficialPoolRegistered")
           .withArgs(await owner.getAddress(), poolId);
-  
-        const officialPoolsIds =
-          await officialPoolsRegister.getAllOfficialPools();
-        expect(officialPoolsIds[0], poolId);
+        }
+
+        const officialPoolsIds = await officialPoolsRegister.getAllOfficialPools();
+
+        for (const [i, pool] of pools.entries()) {
+          expect(officialPoolsIds[i], pool);
+        }
       });
     })
 
     describe("failure", async () => {
-      it("should revert on create the same pool", async () => {
+      it("should revert on register the same pool", async () => {
         expect(
-          officialPoolsRegister.registerOfficialPool(poolId),
+          officialPoolsRegister.registerOfficialPool(pool1Id),
         ).to.be.revertedWithCustomError(
           officialPoolsRegister,
           "OfficialPoolsRegister_InvalidPool",
@@ -74,7 +81,7 @@ describe('OfficialPoolsRegister', function () {
         expect(
           officialPoolsRegister
             .connect(otherSigners[0])
-            .registerOfficialPool(poolId),
+            .registerOfficialPool(pool1Id),
         ).to.be.revertedWithCustomError(
           officialPoolsRegister,
           "Ownable__CallerIsNotOwner",
@@ -88,7 +95,7 @@ describe('OfficialPoolsRegister', function () {
       it("should emit event", async () => {
         expect(officialPoolsRegister.deregisterOfficialPool(0))
           .to.emit(officialPoolsRegister, "OfficalPoolDeregistered")
-          .withArgs(await owner.getAddress(), poolId);
+          .withArgs(await owner.getAddress(), pool1Id);
 
 
         const officialPoolsIds =
