@@ -94,7 +94,7 @@ describe('OfficialPoolsRegister', function () {
     describe("success", async () => {
       it("should emit event", async () => {
         expect(officialPoolsRegister.deregisterOfficialPool(0))
-          .to.emit(officialPoolsRegister, "OfficalPoolDeregistered")
+          .to.emit(officialPoolsRegister, "OfficialPoolDeregistered")
           .withArgs(await owner.getAddress(), pool1Id);
 
 

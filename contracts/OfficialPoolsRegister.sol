@@ -13,7 +13,7 @@ contract OfficialPoolsRegister is Ownable {
   mapping(bytes32 => bool) private isOfficialPoolRegistered;
   
   event OfficialPoolRegistered(address indexed sender, bytes32 indexed poolId);
-  event OfficalPoolDeregistered(address indexed sender, bytes32 indexed poolId);
+  event OfficialPoolDeregistered(address indexed sender, bytes32 indexed poolId);
 
   error OfficialPoolsRegister_MaxPools10(); 
   error OfficialPoolsRegister_InvalidPool();
@@ -64,7 +64,7 @@ contract OfficialPoolsRegister is Ownable {
     officialPoolsIds[poolIdIndex_] = officialPoolsIds[officialPoolsSize - 1];
     officialPoolsIds.pop();
     
-    emit OfficalPoolDeregistered(msg.sender, poolIdToDelete);
+    emit OfficialPoolDeregistered(msg.sender, poolIdToDelete);
   }
 
   /**
