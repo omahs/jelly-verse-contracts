@@ -48,14 +48,6 @@ contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Go
         return super.state(proposalId);
     }
 
-    function proposalNeedsQueuing(uint256 proposalId)
-        public
-        view
-        returns (bool)
-    {
-        return super.proposalNeedsQueuing(proposalId);
-    }
-
     function proposalThreshold()
         public
         view
@@ -63,19 +55,6 @@ contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Go
         returns (uint256)
     {
         return super.proposalThreshold();
-    }
-
-    function _queueOperations(uint256 proposalId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
-        internal
-        returns (uint48)
-    {
-        return super._queueOperations(proposalId, targets, values, calldatas, descriptionHash);
-    }
-
-    function _executeOperations(uint256 proposalId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
-        internal
-    {
-        super._executeOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     function _cancel(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
@@ -94,4 +73,24 @@ contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Go
     {
         return super._executor();
     }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(Governor, GovernorTimelockControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
+    function _execute(
+        uint256 proposalId,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        bytes32 descriptionHash
+    ) internal override(Governor, GovernorTimelockControl) {
+        super._execute(proposalId, targets, values, calldatas, descriptionHash);
+    }
+
 }
