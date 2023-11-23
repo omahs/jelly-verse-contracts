@@ -21,3 +21,5 @@ runs = 1000
 [profile.testing.invariant]
 depth = 100
 runs = 1000
+
+gas_reports = ["Chest"]
