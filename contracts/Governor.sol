@@ -3,16 +3,17 @@
 
 pragma solidity ^0.8.0;
 
-import "../token/ERC721/IERC721Receiver.sol";
-import "../token/ERC1155/IERC1155Receiver.sol";
-import "../utils/cryptography/ECDSA.sol";
-import "../utils/cryptography/EIP712.sol";
-import "../utils/introspection/ERC165.sol";
-import "../utils/math/SafeCast.sol";
-import "../utils/structs/DoubleEndedQueue.sol";
-import "../utils/Address.sol";
-import "../utils/Context.sol";
-import "./IGovernor.sol";
+import "./vendor/openzeppelin/v4.9.0/token/ERC721/IERC721Receiver.sol";
+import "./vendor/openzeppelin/v4.9.0/token/ERC1155/IERC1155Receiver.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/cryptography/ECDSA.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/cryptography/EIP712.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/introspection/ERC165.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/structs/DoubleEndedQueue.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/Address.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/Context.sol";
+import "./vendor/openzeppelin/v4.9.0/governance/IGovernor.sol";
+import "./IChest.sol";
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
@@ -37,6 +38,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
         // --- start retyped from Timers.BlockNumber at offset 0x00 ---
         uint64 voteStart;
         address proposer;
+        uint256 finalChestId;
         bytes4 __gap_unused0;
         // --- start retyped from Timers.BlockNumber at offset 0x20 ---
         uint64 voteEnd;
@@ -46,8 +48,10 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
         bool canceled;
     }
     // solhint-enable var-name-mixedcase
+    
 
     string private _name;
+    IChest private immutable _chest;
 
     /// @custom:oz-retyped-from mapping(uint256 => Governor.ProposalCore)
     mapping(uint256 => ProposalCore) private _proposals;
@@ -81,8 +85,9 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
     /**
      * @dev Sets the value for {name} and {version}
      */
-    constructor(string memory name_) EIP712(name_, version()) {
+    constructor(string memory name_, address chest_) EIP712(name_, version()) {
         _name = name_;
+        _chest = IChest(chest_);
     }
 
     /**
@@ -279,7 +284,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
             getVotes(proposer, currentTimepoint - 1) >= proposalThreshold(),
             "Governor: proposer votes below proposal threshold"
         );
-
+        uint256 lastChestId = _chest.getLastIndex();
         uint256 proposalId = hashProposal(targets, values, calldatas, keccak256(bytes(description)));
 
         require(targets.length == values.length, "Governor: invalid proposal length");
@@ -292,6 +297,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
 
         _proposals[proposalId] = ProposalCore({
             proposer: proposer,
+            finalChestId: lastChestId,
             voteStart: SafeCast.toUint64(snapshot),
             voteEnd: SafeCast.toUint64(deadline),
             executed: false,

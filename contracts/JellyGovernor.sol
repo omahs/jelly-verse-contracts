@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./vendor/openzeppelin/v4.9.0/governance/Governor.sol";
-import "./vendor/openzeppelin/v4.9.0/governance/extensions/GovernorSettings.sol";
-import "./vendor/openzeppelin/v4.9.0/governance/extensions/GovernorCountingSimple.sol";
-import "./vendor/openzeppelin/v4.9.0/governance/extensions/GovernorVotes.sol";
-import "./vendor/openzeppelin/v4.9.0/governance/extensions/GovernorTimelockControl.sol";
+import "./Governor.sol";
+import "./extensions/GovernorSettings.sol";
+import "./extensions/GovernorCountingSimple.sol";
+import "./GovernorVotes.sol";
+import "./extensions/GovernorTimelockControl.sol";
+import "./IChest.sol";
 
 contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorTimelockControl {
-    constructor(IVotes _token, TimelockController _timelock)
-        Governor("JellyGovernor")
+    constructor(address _chest, TimelockController _timelock)
+        Governor("JellyGovernor", _chest)
         GovernorSettings(7200 /* 1 day */, 50400 /* 1 week */, 0)
-        GovernorVotes(_token)
+        GovernorVotes(_chest)
         GovernorTimelockControl(_timelock)
     {}
 

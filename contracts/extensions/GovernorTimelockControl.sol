@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./IGovernorTimelock.sol";
+import "../vendor/openzeppelin/v4.9.0/governance/extensions/IGovernorTimelock.sol";
 import "../Governor.sol";
 import "../TimelockController.sol";
 

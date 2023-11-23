@@ -3,9 +3,9 @@
 
 pragma solidity ^0.8.0;
 
-import "../access/AccessControl.sol";
-import "../token/ERC721/IERC721Receiver.sol";
-import "../token/ERC1155/IERC1155Receiver.sol";
+import "./vendor/openzeppelin/v4.9.0/access/AccessControl.sol";
+import "./vendor/openzeppelin/v4.9.0/token/ERC721/IERC721Receiver.sol";
+import "./vendor/openzeppelin/v4.9.0/token/ERC1155/IERC1155Receiver.sol";
 
 /**
  * @dev Contract module which acts as a timelocked controller. When set as the
