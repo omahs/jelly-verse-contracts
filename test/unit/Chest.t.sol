@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 import {Test} from "forge-std/Test.sol";
 import {Chest} from "../../contracts/Chest.sol";
 import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
-import "forge-std/console.sol";
 
 // TO-ADD:
 // - tests specific for releaseableAmount in both cases
@@ -174,7 +173,7 @@ contract ChestTest is Test {
 
     function test_stakeZeroFreezingTime() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = 0;
+        uint32 freezingPeriod = 0; // @dev assigning to zero for clarity & better code readability
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount);
@@ -376,7 +375,7 @@ contract ChestTest is Test {
 
     // Regular chest increase stake tests
     function test_increaseStakeIncreaseStakingAmount() external openPosition {
-        uint256 positionIndex = 0;
+        uint256 positionIndex = 0; // @dev assigning to zero for clarity & better code readability
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
@@ -904,6 +903,7 @@ contract ChestTest is Test {
         uint256 unstakeAmount = 50;
 
         vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+
         vm.prank(testAddress);
         chest.unstake(positionIndex, unstakeAmount);
 
@@ -941,18 +941,139 @@ contract ChestTest is Test {
         );
     }
 
-    function test_unstakeApprovedAddress() external {} // TO-DO
+    function test_unstakeApprovedAddress() external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
 
-    function test_unstakeEmitsUnstakeEvent() external {} // TO-DO
+        uint256 balanceBeforeAccount = jellyToken.balanceOf(approvedAddress);
+        uint256 balanceBeforeChest = jellyToken.balanceOf(address(chest));
 
-    function test_unstakeNotAuthorizedForToken() external {} // TO-DO
+        uint256 unstakeAmount = 50;
 
-    function test_unstakeNothingToUnstake() external {} // TO-DO
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
 
-    function test_unstakeCannotUnstakeMoreThanReleasable() external {} // TO-DO
+        vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+
+        vm.prank(approvedAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+
+        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+
+        assertEq(
+            jellyToken.balanceOf(approvedAddress),
+            balanceBeforeAccount + unstakeAmount
+        );
+
+        assertEq(
+            jellyToken.balanceOf(address(chest)),
+            balanceBeforeChest - unstakeAmount
+        );
+    }
+
+    function test_unstakeEmitsUnstakeEvent() external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 totalVestedAmountBefore = vestingPosition.totalVestedAmount;
+
+        uint256 unstakeAmount = 50;
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        vm.expectEmit(true, false, false, true, address(chest));
+        emit Unstake(
+            positionIndex,
+            unstakeAmount,
+            totalVestedAmountBefore - unstakeAmount
+        );
+
+        vm.prank(testAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function test_unstakeNotAuthorizedForToken() external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 unstakeAmount = 50;
+
+        vm.prank(nonApprovedAddress);
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        vm.expectRevert(Chest__NotAuthorizedForToken.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function test_unstakeNothingToUnstake() external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 unstakeAmount = 50;
+
+        vm.warp(vestingPosition.cliffTimestamp - 1);
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        unstakeAmount = 0;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function test_unstakeCannotUnstakeMoreThanReleasable()
+        external
+        openPosition
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 unstakeAmount = vestingPosition.totalVestedAmount + 1;
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__CannotUnstakeMoreThanReleasable.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
 
     // Special chest unstake tests
-    function test_unstakeSpecialChest() external openSpecialPosition {}
+    function test_unstakeSpecialChest() external openSpecialPosition {} // TO-DO
 
     function test_unstakeSpecialChestApprovedAddress()
         external

@@ -278,7 +278,7 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         uint256 releasableAmount = releasableAmount(tokenId_);
 
         // shall we use updateReleasedAmount method here?
-        if (releasableAmount == 0) {
+        if (releasableAmount == 0 || amount == 0) {
             revert Chest__NothingToUnstake();
         }
 
