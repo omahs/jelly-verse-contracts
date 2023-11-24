@@ -27,7 +27,7 @@ interface IChest {
      * @dev Returns the amount of votes that `account` had at a specific moment in the past. If the `clock()` is
      * configured to use block numbers, this will return the value at the end of the corresponding block.
      */
-    function getLastIndex() external view returns (uint256);
+    function totalSupply() external view returns (uint256);
 
     /**
      * @dev Returns the total supply of votes available at a specific moment in the past. If the `clock()` is

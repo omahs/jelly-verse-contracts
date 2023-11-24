@@ -297,7 +297,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
             getVotes(proposer, currentTimepoint - 1) >= proposalThreshold(),
             "Governor: proposer votes below proposal threshold"
         );
-        uint256 lastChestId = _chest.getLastIndex();
+        uint256 lastChestId = _chest.totalSupply() - 1;
         uint256 proposalId = hashProposal(targets, values, calldatas, keccak256(bytes(description)));
 
         require(targets.length == values.length, "Governor: invalid proposal length");
@@ -351,7 +351,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
             getVotes(proposer, currentTimepoint - 1) >= proposalThreshold(),
             "Governor: proposer votes below proposal threshold"
         );
-        uint256 lastChestId = _chest.getLastIndex();
+        uint256 lastChestId = _chest.totalSupply() - 1;
         uint256 proposalId = hashProposal(targets, values, calldatas, keccak256(bytes(description)));
 
         require(targets.length == values.length, "Governor: invalid proposal length");
