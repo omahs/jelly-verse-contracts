@@ -51,6 +51,8 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
     
 
     string private _name;
+    uint48 private _minVotingDelay;
+    uint48 private _minVotingPeriod;
     IChest private immutable _chest;
 
     /// @custom:oz-retyped-from mapping(uint256 => Governor.ProposalCore)
@@ -85,8 +87,15 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
     /**
      * @dev Sets the value for {name} and {version}
      */
-    constructor(string memory name_, address chest_) EIP712(name_, version()) {
+    constructor(
+        string memory name_,
+        address chest_, 
+        uint48 minVotingDelay_,
+        uint48 minVotingPeriod_
+        ) EIP712(name_, version()) {
         _name = name_;
+        _minVotingDelay = minVotingDelay_;
+        _minVotingPeriod = minVotingPeriod_;
         _chest = IChest(chest_);
     }
 
@@ -265,6 +274,64 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
      */
     function _defaultParams() internal view virtual returns (bytes memory) {
         return "";
+    }
+
+    /**
+     * @dev See {IGovernor-propose}. This function has opt-in frontrunning protection, described in {_isValidDescriptionForProposer}.
+     */
+    function proposeCustom(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        string memory description,
+        uint48 votingDelay,
+        uint48 votingPeriod
+    ) public virtual returns (uint256) {
+        require(votingDelay >= _minVotingDelay, "Governor: voting delay must exceed minimum voting delay");
+        require(votingPeriod >= _minVotingPeriod, "Governor: voting period must exceed minimum voting period");
+        address proposer = _msgSender();
+        require(_isValidDescriptionForProposer(proposer, description), "Governor: proposer restricted");
+
+        uint256 currentTimepoint = clock();
+        require(
+            getVotes(proposer, currentTimepoint - 1) >= proposalThreshold(),
+            "Governor: proposer votes below proposal threshold"
+        );
+        uint256 lastChestId = _chest.getLastIndex();
+        uint256 proposalId = hashProposal(targets, values, calldatas, keccak256(bytes(description)));
+
+        require(targets.length == values.length, "Governor: invalid proposal length");
+        require(targets.length == calldatas.length, "Governor: invalid proposal length");
+        require(targets.length > 0, "Governor: empty proposal");
+        require(_proposals[proposalId].voteStart == 0, "Governor: proposal already exists");
+
+        uint64 snapshot = SafeCast.toUint64(currentTimepoint) + SafeCast.toUint64(votingDelay);
+        uint64 deadline = SafeCast.toUint64(snapshot) + SafeCast.toUint64(votingPeriod);
+
+        _proposals[proposalId] = ProposalCore({
+            proposer: proposer,
+            finalChestId: lastChestId,
+            voteStart: snapshot,
+            voteEnd: deadline,
+            executed: false,
+            canceled: false,
+            __gap_unused0: 0,
+            __gap_unused1: 0
+        });
+
+        emit ProposalCreated(
+            proposalId,
+            proposer,
+            targets,
+            values,
+            new string[](targets.length),
+            calldatas,
+            snapshot,
+            deadline,
+            description
+        );
+
+        return proposalId;
     }
 
     /**

@@ -10,7 +10,7 @@ import "./IChest.sol";
 
 contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorTimelockControl {
     constructor(address _chest, TimelockController _timelock)
-        Governor("JellyGovernor", _chest)
+        Governor("JellyGovernor", _chest, 300 /* 1 hour */, 7200 /* 1 day */)
         GovernorSettings(7200 /* 1 day */, 50400 /* 1 week */, 0)
         GovernorVotes(_chest)
         GovernorTimelockControl(_timelock)
