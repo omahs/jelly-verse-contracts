@@ -37,7 +37,7 @@ abstract contract VestingLib {
     }
 
     event NewVestingPosition(VestingPosition position, uint256 index);
-
+    // changed from uint32 to uint256
     mapping(uint256 => VestingPosition) internal vestingPositions;
 
     error VestingLib__StartTimestampMustNotBeInThePast();

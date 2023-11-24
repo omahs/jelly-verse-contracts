@@ -16,6 +16,8 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 constant MIN_STAKING_AMOUNT = 100; // change to real value if there is minimum
+    uint256 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
+    uint256 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
 
     string constant BASE_SVG =
         "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 32.100672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
@@ -61,6 +63,7 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
     error Chest__InvalidStakingAmount();
     error Chest__NotAuthorizedForSpecial();
     error Chest__NothingToIncrease();
+    error Chest__InvalidFreezingPeriod();
     error Chest__NonTransferrableToken();
     error Chest__NotAuthorizedForToken();
     error Chest__FreezingPeriodNotOver();
@@ -148,7 +151,9 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
             ++tokenId;
         }
         // should user in event be beneficiary or msg.sender?
-        emit Staked(msg.sender, currentTokenId, amount, cliffTimestamp, 0);
+        // changed to beneficiary, makes more sense imo
+        // beneficiary != msg.sender  double check with frontend
+        emit Staked(beneficiary, currentTokenId, amount, cliffTimestamp, 0);
     }
 
     /**
@@ -198,7 +203,7 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         }
 
         emit Staked(
-            msg.sender,
+            beneficiary,
             currentTokenId,
             amount,
             cliffTimestamp,
@@ -223,13 +228,21 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         if (amount == 0 && freezingPeriod == 0)
             revert Chest__NothingToIncrease();
 
+        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
+
+        if (vestingPosition.vestingDuration == 0) {
+            if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
+                revert Chest__InvalidFreezingPeriod();
+        } else {
+            if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST)
+                revert Chest__InvalidFreezingPeriod();
+        }
+
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
             address(this),
             amount
         );
-
-        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
 
         uint256 newTotalStaked = vestingPosition.totalVestedAmount + amount;
         uint48 newCliffTimestamp = vestingPosition.cliffTimestamp +
@@ -283,6 +296,14 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
 
         emit Unstake(tokenId_, amount, newTotalStaked);
     }
+
+    function calculateBooster(
+        uint256 _tokenId
+    ) public view returns (uint256 booster) {} // TO-DO
+
+    function getChestPower(
+        uint256 _tokenId
+    ) external view returns (uint256 power) {} // TO-DO
 
     /**
      * @dev Retrieves the vesting position at the specified index.

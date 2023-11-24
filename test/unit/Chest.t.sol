@@ -6,7 +6,16 @@ import {Chest} from "../../contracts/Chest.sol";
 import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 import "forge-std/console.sol";
 
+// TO-ADD:
+// - tests specific for releaseableAmount in both cases
+
 contract ChestTest is Test {
+    uint256 constant MIN_STAKING_AMOUNT = 100; // change to real value if there is minimum
+    uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
+    uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
+
+    address immutable deployerAddress;
+
     address allocator = makeAddr("allocator"); // replace with mock
     address distributor = makeAddr("distributor"); // replace with mock
     address testAddress = makeAddr("testAddress");
@@ -38,14 +47,17 @@ contract ChestTest is Test {
     error Chest__InvalidStakingAmount();
     error Chest__NotAuthorizedForSpecial();
     error Chest__NothingToIncrease();
+    error Chest__InvalidFreezingPeriod();
     error Chest__NonTransferrableToken();
     error Chest__NotAuthorizedForToken();
     error Chest__FreezingPeriodNotOver();
     error Chest__CannotUnstakeMoreThanReleasable();
     error Chest__NothingToUnstake();
 
+    error Ownable__CallerIsNotOwner();
+
     modifier openPosition() {
-        uint256 amount = 100;
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
@@ -55,6 +67,29 @@ contract ChestTest is Test {
 
         vm.stopPrank();
         _;
+    }
+
+    modifier openSpecialPosition() {
+        uint256 amount = MIN_STAKING_AMOUNT;
+        uint32 freezingPeriod = 1000;
+        uint32 vestingDuration = 1000;
+
+        vm.startPrank(allocator);
+        jellyToken.approve(address(chest), amount);
+
+        chest.stakeSpecial(
+            amount,
+            testAddress,
+            freezingPeriod,
+            vestingDuration
+        );
+
+        vm.stopPrank();
+        _;
+    }
+
+    constructor() {
+        deployerAddress = msg.sender;
     }
 
     function setUp() public {
@@ -104,8 +139,9 @@ contract ChestTest is Test {
         assertEq(chest.totalSupply(), 0);
     }
 
-    function test_stakeRegularChest() external {
-        uint256 amount = 100;
+    // Regular chest stake tests
+    function test_stake() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
@@ -136,8 +172,8 @@ contract ChestTest is Test {
         assertEq(releasableAmount, 0);
     }
 
-    function test_stakeRegularChestZeroFreezingTime() external {
-        uint256 amount = 100;
+    function test_stakeZeroFreezingTime() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 0;
 
         vm.startPrank(testAddress);
@@ -161,8 +197,8 @@ contract ChestTest is Test {
         assertEq(releasableAmount, amount);
     }
 
-    function test_stakeRegularChestEmitsStakedEvent() external {
-        uint256 amount = 100;
+    function test_stakeEmitsStakedEvent() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
@@ -182,8 +218,8 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
-    function test_stakeRegularChestInvalidStakingAmount() external {
-        uint256 amount = 0;
+    function test_stakeInvalidStakingAmount() external {
+        uint256 amount = MIN_STAKING_AMOUNT - 1;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
@@ -195,8 +231,8 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
-    function test_stakeRegularChestInvalidBeneficiary() external {
-        uint256 amount = 100;
+    function test_stakeZeroAddress() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
@@ -208,9 +244,9 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
-    // add checks for releaseable amount at some random time after freezing is over and vesting started
-    function test_stakeSpecialChest() external {
-        uint256 amount = 100;
+    // Special chest stake tests
+    function test_stakeSpecial() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
@@ -247,8 +283,8 @@ contract ChestTest is Test {
         assertEq(releasableAmount, 0);
     }
 
-    function test_stakeSpecialChestZeroFreezingTime() external {
-        uint256 amount = 100;
+    function test_stakeSpecialZeroFreezingTime() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 0;
         uint32 vestingDuration = 1000;
 
@@ -278,8 +314,8 @@ contract ChestTest is Test {
         assertEq(releasableAmount, amount);
     }
 
-    function test_stakeSpecialChestEmitsStakedEvent() external {
-        uint256 amount = 100;
+    function test_stakeSpecialEmitsStakedEvent() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
@@ -288,7 +324,7 @@ contract ChestTest is Test {
 
         vm.expectEmit(true, true, false, true, address(chest));
         emit Staked(
-            allocator,
+            testAddress,
             0,
             amount,
             block.timestamp + freezingPeriod,
@@ -305,8 +341,8 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
-    function test_stakeSpecialChestInvalidStakingAmount() external {
-        uint256 amount = 0;
+    function test_stakeSpecialInvalidStakingAmount() external {
+        uint256 amount = MIN_STAKING_AMOUNT - 1;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
@@ -324,8 +360,8 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
-    function test_stakeSpecialChestZeroAddress() external {
-        uint256 amount = 100;
+    function test_stakeSpecialZeroAddress() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
@@ -338,6 +374,7 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
+    // Regular chest increase stake tests
     function test_increaseStakeIncreaseStakingAmount() external openPosition {
         uint256 positionIndex = 0;
         Chest.VestingPosition memory vestingPositionBefore = chest
@@ -571,7 +608,338 @@ contract ChestTest is Test {
         );
     }
 
-    function test_unstake() external openPosition {}
+    function test_increaseStakeInvalidFreezingPeriod() external openPosition {
+        uint256 positionIndex = 0;
+
+        uint256 increaseAmountFor = 0;
+        uint32 increaseFreezingPeriodFor = MAX_FREEZING_PERIOD_REGULAR_CHEST +
+            1;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    // Special chest increase stake tests
+    function test_increaseStakeSpecialChestIncreaseStakingAmount()
+        external
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 increaseAmountFor = 50;
+        uint32 increaseFreezingPeriodFor = 0;
+
+        vm.startPrank(testAddress);
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        vm.stopPrank();
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount + increaseAmountFor
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+    }
+
+    function test_increaseStakeSpecialChestIncreaseFreezingPeriod()
+        external
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 increaseAmountFor = 0;
+        uint32 increaseFreezingPeriodFor = 50;
+
+        vm.prank(testAddress);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+    }
+
+    function test_increaseStakeSpecialChestIncreaseStakingAmountApprovedAddress()
+        external
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 increaseAmountFor = 50;
+        uint32 increaseFreezingPeriodFor = 0;
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.startPrank(approvedAddress);
+
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        vm.stopPrank();
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount + increaseAmountFor
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+    }
+
+    function test_increaseStakeSpecialChestIncreaseFreezingPeriodApprovedAddress()
+        external
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 increaseAmountFor = 0;
+        uint32 increaseFreezingPeriodFor = 50;
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.prank(approvedAddress);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+    }
+
+    function test_increaseStakeSpecialChestEmitsIncreaseStakeEvent()
+        external
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+
+        uint256 increaseAmountFor = 50;
+        uint32 increaseFreezingPeriodFor = 50;
+
+        uint256 totalVestedAmountBefore = chest
+            .getVestingPosition(positionIndex)
+            .totalVestedAmount;
+
+        uint256 cliffTimestampBefore = chest
+            .getVestingPosition(positionIndex)
+            .cliffTimestamp;
+
+        vm.startPrank(testAddress);
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        vm.expectEmit(true, false, false, true, address(chest));
+        emit IncreaseStake(
+            positionIndex,
+            totalVestedAmountBefore + increaseAmountFor,
+            cliffTimestampBefore + increaseFreezingPeriodFor
+        );
+
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_increaseStakeSpecialChestNotAuthorizedForToken()
+        external
+        openSpecialPosition
+    {
+        uint positionIndex = 0;
+
+        uint256 increaseAmountFor = 50;
+        uint32 increaseFreezingPeriodFor = 0;
+
+        vm.prank(nonApprovedAddress);
+
+        vm.expectRevert(Chest__NotAuthorizedForToken.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    function test_increaseStakeSpecialChestNothingToIncrease()
+        external
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+
+        uint256 increaseAmountFor = 0;
+        uint32 increaseFreezingPeriodFor = 0;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToIncrease.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    function test_increaseStakeSpecialChestInvalidFreezingPeriod()
+        external
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+
+        uint256 increaseAmountFor = 0;
+        uint32 increaseFreezingPeriodFor = MAX_FREEZING_PERIOD_SPECIAL_CHEST +
+            1;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    // Regular chest unstake tests
+    function test_unstake() external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 balanceBeforeAccount = jellyToken.balanceOf(testAddress);
+        uint256 balanceBeforeChest = jellyToken.balanceOf(address(chest));
+
+        uint256 unstakeAmount = 50;
+
+        vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+        vm.prank(testAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+
+        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+
+        assertEq(
+            jellyToken.balanceOf(testAddress),
+            balanceBeforeAccount + unstakeAmount
+        );
+
+        assertEq(
+            jellyToken.balanceOf(address(chest)),
+            balanceBeforeChest - unstakeAmount
+        );
+    }
 
     function test_unstakeApprovedAddress() external {} // TO-DO
 
@@ -583,9 +951,60 @@ contract ChestTest is Test {
 
     function test_unstakeCannotUnstakeMoreThanReleasable() external {} // TO-DO
 
-    function test_setFee() external {} // TO-DO
+    // Special chest unstake tests
+    function test_unstakeSpecialChest() external openSpecialPosition {}
 
-    function test_setFeeEmitsSetFeeEvent() external {} // TO-DO
+    function test_unstakeSpecialChestApprovedAddress()
+        external
+        openSpecialPosition
+    {} // TO-DO
 
-    function test_setFeeCallerIsNotOwner() external {} // TO-DO
+    function test_unstakeSpecialChestEmitsUnstakeEvent()
+        external
+        openSpecialPosition
+    {} // TO-DO
+
+    function test_unstakeSpecialChestNotAuthorizedForToken()
+        external
+        openSpecialPosition
+    {} // TO-DO
+
+    function test_unstakeSpecialChestNothingToUnstake()
+        external
+        openSpecialPosition
+    {} // TO-DO
+
+    function test_unstakeSpecialChestCannotUnstakeMoreThanReleasable()
+        external
+        openSpecialPosition
+    {} // TO-DO
+
+    function test_setFee() external {
+        uint256 newFee = 100;
+
+        vm.prank(deployerAddress);
+        chest.setFee(newFee);
+
+        assertEq(chest.fee(), newFee);
+    }
+
+    function test_setFeeEmitsSetFeeEvent() external {
+        uint256 newFee = 100;
+
+        vm.prank(deployerAddress);
+
+        vm.expectEmit(false, false, false, true, address(chest));
+        emit SetFee(newFee);
+
+        chest.setFee(newFee);
+    }
+
+    function test_setFeeCallerIsNotOwner() external {
+        uint256 newFee = 100;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Ownable__CallerIsNotOwner.selector);
+
+        chest.setFee(newFee);
+    }
 }
