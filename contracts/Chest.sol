@@ -297,13 +297,36 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         emit Unstake(tokenId_, amount, newTotalStaked);
     }
 
+    /**
+     * @notice Calculates the booster of the chest.
+     *
+     * @param tokenId_ - id of the chest.
+     *
+     * @return booster - booster of the chest.
+     */
     function calculateBooster(
-        uint256 _tokenId
+        uint256 tokenId_
     ) public view returns (uint256 booster) {} // TO-DO
 
+    /**
+     * @notice Calculates the voting power of the chest.
+     *
+     * @param tokenId_ - id of the chest.
+     *
+     * @return power - voting power of the chest.
+     */
     function getChestPower(
-        uint256 _tokenId
+        uint256 tokenId_
     ) external view returns (uint256 power) {} // TO-DO
+
+    /**
+     * @notice Calculates the voting power of all account's chests.
+     *
+     * @param account - address of the account.
+     *
+     * @return power - voting power of the account.
+     */
+    function getVotingPower(address account) external view returns (uint256) {} // TO-DO
 
     /**
      * @dev Retrieves the vesting position at the specified index.

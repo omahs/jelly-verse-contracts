@@ -1024,9 +1024,9 @@ contract ChestTest is Test {
 
         uint256 unstakeAmount = 50;
 
-        vm.prank(nonApprovedAddress);
         vm.warp(vestingPosition.cliffTimestamp + 1);
 
+        vm.prank(nonApprovedAddress);
         vm.expectRevert(Chest__NotAuthorizedForToken.selector);
         chest.unstake(positionIndex, unstakeAmount);
     }
@@ -1073,32 +1073,207 @@ contract ChestTest is Test {
     }
 
     // Special chest unstake tests
-    function test_unstakeSpecialChest() external openSpecialPosition {} // TO-DO
+    function test_unstakeSpecialChest() external openSpecialPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 balanceBeforeAccount = jellyToken.balanceOf(testAddress);
+        uint256 balanceBeforeChest = jellyToken.balanceOf(address(chest));
+
+        uint256 unstakeAmount = 50;
+
+        vm.warp(
+            vestingPositionBefore.cliffTimestamp +
+                vestingPositionBefore.vestingDuration
+        );
+
+        vm.prank(testAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+
+        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+
+        assertEq(
+            jellyToken.balanceOf(testAddress),
+            balanceBeforeAccount + unstakeAmount
+        );
+
+        assertEq(
+            jellyToken.balanceOf(address(chest)),
+            balanceBeforeChest - unstakeAmount
+        );
+    }
 
     function test_unstakeSpecialChestApprovedAddress()
         external
         openSpecialPosition
-    {} // TO-DO
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 balanceBeforeAccount = jellyToken.balanceOf(approvedAddress);
+        uint256 balanceBeforeChest = jellyToken.balanceOf(address(chest));
+
+        uint256 unstakeAmount = 50;
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.warp(
+            vestingPositionBefore.cliffTimestamp +
+                vestingPositionBefore.vestingDuration
+        );
+
+        vm.prank(approvedAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        assertEq(
+            vestingPositionAfter.beneficiary,
+            vestingPositionBefore.beneficiary
+        );
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+
+        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+
+        assertEq(
+            jellyToken.balanceOf(approvedAddress),
+            balanceBeforeAccount + unstakeAmount
+        );
+
+        assertEq(
+            jellyToken.balanceOf(address(chest)),
+            balanceBeforeChest - unstakeAmount
+        );
+    }
 
     function test_unstakeSpecialChestEmitsUnstakeEvent()
         external
         openSpecialPosition
-    {} // TO-DO
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 totalVestedAmountBefore = vestingPosition.totalVestedAmount;
+
+        uint256 unstakeAmount = 50;
+
+        vm.warp(
+            vestingPosition.cliffTimestamp + vestingPosition.vestingDuration
+        );
+
+        vm.expectEmit(true, false, false, true, address(chest));
+        emit Unstake(
+            positionIndex,
+            unstakeAmount,
+            totalVestedAmountBefore - unstakeAmount
+        );
+
+        vm.prank(testAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
 
     function test_unstakeSpecialChestNotAuthorizedForToken()
         external
         openSpecialPosition
-    {} // TO-DO
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 unstakeAmount = 50;
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        vm.prank(nonApprovedAddress);
+        vm.expectRevert(Chest__NotAuthorizedForToken.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
 
     function test_unstakeSpecialChestNothingToUnstake()
         external
         openSpecialPosition
-    {} // TO-DO
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 unstakeAmount = 50;
+
+        vm.warp(vestingPosition.cliffTimestamp - 1);
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        unstakeAmount = 0;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
 
     function test_unstakeSpecialChestCannotUnstakeMoreThanReleasable()
         external
         openSpecialPosition
-    {} // TO-DO
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        uint256 unstakeAmount = vestingPosition.totalVestedAmount + 1;
+
+        vm.warp(
+            vestingPosition.cliffTimestamp + vestingPosition.vestingDuration
+        );
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__CannotUnstakeMoreThanReleasable.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
 
     function test_setFee() external {
         uint256 newFee = 100;
