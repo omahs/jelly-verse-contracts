@@ -6,6 +6,7 @@ import {Chest} from "../../contracts/Chest.sol";
 import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 
 // TO-ADD:
+// latestUnstake asserts in tests
 // - tests specific for releaseableAmount in both cases
 
 contract ChestTest is Test {

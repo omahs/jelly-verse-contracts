@@ -141,6 +141,8 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
             0
         );
 
+        latestUnstake[currentTokenId] = block.timestamp;
+
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
         string memory tokenUri = formatTokenUri(amount, cliffTimestamp);
 
@@ -191,6 +193,8 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
             freezingPeriod > 0 ? freezingPeriod : 1,
             vestingDuration
         );
+
+        latestUnstake[currentTokenId] = block.timestamp;
 
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
         string memory tokenUri = formatTokenUri(amount, cliffTimestamp);
