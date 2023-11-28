@@ -4,17 +4,16 @@ use std::env;
 fn vested_amount(
     total_vested_amount: U256,
     block_timestamp: U64,
-    start_timestamp: U64,
     cliff_timestamp: U64,
-    total_duration: U32,
+    vesting_duration: U32,
 ) -> U256 {
     if block_timestamp < cliff_timestamp {
         return U256::from(0);
-    } else if block_timestamp >= (start_timestamp + U64::from(total_duration)) {
+    } else if block_timestamp >= (cliff_timestamp + U64::from(vesting_duration)) {
         return total_vested_amount;
     } else {
-        return total_vested_amount * U256::from(block_timestamp - start_timestamp)
-            / U256::from(total_duration);
+        return total_vested_amount * U256::from(block_timestamp - cliff_timestamp)
+            / U256::from(vesting_duration);
     }
 }
 
@@ -24,18 +23,16 @@ fn main() {
         .parse::<U256>()
         .expect("Can't parse total vested amount");
     let block_timestamp: U64 = args[2].parse::<U64>().expect("Can't parse block timestamp");
-    let start_timestamp: U64 = args[3].parse::<U64>().expect("Can't parse start timestamp");
-    let cliff_timestamp: U64 = args[4]
+    let cliff_timestamp: U64 = args[3]
         .parse::<U64>()
         .expect("Can't parse cliff timestampt");
-    let total_duration: U32 = args[5].parse::<U32>().expect("Can't parse total duration");
+    let vesting_duration: U32 = args[4].parse::<U32>().expect("Can't parse total duration");
 
     let vested_amount = vested_amount(
         total_vested_amount,
         block_timestamp,
-        start_timestamp,
         cliff_timestamp,
-        total_duration,
+        vesting_duration,
     );
 
     if vested_amount == U256::from(0) {
