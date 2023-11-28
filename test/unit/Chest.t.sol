@@ -96,7 +96,7 @@ contract ChestTest is Test {
         uint256 fee = 0;
         uint256 boosterThreshold = 1000;
         uint256 minimalStakingPower = 1;
-        uint256 maxBooster = 10;
+        uint256 maxBooster = 2e18;
         uint256 timeFactor = 2;
         address owner = msg.sender;
         address pendingOwner = testAddress;
@@ -1274,6 +1274,21 @@ contract ChestTest is Test {
         vm.prank(testAddress);
         vm.expectRevert(Chest__CannotUnstakeMoreThanReleasable.selector);
         chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function test_calculateBooster() external openPosition {
+        uint256 positionIndex = 0;
+        uint256 booster = chest.calculateBooster(positionIndex);
+
+        assertEq(booster, 1e18);
+
+        uint256 time = block.timestamp;
+        for (uint i = 0; i < 53; i++) {
+            vm.warp(time + (i * 1 weeks));
+            booster = chest.calculateBooster(positionIndex);
+
+            // chest.calculateBooster1(positionIndex);
+        }
     }
 
     function test_setFee() external {
