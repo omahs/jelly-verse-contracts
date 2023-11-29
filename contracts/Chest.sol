@@ -148,10 +148,8 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         latestUnstake[currentTokenId] = block.timestamp;
 
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
-        string memory tokenUri = formatTokenUri(amount, cliffTimestamp);
 
         _safeMint(beneficiary, currentTokenId);
-        _setTokenURI(currentTokenId, tokenUri);
 
         unchecked {
             ++tokenId;
@@ -201,10 +199,8 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         latestUnstake[currentTokenId] = block.timestamp;
 
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
-        string memory tokenUri = formatTokenUri(amount, cliffTimestamp);
 
         _safeMint(beneficiary, currentTokenId);
-        _setTokenURI(currentTokenId, tokenUri);
 
         unchecked {
             ++tokenId;
@@ -258,13 +254,6 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
 
         vestingPositions[tokenId_].totalVestedAmount = newTotalStaked;
         vestingPositions[tokenId_].cliffTimestamp = newCliffTimestamp;
-
-        string memory tokenUri = formatTokenUri(
-            newTotalStaked,
-            newCliffTimestamp
-        );
-
-        _setTokenURI(tokenId_, tokenUri);
 
         emit IncreaseStake(tokenId_, newTotalStaked, newCliffTimestamp);
     }
@@ -454,16 +443,21 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         return tokenId;
     }
 
-    function formatTokenUri(
-        uint256 amount,
-        uint256 cliffTimestamp
-    ) internal pure returns (string memory) {
+    function tokenURI(
+        uint256 tokenId_
+    ) public view virtual override returns (string memory) {
+        require(
+            _exists(tokenId_),
+            "ERC721Metadata: URI query for nonexistent token"
+        );
+        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
+
         string memory svg = string(
             abi.encodePacked(
                 BASE_SVG,
-                Strings.toString(cliffTimestamp),
+                Strings.toString(vestingPosition.cliffTimestamp),
                 MIDDLE_PART_SVG,
-                Strings.toString(amount),
+                Strings.toString(vestingPosition.totalVestedAmount),
                 END_SVG
             )
         );
