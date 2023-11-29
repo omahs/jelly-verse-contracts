@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
@@ -11,7 +11,7 @@ import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyG
 import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLibVani.sol";
 
-contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
+contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 constant MIN_STAKING_AMOUNT = 100; // change to real value if there is minimum
@@ -24,13 +24,16 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
     uint256 private constant WEEKS_TO_MAX = 52;
 
     string constant BASE_SVG =
-        "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 32.100672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
+        "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 21.500672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
 
     string constant MIDDLE_PART_SVG =
         "]]></tspan><tspan x='0' y='32' font-weight='400' stroke-width='0'><![CDATA[    amount:";
 
+    string constant VESTING_PERIOD_SVG =
+        "]]></tspan><tspan x='0' y='48' font-weight='400' stroke-width='0'><![CDATA[    vestingPeriod:";
+
     string constant END_SVG =
-        "]]></tspan><tspan x='0' y='48' font-weight='400' stroke-width='0'><![CDATA[}]]></tspan></text></svg>";
+        "]]></tspan><tspan x='0' y='64' font-weight='400' stroke-width='0'><![CDATA[}]]></tspan></text></svg>";
 
     address internal immutable i_jellyToken;
     address internal immutable i_allocator;
@@ -137,7 +140,7 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
             amount + fee
         );
 
-        uint256 currentTokenId = tokenId;
+        uint256 currentTokenId = totalSupply();
         vestingPositions[currentTokenId] = createVestingPosition(
             amount,
             beneficiary,
@@ -151,9 +154,6 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
 
         _safeMint(beneficiary, currentTokenId);
 
-        unchecked {
-            ++tokenId;
-        }
         // should user in event be beneficiary or msg.sender?
         // changed to beneficiary, makes more sense imo
         // beneficiary != msg.sender  double check with frontend
@@ -188,7 +188,7 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
             amount + fee
         );
 
-        uint256 currentTokenId = tokenId;
+        uint256 currentTokenId = totalSupply();
         vestingPositions[currentTokenId] = createVestingPosition(
             amount,
             beneficiary,
@@ -201,10 +201,6 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
 
         _safeMint(beneficiary, currentTokenId);
-
-        unchecked {
-            ++tokenId;
-        }
 
         emit Staked(
             beneficiary,
@@ -330,7 +326,7 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
      */
     function getChestPower(
         uint256 tokenId_
-    ) external view returns (uint256 power) {
+    ) public view returns (uint256 power) {
         uint256 booster = calculateBooster(tokenId_);
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId_];
@@ -359,7 +355,14 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
      *
      * @return power - voting power of the account.
      */
-    function getVotingPower(address account) external view returns (uint256) {} // TO-DO
+    function getVotingPower(address account) external view returns (uint256) {
+        uint256[] memory chestsOfAccount = tokensOfOwner(account);
+        uint256 power;
+        for (uint i = 0; i < chestsOfAccount.length; i++) {
+            power += getChestPower(chestsOfAccount[i]);
+        }
+        return power;
+    } // TO-DO
 
     /**
      * @dev Retrieves the vesting position at the specified index.
@@ -439,10 +442,6 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         emit SetMaxBooster(_maxBooster);
     }
 
-    function totalSupply() external view returns (uint256) {
-        return tokenId;
-    }
-
     function tokenURI(
         uint256 tokenId_
     ) public view virtual override returns (string memory) {
@@ -458,6 +457,8 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
                 Strings.toString(vestingPosition.cliffTimestamp),
                 MIDDLE_PART_SVG,
                 Strings.toString(vestingPosition.totalVestedAmount),
+                VESTING_PERIOD_SVG,
+                Strings.toString(vestingPosition.vestingDuration),
                 END_SVG
             )
         );
@@ -477,14 +478,27 @@ contract Chest is ERC721URIStorage, Ownable, VestingLib, ReentrancyGuard {
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
+    function tokensOfOwner(
+        address account
+    ) internal view returns (uint256[] memory) {
+        uint256 balance = balanceOf(account);
+        uint256[] memory tokenIds = new uint256[](balance);
+
+        for (uint256 i = 0; i < balance; i++) {
+            tokenIds[i] = tokenOfOwnerByIndex(account, i);
+        }
+        return tokenIds;
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256,
-        uint256
-    ) internal pure override {
+        uint256 firstTokenId,
+        uint256 batchSize
+    ) internal virtual override {
         if (!(from == address(0) || to == address(0))) {
             revert Chest__NonTransferrableToken();
         }
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
     }
 }
