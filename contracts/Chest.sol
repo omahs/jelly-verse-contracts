@@ -16,11 +16,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
     uint256 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint256 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
-    uint256 constant MAX_FREEZING_POWER = 2 * DECIMALS;
 
     uint256 private constant DECIMALS = 1e18;
     uint256 private constant INITIAL_BOOSTER = 1 * DECIMALS;
-    uint256 private constant WEEKS_TO_MAX = 52;
 
     string constant BASE_SVG =
         "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 21.500672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
@@ -299,33 +297,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     }
 
     /**
-     * @notice Calculates the booster of the chest.
-     *
-     * @param tokenId_ - id of the chest.
-     *
-     * @return booster - booster of the chest.
-     */
-    function calculateBooster(
-        uint256 tokenId_
-    ) public view returns (uint256 booster) {
-        uint256 weeksElapsed = (block.timestamp - latestUnstake[tokenId_]) /
-            1 weeks;
-
-        uint256 segmentsElapsed = weeksElapsed < WEEKS_TO_MAX
-            ? weeksElapsed
-            : WEEKS_TO_MAX;
-
-        uint256 incrementPerSegment = (maxBooster - INITIAL_BOOSTER) /
-            WEEKS_TO_MAX;
-
-        uint256 linearBooster = INITIAL_BOOSTER +
-            segmentsElapsed *
-            incrementPerSegment;
-
-        return linearBooster > maxBooster ? maxBooster : linearBooster;
-    } // TO-DO
-
-    /**
      * @notice Calculates the voting power of all account's chests.
      *
      * @param account - address of the account.
@@ -424,6 +395,32 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     }
 
     /**
+     * @notice Calculates the booster of the chest.
+     *
+     * @param tokenId_ - id of the chest.
+     * @param vestingDuration_ - duration of vesting period in seconds.
+     *
+     * @return booster - booster of the chest.
+     */
+    function calculateBooster(
+        uint256 tokenId_,
+        uint256 vestingDuration_
+    ) public view returns (uint256 booster) {
+        if (vestingDuration_ > 0) {
+            return INITIAL_BOOSTER;
+        }
+        uint256 timeSinceUnstaked = block.timestamp - latestUnstake[tokenId_];
+        booster =
+            INITIAL_BOOSTER +
+            ((timeSinceUnstaked * (maxBooster - INITIAL_BOOSTER)) /
+                MAX_FREEZING_PERIOD_REGULAR_CHEST);
+
+        if (booster > maxBooster) {
+            booster = maxBooster;
+        }
+    }
+
+    /**
      * @notice Calculates the voting power of the chest.
      *
      * @param tokenId_ - id of the chest.
@@ -432,27 +429,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      */
     function getChestPower(
         uint256 tokenId_
-    ) public view returns (uint256 power) {
-        uint256 booster = calculateBooster(tokenId_);
-
-        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
-
-        if (block.timestamp > vestingPosition.cliffTimestamp) {
-            return (booster * vestingPosition.totalVestedAmount) / DECIMALS;
-        } else {
-            uint256 timeRemaining = vestingPosition.cliffTimestamp -
-                block.timestamp;
-            uint256 freezingPowerDecrease = (DECIMALS *
-                (MAX_FREEZING_PERIOD_REGULAR_CHEST - timeRemaining)) /
-                MAX_FREEZING_PERIOD_REGULAR_CHEST;
-            uint256 freezingPower = MAX_FREEZING_POWER - freezingPowerDecrease;
-
-            return
-                (booster *
-                    (vestingPosition.totalVestedAmount * freezingPower)) /
-                (DECIMALS * DECIMALS);
-        }
-    } // TO-DO
+    ) public view returns (uint256 power) {} // TO-DO
 
     function tokenURI(
         uint256 tokenId_

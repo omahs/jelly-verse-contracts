@@ -1031,17 +1031,24 @@ contract ChestTest is Test {
 
     function test_calculateBooster() external openPosition {
         uint256 positionIndex = 0;
-        uint256 booster = chest.calculateBooster(positionIndex);
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+        uint256 booster = chest.calculateBooster(
+            positionIndex,
+            vestingPosition.vestingDuration
+        );
 
         assertEq(booster, 1e18);
 
-        uint256 time = block.timestamp;
-        for (uint i = 0; i < 53; i++) {
-            vm.warp(time + (i * 1 weeks));
-            booster = chest.calculateBooster(positionIndex);
+        vm.warp(MAX_FREEZING_PERIOD_REGULAR_CHEST + 1);
 
-            // chest.calculateBooster1(positionIndex);
-        }
+        booster = chest.calculateBooster(
+            positionIndex,
+            vestingPosition.vestingDuration
+        );
+
+        assertEq(booster, 2e18);
     }
 
     function test_setFee() external {
