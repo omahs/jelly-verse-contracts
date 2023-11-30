@@ -14,7 +14,6 @@ import {VestingLib} from "./utils/VestingLibVani.sol";
 contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    uint256 constant MIN_STAKING_AMOUNT = 100; // change to real value if there is minimum
     uint256 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint256 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint256 constant MAX_FREEZING_POWER = 2 * DECIMALS;
@@ -131,7 +130,7 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
         address beneficiary,
         uint32 freezingPeriod
     ) external nonReentrant {
-        if (amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
+        if (amount == 0) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
 
         IERC20(i_jellyToken).safeTransferFrom(
@@ -178,7 +177,7 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
         uint32 freezingPeriod,
         uint32 vestingDuration
     ) external onlyAuthorizedForSpecialChest nonReentrant {
-        if (amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
+        if (amount == 0) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
         // maybe check for minimum vesting duration/freeze in this case
 

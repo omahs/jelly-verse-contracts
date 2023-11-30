@@ -10,7 +10,6 @@ import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 // - tests specific for releaseableAmount in both cases
 
 contract ChestTest is Test {
-    uint256 constant MIN_STAKING_AMOUNT = 100; // change to real value if there is minimum
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
 
@@ -57,11 +56,11 @@ contract ChestTest is Test {
     error Ownable__CallerIsNotOwner();
 
     modifier openPosition() {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stake(amount, testAddress, freezingPeriod);
 
@@ -70,12 +69,12 @@ contract ChestTest is Test {
     }
 
     modifier openSpecialPosition() {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
         vm.startPrank(allocator);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stakeSpecial(
             amount,
@@ -93,7 +92,7 @@ contract ChestTest is Test {
     }
 
     function setUp() public {
-        uint256 fee = 0;
+        uint256 fee = 10;
         uint256 boosterThreshold = 1000;
         uint256 minimalStakingPower = 1;
         uint256 maxBooster = 2e18;
@@ -133,19 +132,20 @@ contract ChestTest is Test {
 
     // UNIT TESTS
     function test_Deployment() external {
-        assertEq(chest.fee(), 0);
+        assertEq(chest.fee(), 10);
         assertEq(chest.owner(), msg.sender);
         assertEq(chest.getPendingOwner(), testAddress);
         assertEq(chest.totalSupply(), 0);
     }
 
     // Regular chest stake tests
+    // add jellyBalance checks
     function test_stake() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stake(amount, testAddress, freezingPeriod);
 
@@ -173,11 +173,11 @@ contract ChestTest is Test {
     }
 
     function test_stakeZeroFreezingTime() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 0; // @dev assigning to zero for clarity & better code readability
 
         vm.startPrank(testAddress);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stake(amount, testAddress, freezingPeriod);
 
@@ -198,11 +198,11 @@ contract ChestTest is Test {
     }
 
     function test_stakeEmitsStakedEvent() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         vm.expectEmit(true, true, false, true, address(chest));
         emit Staked(
@@ -219,7 +219,7 @@ contract ChestTest is Test {
     }
 
     function test_stakeInvalidStakingAmount() external {
-        uint256 amount = MIN_STAKING_AMOUNT - 1;
+        uint256 amount = 0;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
@@ -232,7 +232,7 @@ contract ChestTest is Test {
     }
 
     function test_stakeZeroAddress() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
 
         vm.startPrank(testAddress);
@@ -246,12 +246,12 @@ contract ChestTest is Test {
 
     // Special chest stake tests
     function test_stakeSpecial() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
         vm.startPrank(allocator);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stakeSpecial(
             amount,
@@ -284,12 +284,12 @@ contract ChestTest is Test {
     }
 
     function test_stakeSpecialZeroFreezingTime() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 0;
         uint32 vestingDuration = 1000;
 
         vm.startPrank(distributor);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stakeSpecial(
             amount,
@@ -315,12 +315,12 @@ contract ChestTest is Test {
     }
 
     function test_stakeSpecialEmitsStakedEvent() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
         vm.startPrank(allocator);
-        jellyToken.approve(address(chest), amount);
+        jellyToken.approve(address(chest), amount + chest.fee());
 
         vm.expectEmit(true, true, false, true, address(chest));
         emit Staked(
@@ -342,7 +342,7 @@ contract ChestTest is Test {
     }
 
     function test_stakeSpecialInvalidStakingAmount() external {
-        uint256 amount = MIN_STAKING_AMOUNT - 1;
+        uint256 amount = 0;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
@@ -361,7 +361,7 @@ contract ChestTest is Test {
     }
 
     function test_stakeSpecialZeroAddress() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
+        uint256 amount = 100;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
 
