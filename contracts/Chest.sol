@@ -70,6 +70,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     error Chest__NotAuthorizedForSpecial();
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
+    error Chest__CannotModifySpecial();
     error Chest__NonTransferrableToken();
     error Chest__NotAuthorizedForToken();
     error Chest__FreezingPeriodNotOver();
@@ -241,8 +242,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
                 revert Chest__InvalidFreezingPeriod();
         } else {
-            if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST)
-                revert Chest__InvalidFreezingPeriod();
+            // special chest
+            revert Chest__CannotModifySpecial();
         }
 
         IERC20(i_jellyToken).safeTransferFrom(
