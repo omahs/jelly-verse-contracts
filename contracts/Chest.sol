@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
@@ -11,7 +11,7 @@ import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyG
 import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLibVani.sol";
 
-contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
+contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
@@ -139,7 +139,7 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
             amount + fee
         );
 
-        uint256 currentTokenId = totalSupply();
+        uint256 currentTokenId = tokenId;
         vestingPositions[currentTokenId] = createVestingPosition(
             amount,
             beneficiary,
@@ -152,6 +152,10 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
 
         _safeMint(beneficiary, currentTokenId);
+
+        unchecked {
+            ++tokenId;
+        }
 
         // should user in event be beneficiary or msg.sender?
         // changed to beneficiary, makes more sense imo
@@ -187,7 +191,7 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
             amount + fee
         );
 
-        uint256 currentTokenId = totalSupply();
+        uint256 currentTokenId = tokenId;
         vestingPositions[currentTokenId] = createVestingPosition(
             amount,
             beneficiary,
@@ -200,6 +204,10 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
 
         _safeMint(beneficiary, currentTokenId);
+
+        unchecked {
+            ++tokenId;
+        }
 
         emit Staked(
             beneficiary,
@@ -323,11 +331,15 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
      *
      * @return power - voting power of the account.
      */
-    function getVotingPower(address account) external view returns (uint256) {
-        uint256[] memory chestsOfAccount = tokensOfOwner(account);
+    function getVotingPower(
+        address account,
+        uint256[] calldata tokenIds
+    ) external view returns (uint256) {
         uint256 power;
-        for (uint256 i = 0; i < chestsOfAccount.length; i++) {
-            power += getChestPower(chestsOfAccount[i]);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (ownerOf(tokenIds[i]) != account)
+                revert Chest__NotAuthorizedForToken();
+            power += getChestPower(tokenIds[i]);
         }
         return power;
     } // TO-DO
@@ -477,16 +489,8 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
-    function tokensOfOwner(
-        address account
-    ) internal view returns (uint256[] memory) {
-        uint256 balance = balanceOf(account);
-        uint256[] memory tokenIds = new uint256[](balance);
-
-        for (uint256 i = 0; i < balance; i++) {
-            tokenIds[i] = tokenOfOwnerByIndex(account, i);
-        }
-        return tokenIds;
+    function totalSupply() public view returns (uint256) {
+        return tokenId;
     }
 
     function _beforeTokenTransfer(
