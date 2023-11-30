@@ -315,38 +315,7 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
             incrementPerSegment;
 
         return linearBooster > maxBooster ? maxBooster : linearBooster;
-    }
-
-    /**
-     * @notice Calculates the voting power of the chest.
-     *
-     * @param tokenId_ - id of the chest.
-     *
-     * @return power - voting power of the chest.
-     */
-    function getChestPower(
-        uint256 tokenId_
-    ) public view returns (uint256 power) {
-        uint256 booster = calculateBooster(tokenId_);
-
-        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
-
-        if (block.timestamp > vestingPosition.cliffTimestamp) {
-            return (booster * vestingPosition.totalVestedAmount) / DECIMALS;
-        } else {
-            uint256 timeRemaining = vestingPosition.cliffTimestamp -
-                block.timestamp;
-            uint256 freezingPowerDecrease = (DECIMALS *
-                (MAX_FREEZING_PERIOD_REGULAR_CHEST - timeRemaining)) /
-                MAX_FREEZING_PERIOD_REGULAR_CHEST;
-            uint256 freezingPower = MAX_FREEZING_POWER - freezingPowerDecrease;
-
-            return
-                (booster *
-                    (vestingPosition.totalVestedAmount * freezingPower)) /
-                (DECIMALS * DECIMALS);
-        }
-    }
+    } // TO-DO
 
     /**
      * @notice Calculates the voting power of all account's chests.
@@ -358,7 +327,7 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
     function getVotingPower(address account) external view returns (uint256) {
         uint256[] memory chestsOfAccount = tokensOfOwner(account);
         uint256 power;
-        for (uint i = 0; i < chestsOfAccount.length; i++) {
+        for (uint256 i = 0; i < chestsOfAccount.length; i++) {
             power += getChestPower(chestsOfAccount[i]);
         }
         return power;
@@ -441,6 +410,37 @@ contract Chest is ERC721Enumerable, Ownable, VestingLib, ReentrancyGuard {
         maxBooster = _maxBooster;
         emit SetMaxBooster(_maxBooster);
     }
+
+    /**
+     * @notice Calculates the voting power of the chest.
+     *
+     * @param tokenId_ - id of the chest.
+     *
+     * @return power - voting power of the chest.
+     */
+    function getChestPower(
+        uint256 tokenId_
+    ) public view returns (uint256 power) {
+        uint256 booster = calculateBooster(tokenId_);
+
+        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
+
+        if (block.timestamp > vestingPosition.cliffTimestamp) {
+            return (booster * vestingPosition.totalVestedAmount) / DECIMALS;
+        } else {
+            uint256 timeRemaining = vestingPosition.cliffTimestamp -
+                block.timestamp;
+            uint256 freezingPowerDecrease = (DECIMALS *
+                (MAX_FREEZING_PERIOD_REGULAR_CHEST - timeRemaining)) /
+                MAX_FREEZING_PERIOD_REGULAR_CHEST;
+            uint256 freezingPower = MAX_FREEZING_POWER - freezingPowerDecrease;
+
+            return
+                (booster *
+                    (vestingPosition.totalVestedAmount * freezingPower)) /
+                (DECIMALS * DECIMALS);
+        }
+    } // TO-DO
 
     function tokenURI(
         uint256 tokenId_
