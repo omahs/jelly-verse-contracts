@@ -43,7 +43,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     uint256 internal maxBooster;
     uint256 internal timeFactor;
 
-    mapping(uint256 => uint256) internal latestUnstake;
+    mapping(uint256 => uint256) internal chestData;
 
     event Staked(
         address indexed user,
@@ -65,6 +65,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
     error Chest__ZeroAddress();
     error Chest__InvalidStakingAmount();
+    error Chest__CastOverflowedDowncast();
     error Chest__NotAuthorizedForSpecial();
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
@@ -146,9 +147,12 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             0
         );
 
-        latestUnstake[currentTokenId] = block.timestamp;
-
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
+        if (cliffTimestamp > type(uint128).max) {
+            revert Chest__CastOverflowedDowncast();
+        }
+
+        chestData[currentTokenId] = _packData(block.timestamp, cliffTimestamp);
 
         _safeMint(beneficiary, currentTokenId);
 
@@ -198,9 +202,12 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             vestingDuration
         );
 
-        latestUnstake[currentTokenId] = block.timestamp;
-
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
+        if (cliffTimestamp > type(uint128).max) {
+            revert Chest__CastOverflowedDowncast();
+        }
+
+        chestData[currentTokenId] = _packData(block.timestamp, cliffTimestamp);
 
         _safeMint(beneficiary, currentTokenId);
 
@@ -289,7 +296,11 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         vestingPositions[tokenId_].totalVestedAmount = newTotalStaked;
         vestingPositions[tokenId_].releasedAmount += amount;
-        latestUnstake[tokenId_] = block.timestamp;
+
+        chestData[tokenId_] = _packData(
+            block.timestamp,
+            vestingPosition.cliffTimestamp
+        );
 
         IERC20(i_jellyToken).safeTransfer(msg.sender, amount);
 
@@ -325,15 +336,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 index
     ) external view returns (VestingPosition memory) {
         return vestingPositions[index];
-    }
-
-    /**
-     * @notice Retrieves the latest unstake timestamp for the vesting position at the specified index.
-     * @param index The index of the vesting position to retrieve the latest unstake timestamp from.
-     * @return The latest unstake timestamp for the vesting position at the specified index.
-     */
-    function getLatestUnstake(uint256 index) external view returns (uint256) {
-        return latestUnstake[index];
     }
 
     /**
@@ -409,7 +411,10 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         if (vestingDuration_ > 0) {
             return INITIAL_BOOSTER;
         }
-        uint256 timeSinceUnstaked = block.timestamp - latestUnstake[tokenId_];
+
+        uint256 timeSinceUnstaked = block.timestamp -
+            getLatestUnstake(tokenId_);
+
         booster =
             INITIAL_BOOSTER +
             ((timeSinceUnstaked * (maxBooster - INITIAL_BOOSTER)) /
@@ -471,6 +476,17 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         return tokenId;
     }
 
+    /**
+     * @notice Retrieves the latest unstake timestamp for the vesting position at the specified index.
+     * @param index The index of the vesting position to retrieve the latest unstake timestamp from.
+     * @return The latest unstake timestamp for the vesting position at the specified index.
+     */
+    function getLatestUnstake(uint256 index) public view returns (uint256) {
+        uint256 latestUnstake = chestData[index] >> 128;
+
+        return latestUnstake;
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -481,5 +497,18 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             revert Chest__NonTransferrableToken();
         }
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
+    }
+
+    function getPreviousCliff(uint256 index) private view returns (uint256) {
+        uint256 previousCliffTimestamp = chestData[index] & type(uint128).max;
+
+        return previousCliffTimestamp;
+    }
+
+    function _packData(
+        uint256 latestUnstake,
+        uint256 cliffTimestamp
+    ) private pure returns (uint256) {
+        return cliffTimestamp | (latestUnstake << 128);
     }
 }
