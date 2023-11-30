@@ -434,7 +434,33 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      */
     function getChestPower(
         uint256 tokenId_
-    ) public view returns (uint256 power) {} // TO-DO
+    ) public view returns (uint256 power) {
+        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
+
+        uint256 vestingDuration = vestingPosition.vestingDuration;
+
+        if (vestingDuration == 0) {
+            // regular chest
+            if (block.timestamp > vestingPosition.cliffTimestamp) {
+                return 0; // open chest
+            } else {
+                uint256 booster = 1e18;
+                uint256 previousCliff = getPreviousCliff(tokenId_);
+
+                if (vestingPosition.cliffTimestamp > previousCliff) {
+                    booster = calculateBooster(tokenId_, vestingDuration);
+                }
+                uint256 unfreezingTime = vestingPosition.cliffTimestamp -
+                    block.timestamp;
+
+                power =
+                    (booster *
+                        vestingPosition.totalVestedAmount *
+                        unfreezingTime) /
+                    DECIMALS;
+            }
+        } else {}
+    } // TO-DO
 
     function tokenURI(
         uint256 tokenId_
