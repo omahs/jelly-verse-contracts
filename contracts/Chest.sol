@@ -12,7 +12,6 @@ import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLibVani.sol";
 
 // TO-DO:
-// stake/unstake freezing period validation
 // increaseStake, refreeze to maximum period
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
@@ -136,6 +135,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     ) external nonReentrant {
         if (amount == 0) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
+        if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
+            revert Chest__InvalidFreezingPeriod();
 
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
@@ -187,6 +188,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     ) external onlyAuthorizedForSpecialChest nonReentrant {
         if (amount == 0) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
+        if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST)
+            revert Chest__InvalidFreezingPeriod();
         // maybe check for minimum vesting duration/freeze in this case
 
         IERC20(i_jellyToken).safeTransferFrom(
@@ -248,6 +251,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                 // freezing
                 uint256 booster = calculateBooster(tokenId_);
                 chestData[tokenId_] = _packData(freezingPeriod, booster);
+                // here we should differentiate between freezing open and freezing closed chest
+                // allow open chest to refreeze for maximum period
+                // allow closed chest to refreeze to MAX_FREEZING_PERIOD_REGULAR_CHEST - previous freezing period
             }
         } else {
             // special chest

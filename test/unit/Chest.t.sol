@@ -245,6 +245,19 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
+    function test_stakeInvalidFreezingPeriod() external {
+        uint256 amount = 100;
+        uint32 freezingPeriod = MAX_FREEZING_PERIOD_REGULAR_CHEST + 1;
+
+        vm.startPrank(testAddress);
+        jellyToken.approve(address(chest), amount);
+
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.stake(amount, testAddress, freezingPeriod);
+
+        vm.stopPrank();
+    }
+
     // Special chest stake tests
     function test_stakeSpecial() external {
         uint256 amount = 100;
@@ -371,6 +384,25 @@ contract ChestTest is Test {
 
         vm.expectRevert(Chest__ZeroAddress.selector);
         chest.stakeSpecial(amount, address(0), freezingPeriod, vestingDuration);
+
+        vm.stopPrank();
+    }
+
+    function test_stakeSpecialInvalidFreezingPeriod() external {
+        uint256 amount = 100;
+        uint32 freezingPeriod = MAX_FREEZING_PERIOD_SPECIAL_CHEST + 1;
+        uint32 vestingDuration = 1000;
+
+        vm.startPrank(allocator);
+        jellyToken.approve(address(chest), amount);
+
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.stakeSpecial(
+            amount,
+            testAddress,
+            freezingPeriod,
+            vestingDuration
+        );
 
         vm.stopPrank();
     }
