@@ -11,6 +11,10 @@ import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyG
 import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLibVani.sol";
 
+// TO-DO:
+// stake/unstake freezing period validation
+// increaseStake, refreeze to maximum period
+// maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -148,11 +152,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         );
 
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
-        if (cliffTimestamp > type(uint128).max) {
-            revert Chest__CastOverflowedDowncast();
-        }
 
-        chestData[currentTokenId] = _packData(block.timestamp, cliffTimestamp);
+        chestData[currentTokenId] = _packData(freezingPeriod, INITIAL_BOOSTER);
 
         _safeMint(beneficiary, currentTokenId);
 
@@ -203,11 +204,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         );
 
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
-        if (cliffTimestamp > type(uint128).max) {
-            revert Chest__CastOverflowedDowncast();
-        }
 
-        chestData[currentTokenId] = _packData(block.timestamp, cliffTimestamp);
+        chestData[currentTokenId] = _packData(freezingPeriod, INITIAL_BOOSTER);
 
         _safeMint(beneficiary, currentTokenId);
 
@@ -246,6 +244,11 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         if (vestingPosition.vestingDuration == 0) {
             if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
                 revert Chest__InvalidFreezingPeriod();
+            else if (freezingPeriod > 0) {
+                // freezing
+                uint256 booster = calculateBooster(tokenId_);
+                chestData[tokenId_] = _packData(freezingPeriod, booster);
+            }
         } else {
             // special chest
             revert Chest__CannotModifySpecial();
@@ -297,10 +300,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         vestingPositions[tokenId_].totalVestedAmount = newTotalStaked;
         vestingPositions[tokenId_].releasedAmount += amount;
 
-        chestData[tokenId_] = _packData(
-            block.timestamp,
-            vestingPosition.cliffTimestamp
-        );
+        chestData[tokenId_] = _packData(0, INITIAL_BOOSTER); // check this
 
         IERC20(i_jellyToken).safeTransfer(msg.sender, amount);
 
@@ -396,33 +396,10 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         emit SetMaxBooster(_maxBooster);
     }
 
-    /**
-     * @notice Calculates the booster of the chest.
-     *
-     * @param tokenId_ - id of the chest.
-     * @param vestingDuration_ - duration of vesting period in seconds.
-     *
-     * @return booster - booster of the chest.
-     */
-    function calculateBooster(
-        uint256 tokenId_,
-        uint256 vestingDuration_
-    ) public view returns (uint256 booster) {
-        if (vestingDuration_ > 0) {
-            return INITIAL_BOOSTER;
-        }
+    function getBooster(uint256 index) public view returns (uint256) {
+        uint256 booster = chestData[index] & type(uint128).max;
 
-        uint256 timeSinceUnstaked = block.timestamp -
-            getLatestUnstake(tokenId_);
-
-        booster =
-            INITIAL_BOOSTER +
-            ((timeSinceUnstaked * (maxBooster - INITIAL_BOOSTER)) /
-                MAX_FREEZING_PERIOD_REGULAR_CHEST);
-
-        if (booster > maxBooster) {
-            booster = maxBooster;
-        }
+        return booster;
     }
 
     /**
@@ -444,12 +421,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             if (block.timestamp > vestingPosition.cliffTimestamp) {
                 return 0; // open chest
             } else {
-                uint256 booster = 1e18;
-                uint256 previousCliff = getPreviousCliff(tokenId_);
+                uint256 booster = getBooster(tokenId_);
 
-                if (vestingPosition.cliffTimestamp > previousCliff) {
-                    booster = calculateBooster(tokenId_, vestingDuration);
-                }
                 uint256 unfreezingTime = vestingPosition.cliffTimestamp -
                     block.timestamp;
 
@@ -507,10 +480,10 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      * @param index The index of the vesting position to retrieve the latest unstake timestamp from.
      * @return The latest unstake timestamp for the vesting position at the specified index.
      */
-    function getLatestUnstake(uint256 index) public view returns (uint256) {
-        uint256 latestUnstake = chestData[index] >> 128;
+    function getFreezingPeriod(uint256 index) public view returns (uint256) {
+        uint256 freezingPeriod = chestData[index] >> 128;
 
-        return latestUnstake;
+        return freezingPeriod;
     }
 
     function _beforeTokenTransfer(
@@ -525,16 +498,37 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
     }
 
-    function getPreviousCliff(uint256 index) private view returns (uint256) {
-        uint256 previousCliffTimestamp = chestData[index] & type(uint128).max;
+    /**
+     * @notice Calculates the booster of the chest.
+     *
+     * @param tokenId_ - id of the chest.
+     *
+     * @return booster - booster of the chest.
+     */
+    function calculateBooster(
+        uint256 tokenId_
+    ) internal view returns (uint256 booster) {
+        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
 
-        return previousCliffTimestamp;
+        if (vestingPosition.vestingDuration > 0) {
+            // special chest
+            return INITIAL_BOOSTER;
+        }
+        uint256 freezingPeriod = getFreezingPeriod(tokenId_);
+        booster =
+            getBooster(tokenId_) +
+            ((freezingPeriod * (maxBooster - INITIAL_BOOSTER)) /
+                MAX_FREEZING_PERIOD_REGULAR_CHEST);
+
+        if (booster > maxBooster) {
+            booster = maxBooster;
+        }
     }
 
     function _packData(
         uint256 latestUnstake,
-        uint256 cliffTimestamp
+        uint256 booster
     ) private pure returns (uint256) {
-        return cliffTimestamp | (latestUnstake << 128);
+        return booster | (latestUnstake << 128);
     }
 }

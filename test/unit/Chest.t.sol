@@ -682,7 +682,7 @@ contract ChestTest is Test {
             vestingPositionBefore.vestingDuration
         );
 
-        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+        assertEq(chest.getFreezingPeriod(positionIndex), 0); // add booster check
 
         assertEq(
             jellyToken.balanceOf(testAddress),
@@ -734,7 +734,7 @@ contract ChestTest is Test {
             vestingPositionBefore.vestingDuration
         );
 
-        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+        assertEq(chest.getFreezingPeriod(positionIndex), 0); // check this
 
         assertEq(
             jellyToken.balanceOf(approvedAddress),
@@ -866,7 +866,7 @@ contract ChestTest is Test {
             vestingPositionBefore.vestingDuration
         );
 
-        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+        assertEq(chest.getFreezingPeriod(positionIndex), 0);
 
         assertEq(
             jellyToken.balanceOf(testAddress),
@@ -924,7 +924,7 @@ contract ChestTest is Test {
             vestingPositionBefore.vestingDuration
         );
 
-        assertEq(chest.getLatestUnstake(positionIndex), block.timestamp);
+        assertEq(chest.getFreezingPeriod(positionIndex), 0);
 
         assertEq(
             jellyToken.balanceOf(approvedAddress),
@@ -1029,27 +1029,7 @@ contract ChestTest is Test {
         chest.unstake(positionIndex, unstakeAmount);
     }
 
-    function test_calculateBooster() external openPosition {
-        uint256 positionIndex = 0;
-        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
-            positionIndex
-        );
-        uint256 booster = chest.calculateBooster(
-            positionIndex,
-            vestingPosition.vestingDuration
-        );
-
-        assertEq(booster, 1e18);
-
-        vm.warp(MAX_FREEZING_PERIOD_REGULAR_CHEST + 1);
-
-        booster = chest.calculateBooster(
-            positionIndex,
-            vestingPosition.vestingDuration
-        );
-
-        assertEq(booster, 2e18);
-    }
+    function test_calculateBooster() external openPosition {} // TO-DO
 
     function test_setFee() external {
         uint256 newFee = 100;
