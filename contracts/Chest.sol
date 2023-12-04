@@ -242,18 +242,34 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         if (amount == 0 && freezingPeriod == 0)
             revert Chest__NothingToIncrease();
 
+        if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
+            revert Chest__InvalidFreezingPeriod();
+
         VestingPosition memory vestingPosition = vestingPositions[tokenId_];
 
         if (vestingPosition.vestingDuration == 0) {
-            if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
-                revert Chest__InvalidFreezingPeriod();
-            else if (freezingPeriod > 0) {
-                // freezing
-                uint256 booster = calculateBooster(tokenId_);
-                chestData[tokenId_] = _packData(freezingPeriod, booster);
-                // here we should differentiate between freezing open and freezing closed chest
-                // allow open chest to refreeze for maximum period
-                // allow closed chest to refreeze to MAX_FREEZING_PERIOD_REGULAR_CHEST - previous freezing period
+            // regular chest
+            if (freezingPeriod != 0) {
+                // increase freezing period
+                uint256 booster;
+                if (block.timestamp < vestingPosition.cliffTimestamp) {
+                    // chest is frozen
+                    booster = getBooster(tokenId_);
+                    freezingPeriod = uint32(
+                        MAX_FREEZING_PERIOD_REGULAR_CHEST -
+                            getFreezingPeriod(tokenId_)
+                    );
+
+                    chestData[tokenId_] = _packData(
+                        MAX_FREEZING_PERIOD_REGULAR_CHEST,
+                        booster
+                    );
+                } else {
+                    // chest is open
+                    booster = calculateBooster(tokenId_);
+
+                    chestData[tokenId_] = _packData(freezingPeriod, booster);
+                }
             }
         } else {
             // special chest
