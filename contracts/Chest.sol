@@ -548,9 +548,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     }
 
     function _packData(
-        uint256 latestUnstake,
+        uint256 freezingPeriod,
         uint256 booster
     ) private pure returns (uint256) {
-        return booster | (latestUnstake << 128);
+        return booster | (freezingPeriod << 128);
     }
 }
