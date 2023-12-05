@@ -246,6 +246,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             revert Chest__InvalidFreezingPeriod();
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId_];
+        uint48 newCliffTimestamp;
 
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
@@ -264,12 +265,21 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                         MAX_FREEZING_PERIOD_REGULAR_CHEST,
                         booster
                     );
+
+                    newCliffTimestamp =
+                        vestingPosition.cliffTimestamp +
+                        freezingPeriod;
                 } else {
                     // chest is open
                     booster = calculateBooster(tokenId_);
 
                     chestData[tokenId_] = _packData(freezingPeriod, booster);
+                    newCliffTimestamp = uint48(
+                        block.timestamp + freezingPeriod
+                    );
                 }
+            } else {
+                newCliffTimestamp = vestingPosition.cliffTimestamp; // check maybe how to optimize this
             }
         } else {
             // special chest
@@ -283,8 +293,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         );
 
         uint256 newTotalStaked = vestingPosition.totalVestedAmount + amount;
-        uint48 newCliffTimestamp = vestingPosition.cliffTimestamp +
-            SafeCast.toUint48(freezingPeriod);
 
         vestingPositions[tokenId_].totalVestedAmount = newTotalStaked;
         vestingPositions[tokenId_].cliffTimestamp = newCliffTimestamp;
@@ -514,6 +522,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 firstTokenId,
         uint256 batchSize
     ) internal virtual override {
+        // shall we allow burning? burning means losing jelly tokens
         if (!(from == address(0) || to == address(0))) {
             revert Chest__NonTransferrableToken();
         }
