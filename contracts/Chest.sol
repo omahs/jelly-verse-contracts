@@ -14,6 +14,10 @@ import {VestingLib} from "./utils/VestingLibVani.sol";
 // TO-DO:
 // increaseStake, refreeze to maximum period
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
+// add 7 days as minimum staking period for regular chest, last call update
+// nerfing parameter, probably some scaling factor for time
+// add checks if token exists in all methods
+// events for booster updates?
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -68,7 +72,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
     error Chest__ZeroAddress();
     error Chest__InvalidStakingAmount();
-    error Chest__CastOverflowedDowncast();
+    error Chest__CastOverflowedDowncast(); // maybe reduntant
     error Chest__NotAuthorizedForSpecial();
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
@@ -349,13 +353,17 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256[] calldata tokenIds
     ) external view returns (uint256) {
         uint256 power;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length; ) {
             if (ownerOf(tokenIds[i]) != account)
                 revert Chest__NotAuthorizedForToken();
             power += getChestPower(tokenIds[i]);
+
+            unchecked {
+                ++i;
+            }
         }
         return power;
-    } // TO-DO
+    }
 
     /**
      * @dev Retrieves the vesting position at the specified index.
@@ -410,7 +418,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         // should define maximum value for this
         minimalStakingPower = _minimalStakingPower;
         emit SetMinimalStakingPower(_minimalStakingPower);
-    }
+    } // TO-DO: probably reduntant
 
     /**
      * @notice Sets maximal booster.
@@ -445,25 +453,35 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         VestingPosition memory vestingPosition = vestingPositions[tokenId_];
 
         uint256 vestingDuration = vestingPosition.vestingDuration;
+        uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
 
-        if (vestingDuration == 0) {
-            // regular chest
-            if (block.timestamp > vestingPosition.cliffTimestamp) {
-                return 0; // open chest
-            } else {
-                uint256 booster = getBooster(tokenId_);
+        if (block.timestamp > cliffTimestamp + vestingDuration) {
+            return 0; // open chest
+        }
 
-                uint256 unfreezingTime = vestingPosition.cliffTimestamp -
-                    block.timestamp;
+        // Calculate unfreezing time based on whether vesting has started
+        uint256 unfreezingTime;
+        if (block.timestamp > vestingPosition.cliffTimestamp) {
+            // Vesting has started
+            uint256 vestingEndTime = cliffTimestamp + vestingDuration;
+            unfreezingTime = (vestingEndTime - block.timestamp) / 2;
+        } else {
+            // Vesting has not started
+            unfreezingTime = cliffTimestamp - block.timestamp;
+        }
 
-                power =
-                    (booster *
-                        vestingPosition.totalVestedAmount *
-                        unfreezingTime) /
-                    DECIMALS;
-            }
-        } else {}
-    } // TO-DO
+        // Calculate power based on vesting type
+        if (vestingPosition.vestingDuration == 0) {
+            // Regular chest
+            uint256 booster = getBooster(tokenId_);
+            power =
+                (booster * vestingPosition.totalVestedAmount * unfreezingTime) /
+                DECIMALS;
+        } else {
+            // Special chest
+            power = vestingPosition.totalVestedAmount * unfreezingTime; // Add nerf parameters
+        }
+    }
 
     function tokenURI(
         uint256 tokenId_

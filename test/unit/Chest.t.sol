@@ -10,6 +10,7 @@ import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 // - tests specific for releaseableAmount in both cases
 // booster, freezingPeriod assertions in stake,unstake..
 // add jellyBalance checks in stake, unstake, increaseStake
+// soulbound tests
 
 contract ChestTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
