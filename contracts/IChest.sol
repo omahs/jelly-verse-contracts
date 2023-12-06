@@ -21,7 +21,7 @@ interface IChest {
     /**
      * @dev Returns the current amount of votes that `account` has.
      */
-    function getVotingPower(address account) external view returns (uint256);
+    function getVotingPower(address account, uint256[] calldata tokenIds) external view returns (uint256);
 
     /**
      * @dev Returns the amount of votes that `account` had at a specific moment in the past. If the `clock()` is

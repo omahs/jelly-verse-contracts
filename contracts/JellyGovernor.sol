@@ -49,6 +49,10 @@ contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Go
         return super.state(proposalId);
     }
 
+    function getExecutor() public view returns (address) {
+        return _executor();
+    }
+
     function proposalThreshold()
         public
         view

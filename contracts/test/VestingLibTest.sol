@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import {VestingLib} from "../utils/VestingLib.sol";
 
 contract VestingLibTest is VestingLib {
-    function getVestingPosition(uint32 vestingIndex) public view returns (VestingPosition memory) {
+    function getVestingPosition(uint256 vestingIndex) public view returns (VestingPosition memory) {
         return VestingLib.vestingPositions[vestingIndex];
     }
-    function getVestingIndex() public view returns (uint32) {
+    function getVestingIndex() public view returns (uint256) {
         return VestingLib.index;
     }
-    function getVestedAmount(uint32 vestingIndex) public view returns (uint256) {
+    function getVestedAmount(uint256 vestingIndex) public view returns (uint256) {
         return VestingLib.vestedAmount(vestingIndex);
     }
     function createNewVestingPosition(
@@ -27,7 +27,7 @@ contract VestingLibTest is VestingLib {
         );
     }
     function updateReleasedAmountPublic(
-        uint32 vestingIndex,
+        uint256 vestingIndex,
         uint256 releaseAmount
     ) public {
         return VestingLib.updateReleasedAmount(

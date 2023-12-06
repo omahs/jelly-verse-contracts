@@ -40,8 +40,9 @@ abstract contract GovernorVotes is Governor {
     function _getVotes(
         address account,
         uint256 timepoint,
-        bytes memory /*params*/
+        bytes memory params
     ) internal view virtual override returns (uint256) {
-        return chest.getVotingPower(account);
+        (uint256[] memory chestIDs) = abi.decode(params, (uint256[]));
+        return chest.getVotingPower(account, chestIDs);
     }
 }
