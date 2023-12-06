@@ -23,6 +23,7 @@ export async function deployMockJelly(deployer: Signer): Promise<MockContract> {
 	await mockJelly.mock.cap.returns(ethers.utils.parseEther(`1000000000`));
 	await mockJelly.mock.transfer.returns(true);
 	await mockJelly.mock.transferFrom.returns(true);
+	await mockJelly.mock.mint.returns();
 
 	return mockJelly;
 }

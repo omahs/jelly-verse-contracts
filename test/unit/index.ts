@@ -9,6 +9,7 @@ import {
 	deployMockVestingInvestor,
 	deployMockVestingTeam,
 } from '../shared/mocks';
+import { shouldBehaveLikeJellyTimelock } from './JellyTimelock';
 // import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
 
 context(`Unit tests`, async function () {
@@ -22,6 +23,10 @@ context(`Unit tests`, async function () {
 			beneficiary,
 			revoker,
 			alice,
+			bob,
+			timelockAdmin,
+			timelockProposer,
+			timelockExecutor
 		} = await loadFixture(getSigners);
 
 		this.signers.deployer = deployer;
@@ -30,6 +35,10 @@ context(`Unit tests`, async function () {
 		this.signers.beneficiary = beneficiary;
 		this.signers.revoker = revoker;
 		this.signers.alice = alice;
+		this.signers.bob = bob;
+		this.signers.timelockAdmin = timelockAdmin;
+		this.signers.timelockProposer = timelockProposer;
+		this.signers.timelockExecutor = timelockExecutor;
 
 		this.mocks = {} as Mocks;
 
@@ -41,5 +50,6 @@ context(`Unit tests`, async function () {
 	});
 
 	shouldBehaveLikeVesting();
+	shouldBehaveLikeJellyTimelock();
 	// shouldBehaveLikeJellyToken();
 });
