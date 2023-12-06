@@ -1,8 +1,6 @@
 import { ethers, run } from 'hardhat';
 import { BigNumber } from 'ethers';
 import {
-	Chest__factory,
-	Chest,
 	JellyTimelock__factory,
 	JellyTimelock,
 	JellyGovernor__factory,
@@ -12,6 +10,7 @@ import {
 async function main() {
 	const timelockProposerAddress = `0x0000000000000000000000000000000000000000`;
 	const timelockExecutorAddress = `0x0000000000000000000000000000000000000000`;
+	const chestAddress = `0x0000000000000000000000000000000000000000`;
 	const timelockAdminAddress = ``;
 
 	const ONE_DAYS_IN_SOLIDITY = BigNumber.from('86400');
@@ -19,14 +18,6 @@ async function main() {
 
 	const proposers = [timelockProposerAddress];
 	const executors = [timelockExecutorAddress];
-
-	const chestTokenFactory: Chest__factory = await ethers.getContractFactory(
-		'Chest'
-	);
-	const chest: Chest = await chestTokenFactory.deploy();
-	await chest.deployed();
-
-	console.log('Chest deployed to:', chest.address);
 
 	const jellyTimelockFactory: JellyTimelock__factory =
 		await ethers.getContractFactory('JellyTimelock');
@@ -44,7 +35,7 @@ async function main() {
 		await ethers.getContractFactory('JellyGovernance') as JellyGovernor__factory;
 
 	const jellyGovernance: JellyGovernor = await jellyGovernorFactory.deploy(
-		chest.address,
+		chestAddress,
 		jellyTimelock.address
 	);
 	await jellyGovernance.deployed();
@@ -53,7 +44,7 @@ async function main() {
 
 	// verify contracts
 	await run('verify:verify', {
-		address: chest.address,
+		address: chestAddress,
 		constructorArguments: [],
 	});
 
@@ -70,7 +61,7 @@ async function main() {
 	await run('verify:verify', {
 		address: jellyGovernance.address,
 		constructorArguments: [
-			chest.address,
+			chestAddress,
 			jellyTimelock.address,
 		],
 	});
