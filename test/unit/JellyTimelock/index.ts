@@ -22,7 +22,7 @@ export function shouldBehaveLikeJellyTimelock(): void {
 			this.jellyTimelock = jellyTimelock;
 
 			this.mocks = {} as Mocks;
-			this.mocks.mockJelly = mockJellyToken;
+			this.mocks.mockJellyToken = mockJellyToken;
 
 			this.params = {} as Params;
 			this.params.minTimelockDelay = minTimelockDelay;

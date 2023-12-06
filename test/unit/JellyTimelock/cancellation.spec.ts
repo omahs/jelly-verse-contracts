@@ -14,7 +14,7 @@ export function shouldCancelScheduledOperations(): void {
 		beforeEach(async function () {
 			const amountToMint = utils.parseEther('100');
 			mintFunctionCalldata =
-				this.mocks.mockJelly.interface.encodeFunctionData('mint', [
+				this.mocks.mockJellyToken.interface.encodeFunctionData('mint', [
 					this.signers.beneficiary.address,
 					amountToMint,
 				]);
@@ -22,7 +22,7 @@ export function shouldCancelScheduledOperations(): void {
 			await this.jellyTimelock
 				.connect(this.signers.timelockProposer)
 				.schedule(
-					this.mocks.mockJelly.address,
+					this.mocks.mockJellyToken.address,
 					constants.Zero,
 					mintFunctionCalldata,
 					constants.HashZero,
@@ -31,7 +31,7 @@ export function shouldCancelScheduledOperations(): void {
 				);
 
 			id = await this.jellyTimelock.hashOperation(
-				this.mocks.mockJelly.address,
+				this.mocks.mockJellyToken.address,
 				constants.Zero,
 				mintFunctionCalldata,
 				constants.HashZero,
@@ -56,7 +56,7 @@ export function shouldCancelScheduledOperations(): void {
 				await this.jellyTimelock
 					.connect(this.signers.timelockExecutor)
 					.execute(
-						this.mocks.mockJelly.address,
+						this.mocks.mockJellyToken.address,
 						constants.Zero,
 						mintFunctionCalldata,
 						constants.HashZero,

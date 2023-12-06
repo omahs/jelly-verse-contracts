@@ -28,6 +28,39 @@ export async function deployMockJelly(deployer: Signer): Promise<MockContract> {
 	return mockJelly;
 }
 
+export async function deployMockJellyTimelock(deployer: Signer): Promise<MockContract> {
+	const jellyTimelockArtifact: Artifact = await artifacts.readArtifact(
+		`JellyTimelock`
+	);
+
+	const mockJellyTimelock: MockContract = await deployMockContract(
+		deployer,
+		jellyTimelockArtifact.abi
+	);
+
+	await mockJellyTimelock.mock.execute.returns();
+	await mockJellyTimelock.mock.executeBatch.returns();
+
+	return mockJellyTimelock;
+}
+
+export async function deployMockChest(deployer: Signer): Promise<MockContract> {
+	const chestArtifact: Artifact = await artifacts.readArtifact(
+		`Chest`
+	);
+
+	const chest: MockContract = await deployMockContract(
+		deployer,
+		chestArtifact.abi
+	);
+
+	await chest.mock.getVotingPower.returns(BigInt(1000));
+	await chest.mock.stakeSpecial.returns();
+	await chest.mock.stake.returns();
+
+	return chest;
+}
+
 export async function deployMockVestingTeam(
 	deployer: Signer
 ): Promise<MockContract> {

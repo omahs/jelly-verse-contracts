@@ -14,18 +14,18 @@ export function shouldScheduleOperations(): void {
 	beforeEach(async function () {
 		const amountToMint = utils.parseEther('100');
 		mintFunctionCalldata =
-			this.mocks.mockJelly.interface.encodeFunctionData('mint', [
+			this.mocks.mockJellyToken.interface.encodeFunctionData('mint', [
 				this.signers.beneficiary.address,
 				amountToMint,
 			]);
 		burnFunctionCalldata =
-			this.mocks.mockJelly.interface.encodeFunctionData('mint', [
+			this.mocks.mockJellyToken.interface.encodeFunctionData('mint', [
 				constants.AddressZero,
 				amountToMint,
 			]);
 
 		idMint = await this.jellyTimelock.hashOperation(
-			this.mocks.mockJelly.address,
+			this.mocks.mockJellyToken.address,
 			constants.Zero,
 			mintFunctionCalldata,
 			constants.HashZero,
@@ -33,7 +33,7 @@ export function shouldScheduleOperations(): void {
 		);
 
 		idBatch = await this.jellyTimelock.hashOperationBatch(
-			[this.mocks.mockJelly.address, this.mocks.mockJelly.address],
+			[this.mocks.mockJellyToken.address, this.mocks.mockJellyToken.address],
 			[constants.Zero, constants.Zero],
 			[mintFunctionCalldata, burnFunctionCalldata],
 			constants.HashZero,
@@ -50,7 +50,7 @@ export function shouldScheduleOperations(): void {
 					await this.jellyTimelock
 						.connect(this.signers.timelockProposer)
 						.schedule(
-							this.mocks.mockJelly.address,
+							this.mocks.mockJellyToken.address,
 							constants.Zero,
 							mintFunctionCalldata,
 							constants.HashZero,
@@ -62,7 +62,7 @@ export function shouldScheduleOperations(): void {
 						this.jellyTimelock
 							.connect(this.signers.timelockProposer)
 							.schedule(
-								this.mocks.mockJelly.address,
+								this.mocks.mockJellyToken.address,
 								constants.Zero,
 								mintFunctionCalldata,
 								constants.HashZero,
@@ -79,7 +79,7 @@ export function shouldScheduleOperations(): void {
 						this.jellyTimelock
 							.connect(this.signers.timelockProposer)
 							.schedule(
-								this.mocks.mockJelly.address,
+								this.mocks.mockJellyToken.address,
 								constants.Zero,
 								mintFunctionCalldata,
 								constants.HashZero,
@@ -95,7 +95,7 @@ export function shouldScheduleOperations(): void {
 					await this.jellyTimelock
 						.connect(this.signers.timelockProposer)
 						.schedule(
-							this.mocks.mockJelly.address,
+							this.mocks.mockJellyToken.address,
 							constants.Zero,
 							mintFunctionCalldata,
 							constants.HashZero,
@@ -113,7 +113,7 @@ export function shouldScheduleOperations(): void {
 					await this.jellyTimelock
 						.connect(this.signers.bob)
 						.schedule(
-							this.mocks.mockJelly.address,
+							this.mocks.mockJellyToken.address,
 							constants.Zero,
 							mintFunctionCalldata,
 							constants.HashZero,
@@ -132,7 +132,7 @@ export function shouldScheduleOperations(): void {
 						this.jellyTimelock
 							.connect(this.signers.timelockProposer)
 							.schedule(
-								this.mocks.mockJelly.address,
+								this.mocks.mockJellyToken.address,
 								constants.Zero,
 								mintFunctionCalldata,
 								constants.HashZero,
@@ -144,7 +144,7 @@ export function shouldScheduleOperations(): void {
 						.withArgs(
 							idMint,
 							constants.Zero,
-							this.mocks.mockJelly.address,
+							this.mocks.mockJellyToken.address,
 							constants.Zero,
 							mintFunctionCalldata,
 							constants.HashZero,
@@ -164,8 +164,8 @@ export function shouldScheduleOperations(): void {
 							.connect(this.signers.timelockProposer)
 							.scheduleBatch(
 								[
-									this.mocks.mockJelly.address,
-									this.mocks.mockJelly.address,
+									this.mocks.mockJellyToken.address,
+									this.mocks.mockJellyToken.address,
 								],
 								[constants.Zero],
 								[mintFunctionCalldata, burnFunctionCalldata],
@@ -182,8 +182,8 @@ export function shouldScheduleOperations(): void {
 							.connect(this.signers.timelockProposer)
 							.scheduleBatch(
 								[
-									this.mocks.mockJelly.address,
-									this.mocks.mockJelly.address,
+									this.mocks.mockJellyToken.address,
+									this.mocks.mockJellyToken.address,
 								],
 								[constants.Zero, constants.Zero],
 								[mintFunctionCalldata],
@@ -201,8 +201,8 @@ export function shouldScheduleOperations(): void {
 						.connect(this.signers.timelockProposer)
 						.scheduleBatch(
 							[
-								this.mocks.mockJelly.address,
-								this.mocks.mockJelly.address,
+								this.mocks.mockJellyToken.address,
+								this.mocks.mockJellyToken.address,
 							],
 							[constants.Zero, constants.Zero],
 							[mintFunctionCalldata, burnFunctionCalldata],

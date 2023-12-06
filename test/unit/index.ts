@@ -10,6 +10,7 @@ import {
 	deployMockVestingTeam,
 } from '../shared/mocks';
 import { shouldBehaveLikeJellyTimelock } from './JellyTimelock';
+import { shouldBehaveLikeJellyGovernor } from './JellyGovernor';
 // import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
 
 context(`Unit tests`, async function () {
@@ -51,5 +52,6 @@ context(`Unit tests`, async function () {
 
 	shouldBehaveLikeVesting();
 	shouldBehaveLikeJellyTimelock();
+	shouldBehaveLikeJellyGovernor();
 	// shouldBehaveLikeJellyToken();
 });

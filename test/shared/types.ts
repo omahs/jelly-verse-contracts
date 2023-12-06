@@ -27,9 +27,11 @@ export interface Signers {
 }
 
 export interface Mocks {
-	mockJelly: MockContract;
+	mockJellyToken: MockContract;
+	mockChest: MockContract;
 	mockAllocator: MockContract;
 	mockVestingTeam: MockContract;
+	mockJellyTimelock: MockContract;
 	mockVestingInvestor: MockContract;
 	mockMinterContract: MockContract;
 }
