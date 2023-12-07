@@ -22,7 +22,7 @@ contract LiquidityRewardDistrubtion is Ownable {
     uint256 public epoch;
 
     event Claimed(address claimant, uint256 week, uint256 balance);
-    event EpochAdded(uint256 Epoch, bytes32 merkleRoot, uint256 totalAmount);
+    event EpochAdded(uint256 Epoch, bytes32 merkleRoot);
     event EpochRemoved(uint256 epoch);
 
     error Claim_LenMissmatch();
@@ -43,16 +43,13 @@ contract LiquidityRewardDistrubtion is Ownable {
      * @notice Creates epoch for distribtuin
      *
      * @param _merkleRoot - root of merkle tree.
-     * @param _totalAllocation - amount of tokens to be distributed
      *
      * No return only Owner can call
      */
 
     function createEpoch(
-        bytes32 _merkleRoot,
-        uint256 _totalAllocation
+        bytes32 _merkleRoot
     ) public onlyOwner returns (uint256 epochId) {
-        token.safeTransferFrom(msg.sender, address(this), _totalAllocation);
 
         epochId = epoch;
 
@@ -60,7 +57,7 @@ contract LiquidityRewardDistrubtion is Ownable {
 
         epoch+=1;
 
-        emit EpochAdded(epochId, _merkleRoot, _totalAllocation);
+        emit EpochAdded(epochId, _merkleRoot);
     }
 
     /**
