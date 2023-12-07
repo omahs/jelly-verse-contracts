@@ -12,17 +12,17 @@ import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLibVani.sol";
 
 // TO-DO:
-// increaseStake, refreeze to maximum period
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
-// add 7 days as minimum staking period for regular chest, last call update
 // nerfing parameter, probably some scaling factor for time
-// add checks if token exists in all methods
+// add checks if token exists in all methods(get vesting position method ideal place to add this)
 // events for booster updates?
+// return values consistency in style
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint256 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
+    uint256 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
 
     uint256 private constant DECIMALS = 1e18;
     uint256 private constant INITIAL_BOOSTER = 1 * DECIMALS;
@@ -139,8 +139,10 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     ) external nonReentrant {
         if (amount == 0) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
-        if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
-            revert Chest__InvalidFreezingPeriod();
+        if (
+            freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST ||
+            freezingPeriod < MIN_FREEZING_PERIOD_REGULAR_CHEST
+        ) revert Chest__InvalidFreezingPeriod();
 
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
@@ -152,7 +154,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         vestingPositions[currentTokenId] = createVestingPosition(
             amount,
             beneficiary,
-            freezingPeriod > 0 ? freezingPeriod : 1,
+            freezingPeriod,
             0
         );
 
@@ -246,8 +248,10 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         if (amount == 0 && freezingPeriod == 0)
             revert Chest__NothingToIncrease();
 
-        if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
-            revert Chest__InvalidFreezingPeriod();
+        if (
+            freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST ||
+            freezingPeriod < MIN_FREEZING_PERIOD_REGULAR_CHEST
+        ) revert Chest__InvalidFreezingPeriod();
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId_];
         uint48 newCliffTimestamp;
@@ -284,7 +288,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                 }
             } else {
                 newCliffTimestamp = vestingPosition.cliffTimestamp; // check maybe how to optimize this
-            }
+            } // if it doesnt change no need to spend gas for updating storage
         } else {
             // special chest
             revert Chest__CannotModifySpecial();

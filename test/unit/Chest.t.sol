@@ -6,6 +6,7 @@ import {Chest} from "../../contracts/Chest.sol";
 import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 
 // TO-ADD:
+// MIN_FREEZING_PERIOD added for regular chests(stake,increaseStake affected)
 // latestUnstake asserts in tests
 // - tests specific for releaseableAmount in both cases
 // booster, freezingPeriod assertions in stake,unstake..
