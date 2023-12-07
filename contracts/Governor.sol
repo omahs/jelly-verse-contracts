@@ -38,7 +38,6 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
         // --- start retyped from Timers.BlockNumber at offset 0x00 ---
         uint64 voteStart;
         address proposer;
-        uint256 finalChestId;
         bytes4 __gap_unused0;
         // --- start retyped from Timers.BlockNumber at offset 0x20 ---
         uint64 voteEnd;
@@ -46,6 +45,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
         // --- Remaining fields starting at offset 0x40 ---------------
         bool executed;
         bool canceled;
+        uint256 finalChestId;
     }
     // solhint-enable var-name-mixedcase
     
@@ -232,6 +232,13 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
     }
 
     /**
+     * @dev Returns final chest of passed proposal.
+     */
+    function proposalFinalChest(uint256 proposalId) public view returns (uint256) {
+        return _proposals[proposalId].finalChestId;
+    }
+
+    /**
      * @dev Returns the account that created a given proposal.
      */
     function proposalProposer(uint256 proposalId) public view virtual override returns (address) {
@@ -293,10 +300,6 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
         require(_isValidDescriptionForProposer(proposer, description), "Governor: proposer restricted");
 
         uint256 currentTimepoint = clock();
-        require(
-            getVotes(proposer, currentTimepoint - 1) >= proposalThreshold(),
-            "Governor: proposer votes below proposal threshold"
-        );
         uint256 lastChestId = _chest.totalSupply() - 1;
         uint256 proposalId = hashProposal(targets, values, calldatas, keccak256(bytes(description)));
 
@@ -347,10 +350,6 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
         require(_isValidDescriptionForProposer(proposer, description), "Governor: proposer restricted");
 
         uint256 currentTimepoint = clock();
-        require(
-            getVotes(proposer, currentTimepoint - 1) >= proposalThreshold(),
-            "Governor: proposer votes below proposal threshold"
-        );
         uint256 lastChestId = _chest.totalSupply() - 1;
         uint256 proposalId = hashProposal(targets, values, calldatas, keccak256(bytes(description)));
 
@@ -645,7 +644,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
         ProposalCore storage proposal = _proposals[proposalId];
         require(state(proposalId) == ProposalState.Active, "Governor: vote not currently active");
 
-        uint256 weight = _getVotes(account, proposal.voteStart, params);
+        uint256 weight = _getVotes(account, proposal.finalChestId, params);
         _countVote(proposalId, account, support, weight, params);
 
         if (params.length == 0) {

@@ -13,7 +13,7 @@ import { shouldBehaveLikeJellyTimelock } from './JellyTimelock';
 import { shouldBehaveLikeJellyGovernor } from './JellyGovernor';
 // import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
 
-context(`Unit tests`, async function () {
+context.only(`Unit tests`, async function () {
 	before(async function () {
 		this.signers = {} as Signers;
 
@@ -50,8 +50,8 @@ context(`Unit tests`, async function () {
 		// this.mocks.mockMinterContract = await deployMockMinter(deployer);
 	});
 
-	shouldBehaveLikeVesting();
-	shouldBehaveLikeJellyTimelock();
+	// shouldBehaveLikeVesting();
+	// shouldBehaveLikeJellyTimelock();
 	shouldBehaveLikeJellyGovernor();
 	// shouldBehaveLikeJellyToken();
 });

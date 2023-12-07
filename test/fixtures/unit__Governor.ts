@@ -14,6 +14,7 @@ type UnitJellyGovernorFixtureType = {
 	votingPeriod: BigNumber;
 	proposalThreshold: BigNumber;
 	quorum: BigNumber;
+	lastChestId: BigNumber;
 };
 
 
@@ -24,6 +25,7 @@ export async function unitJellyGovernorFixture(): Promise<UnitJellyGovernorFixtu
 	const votingPeriod = BigNumber.from('50400'); // 1 week
 	const proposalThreshold = BigNumber.from('0'); // anyone can create a proposal
 	const quorum = BigNumber.from('1000000'); // 1000000
+	const lastChestId = BigNumber.from('9'); // 9 (chest.totalSupply() - 1)
 
 	const mockJellyToken = await deployMockJelly(deployer);
 	const mockChest = await deployMockChest(deployer);
@@ -47,5 +49,6 @@ export async function unitJellyGovernorFixture(): Promise<UnitJellyGovernorFixtu
 		votingPeriod,
 		proposalThreshold,
 		quorum,
+		lastChestId,
 	};
 }

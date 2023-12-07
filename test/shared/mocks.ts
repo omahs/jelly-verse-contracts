@@ -2,7 +2,7 @@ import {
 	MockContract,
 	deployMockContract,
 } from '@ethereum-waffle/mock-contract';
-import { Signer } from 'ethers';
+import { BigNumber, Signer } from 'ethers';
 import { artifacts, ethers } from 'hardhat';
 import { Artifact } from 'hardhat/types';
 
@@ -54,8 +54,8 @@ export async function deployMockChest(deployer: Signer): Promise<MockContract> {
 		chestArtifact.abi
 	);
 
-	await chest.mock.getVotingPower.returns(BigInt(1000));
-	await chest.mock.stakeSpecial.returns();
+	await chest.mock.getVotingPower.returns(BigNumber.from(1000));
+	await chest.mock.totalSupply.returns(BigNumber.from(10));
 	await chest.mock.stake.returns();
 
 	return chest;

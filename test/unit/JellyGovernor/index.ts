@@ -16,6 +16,7 @@ export function shouldBehaveLikeJellyGovernor(): void {
 				votingPeriod,
 				proposalThreshold,
 				quorum,
+				lastChestId,
 			} = await loadFixture(unitJellyGovernorFixture);
 
 			this.jellyGovernor = jellyGovernor;
@@ -30,8 +31,10 @@ export function shouldBehaveLikeJellyGovernor(): void {
 			this.params.votingPeriod = votingPeriod;
 			this.params.proposalThreshold = proposalThreshold;
 			this.params.quorum = quorum;
+			this.params.lastChestId = lastChestId;
 		});
 
 		shouldDeploy();
+		shouldCreateProposals();
 	});
 }

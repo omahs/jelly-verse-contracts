@@ -40,6 +40,7 @@ export interface Mocks {
 export interface Params {
 	votingDelay: BigNumber;
 	votingPeriod: BigNumber;
+	lastChestId: BigNumber;
 	proposalThreshold: BigNumber;
 	quorum: BigNumber;
 	minTimelockDelay: BigNumber;

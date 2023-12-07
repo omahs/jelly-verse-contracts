@@ -36,6 +36,9 @@ abstract contract GovernorVotes is Governor {
 
     /**
      * Read the voting weight from the token's built in snapshot mechanism (see {Governor-_getVotes}).
+     * @dev timepoint parameter is not actually timpoint of the vote, but it's
+     *      the last chest ID that is viable for voting.
+     *      It's left for compatibility with the Governor Votes mechanism.
      */
     function _getVotes(
         address account,
@@ -43,6 +46,11 @@ abstract contract GovernorVotes is Governor {
         bytes memory params
     ) internal view virtual override returns (uint256) {
         (uint256[] memory chestIDs) = abi.decode(params, (uint256[]));
+        require(chestIDs.length > 0, "JellyGovernor: no chest IDs provided");
+
+        for (uint8 i = 0; i < chestIDs.length; i++) {
+            require(chestIDs[i] <= timepoint, "JellyGovernor: chest not viable for voting");
+        }
         return chest.getVotingPower(account, chestIDs);
     }
 }
