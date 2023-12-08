@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
-import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
@@ -12,10 +11,10 @@ import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLibVani.sol";
 
 // TO-DO:
+// maybe change first 3 imports to be also from vendor folder
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
 // events for booster/nerft parameters? changed structure in vesting
 // return values consistency in style
-// add function for fee withdrawal/transfer
 
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -45,6 +44,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
     uint256 internal tokenId;
     uint256 public fee;
+    uint256 public totalFees;
     uint128 internal maxBooster;
     uint8 internal timeFactor;
 
@@ -146,6 +146,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         );
 
         unchecked {
+            totalFees += fee;
             ++tokenId;
         }
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
@@ -194,6 +195,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             nerfParameter
         );
         unchecked {
+            totalFees += fee;
             ++tokenId;
         }
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
@@ -326,30 +328,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     }
 
     /**
-     * @notice Calculates the voting power of all account's chests.
-     *
-     * @param account - address of the account.
-     *
-     * @return power - voting power of the account.
-     */
-    function getVotingPower(
-        address account,
-        uint256[] calldata tokenIds
-    ) external view returns (uint256) {
-        uint256 power;
-        for (uint256 i = 0; i < tokenIds.length; ) {
-            if (ownerOf(tokenIds[i]) != account)
-                revert Chest__NotAuthorizedForToken();
-            power += getChestPower(tokenIds[i]);
-
-            unchecked {
-                ++i;
-            }
-        }
-        return power;
-    }
-
-    /**
      * @notice Sets fee in Jelly token for minting a chest.
      * @dev Only owner can call.
      *
@@ -375,6 +353,39 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         // should define maximum value for this
         maxBooster = maxBooster_;
         emit SetMaxBooster(maxBooster_);
+    }
+
+    function withdrawFees(address beneficiary) external onlyOwner {
+        if (beneficiary == address(0)) revert Chest__ZeroAddress();
+
+        uint256 amountToWithdraw = totalFees;
+        totalFees = 0;
+
+        IERC20(i_jellyToken).safeTransfer(beneficiary, amountToWithdraw);
+    }
+
+    /**
+     * @notice Calculates the voting power of all account's chests.
+     *
+     * @param account - address of the account.
+     *
+     * @return power - voting power of the account.
+     */
+    function getVotingPower(
+        address account,
+        uint256[] calldata tokenIds
+    ) external view returns (uint256) {
+        uint256 power;
+        for (uint256 i = 0; i < tokenIds.length; ) {
+            if (ownerOf(tokenIds[i]) != account)
+                revert Chest__NotAuthorizedForToken();
+            power += getChestPower(tokenIds[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+        return power;
     }
 
     /**

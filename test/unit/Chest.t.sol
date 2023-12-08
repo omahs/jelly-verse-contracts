@@ -152,6 +152,8 @@ contract ChestTest is Test {
         uint256 amount = 100;
         uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
 
+        uint256 totalFeesBefore = chest.totalFees();
+
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount + chest.fee());
 
@@ -166,6 +168,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
             0
         );
+        uint256 totalFeesAfter = chest.totalFees();
 
         assertEq(vestingPosition.totalVestedAmount, amount);
         assertEq(vestingPosition.releasedAmount, 0);
@@ -177,6 +180,8 @@ contract ChestTest is Test {
         assertEq(vestingPosition.freezingPeriod, freezingPeriod);
         assertEq(vestingPosition.booster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, 0);
+
+        assertEq(totalFeesAfter, totalFeesBefore + chest.fee());
 
         uint256 releasableAmount = chest.releasableAmount(0);
         assertEq(releasableAmount, 0);
@@ -262,6 +267,8 @@ contract ChestTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5; // 5/10 = 1/2
 
+        uint256 totalFeesBefore = chest.totalFees();
+
         vm.startPrank(allocator);
         jellyToken.approve(address(chest), amount + chest.fee());
 
@@ -282,6 +289,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
             0
         );
+        uint256 totalFeesAfter = chest.totalFees();
 
         assertEq(vestingPosition.totalVestedAmount, amount);
         assertEq(vestingPosition.releasedAmount, 0);
@@ -293,6 +301,8 @@ contract ChestTest is Test {
         assertEq(vestingPosition.freezingPeriod, freezingPeriod);
         assertEq(vestingPosition.booster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, nerfParameter);
+
+        assertEq(totalFeesAfter, totalFeesBefore + chest.fee());
 
         uint256 releasableAmount = chest.releasableAmount(0);
         assertEq(releasableAmount, 0);
