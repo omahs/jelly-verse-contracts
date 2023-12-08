@@ -29,11 +29,13 @@ abstract contract VestingLib {
     uint256 public index;
 
     struct VestingPosition {
-        address beneficiary;
         uint256 totalVestedAmount;
         uint256 releasedAmount;
         uint48 cliffTimestamp;
         uint32 vestingDuration;
+        uint32 freezingPeriod;
+        uint128 booster;
+        uint16 nerfParameter;
     }
 
     event NewVestingPosition(VestingPosition position, uint256 index);
@@ -44,7 +46,6 @@ abstract contract VestingLib {
     error VestingLib__InvalidDuration();
     error VestingLib__InvalidIndex();
     error VestingLib__InvalidSender();
-    error VestingLib__InvalidBeneficiary();
     error VestingLib__InvalidVestingAmount();
     error VestingLib__InvalidReleaseAmount();
 
@@ -86,21 +87,23 @@ abstract contract VestingLib {
 
     function createVestingPosition(
         uint256 amount,
-        address beneficiary,
         uint32 cliffDuration,
-        uint32 vestingDuration
+        uint32 vestingDuration,
+        uint128 booster,
+        uint8 nerfParameter
     ) internal returns (VestingPosition memory) {
         if (cliffDuration == 0) revert VestingLib__InvalidDuration();
-        if (beneficiary == address(0)) revert VestingLib__InvalidBeneficiary();
         if (amount == 0) revert VestingLib__InvalidVestingAmount();
 
         uint48 cliffTimestamp = SafeCast.toUint48(block.timestamp) +
             SafeCast.toUint48(cliffDuration);
 
-        vestingPositions[index].beneficiary = beneficiary;
         vestingPositions[index].totalVestedAmount = amount;
         vestingPositions[index].cliffTimestamp = cliffTimestamp;
         vestingPositions[index].vestingDuration = vestingDuration;
+        vestingPositions[index].freezingPeriod = cliffDuration;
+        vestingPositions[index].booster = booster;
+        vestingPositions[index].nerfParameter = nerfParameter;
 
         VestingPosition memory vestingPosition_ = vestingPositions[index];
 
@@ -124,9 +127,6 @@ abstract contract VestingLib {
         VestingPosition storage vestingPosition_ = vestingPositions[
             vestingIndex
         ];
-
-        if (vestingPosition_.beneficiary != msg.sender)
-            revert VestingLib__InvalidSender();
 
         vestingPosition_.releasedAmount += releaseAmount;
     }
