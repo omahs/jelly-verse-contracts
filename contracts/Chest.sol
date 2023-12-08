@@ -15,6 +15,7 @@ import {VestingLib} from "./utils/VestingLibVani.sol";
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
 // events for booster/nerft parameters? changed structure in vesting
 // return values consistency in style
+// timeFactor changeable?
 
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -389,6 +390,22 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     }
 
     /**
+     * @notice Calculates the voting power of the chest for specific timestamp and position values.
+     *
+     * @param timestamp - timestamp for which the power is calculated.
+     *
+     * @param vestingPosition - vesting position of the chest.
+     *
+     * @return power - voting power of the chest.
+     */
+    function getChestPower(
+        uint256 timestamp,
+        VestingPosition memory vestingPosition
+    ) external view returns (uint256 power) {
+        power = calculatePower(timestamp, vestingPosition);
+    }
+
+    /**
      * @dev Retrieves the vesting position at the specified index.
      * @param tokenId_ The index of the vesting position to retrieve.
      * @return The vesting position at the specified index.
@@ -404,7 +421,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     }
 
     /**
-     * @notice Calculates the voting power of the chest.
+     * @notice Calculates the voting power of the chest for current block.timestamp.
      *
      * @param tokenId_ - id of the chest.
      *
@@ -414,41 +431,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 tokenId_
     ) public view returns (uint256 power) {
         VestingPosition memory vestingPosition = getVestingPosition(tokenId_);
-
-        uint256 vestingDuration = vestingPosition.vestingDuration;
-        uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
-
-        if (block.timestamp > cliffTimestamp + vestingDuration) {
-            return 0; // open chest
-        }
-
-        // Calculate unfreezing time based on whether vesting has started
-        uint256 unfreezingTime;
-        if (block.timestamp > vestingPosition.cliffTimestamp) {
-            // Vesting has started
-            uint256 vestingEndTime = cliffTimestamp + vestingDuration;
-            unfreezingTime = (vestingEndTime - block.timestamp) / timeFactor;
-        } else {
-            // Vesting has not started
-            unfreezingTime = cliffTimestamp - block.timestamp;
-        }
-
-        // Calculate power based on vesting type
-        if (vestingPosition.vestingDuration == 0) {
-            // Regular chest
-            uint256 booster = vestingPosition.booster;
-            power =
-                (booster * vestingPosition.totalVestedAmount * unfreezingTime) /
-                DECIMALS;
-        } else {
-            // Special chest
-            uint16 nerfParameter = vestingPosition.nerfParameter;
-            power =
-                (vestingPosition.totalVestedAmount *
-                    unfreezingTime *
-                    nerfParameter) /
-                10; // nerf parameter has value between 1 and 10
-        }
+        power = calculatePower(block.timestamp, vestingPosition);
     }
 
     function tokenURI(
@@ -527,6 +510,46 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         if (booster > maxBooster) {
             booster = maxBooster;
+        }
+    }
+
+    function calculatePower(
+        uint256 timestamp,
+        VestingPosition memory vestingPosition
+    ) internal view returns (uint256 power) {
+        uint256 vestingDuration = vestingPosition.vestingDuration;
+        uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
+
+        if (timestamp > cliffTimestamp + vestingDuration) {
+            return 0; // open chest
+        }
+
+        // Calculate unfreezing time based on whether vesting has started
+        uint256 unfreezingTime;
+        if (timestamp > vestingPosition.cliffTimestamp) {
+            // Vesting has started
+            uint256 vestingEndTime = cliffTimestamp + vestingDuration;
+            unfreezingTime = (vestingEndTime - timestamp) / timeFactor;
+        } else {
+            // Vesting has not started
+            unfreezingTime = cliffTimestamp - timestamp;
+        }
+
+        // Calculate power based on vesting type
+        if (vestingPosition.vestingDuration == 0) {
+            // Regular chest
+            uint256 booster = vestingPosition.booster;
+            power =
+                (booster * vestingPosition.totalVestedAmount * unfreezingTime) /
+                DECIMALS;
+        } else {
+            // Special chest
+            uint16 nerfParameter = vestingPosition.nerfParameter;
+            power =
+                (vestingPosition.totalVestedAmount *
+                    unfreezingTime *
+                    nerfParameter) /
+                10; // nerf parameter has value between 1 and 10
         }
     }
 }
