@@ -16,7 +16,7 @@ import {VestingLib} from "./utils/VestingLibVani.sol";
 // events for booster/nerft parameters? changed structure in vesting
 // return values consistency in style
 // add function for fee withdrawal/transfer
-// remove getBooster,freezingPeriod;
+
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -235,20 +235,19 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             revert Chest__InvalidFreezingPeriod();
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId_]; // check this, no need imo for reduntant checks for existance
-        uint48 newCliffTimestamp;
-        uint128 booster;
+        uint48 newCliffTimestamp = vestingPosition.cliffTimestamp;
 
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
             if (freezingPeriod != 0) {
                 if (block.timestamp < vestingPosition.cliffTimestamp) {
                     // chest is frozen
-                    booster = getBooster(tokenId_);
+                    uint32 currentFreezingPeriod = vestingPosition
+                        .freezingPeriod;
 
-                    freezingPeriod = uint32(
+                    freezingPeriod =
                         MAX_FREEZING_PERIOD_REGULAR_CHEST -
-                            getFreezingPeriod(tokenId_)
-                    );
+                        currentFreezingPeriod;
 
                     newCliffTimestamp =
                         vestingPosition.cliffTimestamp +
@@ -256,23 +255,22 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
                     vestingPositions[tokenId_]
                         .freezingPeriod = MAX_FREEZING_PERIOD_REGULAR_CHEST;
-
-                    vestingPositions[tokenId_].booster = booster;
+                    vestingPositions[tokenId_]
+                        .cliffTimestamp = newCliffTimestamp;
                 } else {
                     // chest is open
-
-                    booster = calculateBooster(tokenId_);
+                    uint128 newBooster = calculateBooster(tokenId_);
 
                     newCliffTimestamp = uint48(
                         block.timestamp + freezingPeriod
                     );
                     vestingPositions[tokenId_].freezingPeriod = freezingPeriod;
 
-                    vestingPositions[tokenId_].booster = booster;
+                    vestingPositions[tokenId_].booster = newBooster;
+                    vestingPositions[tokenId_]
+                        .cliffTimestamp = newCliffTimestamp;
                 }
-            } else {
-                newCliffTimestamp = vestingPosition.cliffTimestamp; // check maybe how to optimize this
-            } // if it doesnt change no need to spend gas for updating storage
+            }
         } else {
             // special chest
             revert Chest__CannotModifySpecial();
@@ -281,7 +279,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 newTotalStaked = vestingPosition.totalVestedAmount + amount;
 
         vestingPositions[tokenId_].totalVestedAmount = newTotalStaked;
-        vestingPositions[tokenId_].cliffTimestamp = newCliffTimestamp;
 
         emit IncreaseStake(tokenId_, newTotalStaked, newCliffTimestamp);
 
@@ -380,10 +377,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         emit SetMaxBooster(maxBooster_);
     }
 
-    function getBooster(uint256 tokenId_) public view returns (uint128) {
-        return vestingPositions[tokenId_].booster;
-    }
-
     /**
      * @dev Retrieves the vesting position at the specified index.
      * @param tokenId_ The index of the vesting position to retrieve.
@@ -432,25 +425,19 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         // Calculate power based on vesting type
         if (vestingPosition.vestingDuration == 0) {
             // Regular chest
-            uint256 booster = getBooster(tokenId_);
+            uint256 booster = vestingPosition.booster;
             power =
                 (booster * vestingPosition.totalVestedAmount * unfreezingTime) /
                 DECIMALS;
         } else {
             // Special chest
-            power = vestingPosition.totalVestedAmount * unfreezingTime; // Add nerf parameters
+            uint16 nerfParameter = vestingPosition.nerfParameter;
+            power =
+                (vestingPosition.totalVestedAmount *
+                    unfreezingTime *
+                    nerfParameter) /
+                10; // nerf parameter has value between 1 and 10
         }
-    }
-
-    /**
-     * @notice Retrieves the latest unstake timestamp for the vesting position at the specified index.
-     * @param tokenId_ The id of the chest to retrieve the latest unstake timestamp from.
-     * @return The latest unstake timestamp for the vesting position at the specified index.
-     */
-    function getFreezingPeriod(uint256 tokenId_) public view returns (uint32) {
-        uint32 freezingPeriod = vestingPositions[tokenId_].freezingPeriod;
-
-        return freezingPeriod;
     }
 
     function tokenURI(
@@ -519,9 +506,11 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             return INITIAL_BOOSTER;
         }
 
+        uint128 currentBooster = vestingPosition.booster;
         uint32 freezingPeriod = vestingPosition.freezingPeriod;
+
         booster =
-            getBooster(tokenId_) +
+            currentBooster +
             ((freezingPeriod * (maxBooster - INITIAL_BOOSTER)) /
                 MAX_FREEZING_PERIOD_REGULAR_CHEST);
 

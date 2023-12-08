@@ -531,8 +531,8 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
-        uint256 boosterBefore = chest.getBooster(positionIndex);
-        uint256 freezingPeriodBefore = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
 
         uint256 increaseAmountFor = 0;
         uint32 increaseFreezingPeriodFor = 50;
@@ -546,8 +546,8 @@ contract ChestTest is Test {
 
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
-        uint256 boosterAfter = chest.getBooster(positionIndex);
-        uint256 freezingPeriodAfter = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -579,7 +579,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
-        uint256 boosterBefore = chest.getBooster(positionIndex);
+        uint256 boosterBefore = vestingPositionBefore.booster;
 
         uint256 increaseAmountFor = 0;
         uint32 increaseFreezingPeriodFor = 50;
@@ -595,8 +595,8 @@ contract ChestTest is Test {
 
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
-        uint256 boosterAfter = chest.getBooster(positionIndex);
-        uint256 freezingPeriodAfter = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -627,8 +627,8 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
-        uint256 boosterBefore = chest.getBooster(positionIndex);
-        uint256 freezingPeriodBefore = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
 
         uint256 increaseAmountFor = 0;
         uint32 increaseFreezingPeriodFor = 50;
@@ -645,8 +645,8 @@ contract ChestTest is Test {
 
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
-        uint256 boosterAfter = chest.getBooster(positionIndex);
-        uint256 freezingPeriodAfter = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -678,7 +678,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
-        uint256 boosterBefore = chest.getBooster(positionIndex);
+        uint256 boosterBefore = vestingPositionBefore.booster;
 
         uint256 increaseAmountFor = 0;
         uint32 increaseFreezingPeriodFor = 50;
@@ -697,8 +697,8 @@ contract ChestTest is Test {
 
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
-        uint256 boosterAfter = chest.getBooster(positionIndex);
-        uint256 freezingPeriodAfter = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -729,8 +729,8 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
-        uint256 boosterBefore = chest.getBooster(positionIndex);
-        uint256 freezingPeriodBefore = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
 
         uint256 increaseAmountFor = 50;
         uint32 increaseFreezingPeriodFor = 50;
@@ -750,8 +750,8 @@ contract ChestTest is Test {
 
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
-        uint256 boosterAfter = chest.getBooster(positionIndex);
-        uint256 freezingPeriodAfter = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -789,7 +789,7 @@ contract ChestTest is Test {
         uint256 totalVestedAmountBefore = vestingPositionBefore
             .totalVestedAmount;
 
-        uint256 boosterBefore = chest.getBooster(positionIndex);
+        uint256 boosterBefore = vestingPositionBefore.booster;
 
         vm.warp(vestingPositionBefore.cliffTimestamp + 1);
 
@@ -805,8 +805,8 @@ contract ChestTest is Test {
 
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
-        uint256 boosterAfter = chest.getBooster(positionIndex);
-        uint256 freezingPeriodAfter = chest.getFreezingPeriod(positionIndex);
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -845,7 +845,7 @@ contract ChestTest is Test {
 
         uint256 cliffTimestampBefore = vestingPositionBefore.cliffTimestamp;
 
-        uint256 freezingPeriodBefore = chest.getFreezingPeriod(positionIndex);
+        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), increaseAmountFor);
