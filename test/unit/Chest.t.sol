@@ -6,9 +6,7 @@ import {Chest} from "../../contracts/Chest.sol";
 import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 
 // TO-ADD:
-// latestUnstake asserts in tests
 // - tests specific for releaseableAmount in both cases
-// soulbound tests
 
 contract ChestTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
@@ -25,6 +23,7 @@ contract ChestTest is Test {
     address testAddress = makeAddr("testAddress");
     address approvedAddress = makeAddr("approvedAddress");
     address nonApprovedAddress = makeAddr("nonApprovedAddress");
+    address transferRecipientAddress = makeAddr("transferRecipientAddress");
 
     Chest public chest;
     ERC20Token public jellyToken;
@@ -46,6 +45,7 @@ contract ChestTest is Test {
     event SetBoosterThreshold(uint256 boosterThreshold);
     event SetMinimalStakingPower(uint256 minimalStakingPower);
     event SetMaxBooster(uint256 maxBooster);
+    event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
     error Chest__InvalidStakingAmount();
@@ -59,6 +59,7 @@ contract ChestTest is Test {
     error Chest__FreezingPeriodNotOver();
     error Chest__CannotUnstakeMoreThanReleasable();
     error Chest__NothingToUnstake();
+    error Chest__InvalidBoosterValue();
 
     error Ownable__CallerIsNotOwner();
 
@@ -1553,8 +1554,6 @@ contract ChestTest is Test {
         chest.unstake(positionIndex, unstakeAmount);
     }
 
-    function test_calculateBooster() external openPosition {} // TO-DO
-
     function test_setFee() external {
         uint256 newFee = 100;
 
@@ -1582,5 +1581,95 @@ contract ChestTest is Test {
         vm.expectRevert(Ownable__CallerIsNotOwner.selector);
 
         chest.setFee(newFee);
+    }
+
+    function test_setMaxBooster() external {
+        uint128 newMaxBooster = 5e18;
+
+        vm.prank(deployerAddress);
+        chest.setMaxBooster(newMaxBooster);
+
+        assertEq(chest.maxBooster(), newMaxBooster);
+    }
+
+    function test_setMaxBoosterEmitsSetMaxBoosterEvent() external {
+        uint128 newMaxBooster = 5e18;
+
+        vm.prank(deployerAddress);
+
+        vm.expectEmit(false, false, false, true, address(chest));
+        emit SetMaxBooster(newMaxBooster);
+
+        chest.setMaxBooster(newMaxBooster);
+    }
+
+    function test_setMaxBoosterCallerIsNotOwner() external {
+        uint128 newMaxBooster = 5e18;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Ownable__CallerIsNotOwner.selector);
+
+        chest.setMaxBooster(newMaxBooster);
+    }
+
+    function test_setMaxBoosterInvalidBoosterValue() external {
+        uint128 newMaxBooster = INITIAL_BOOSTER - 1;
+
+        vm.prank(deployerAddress);
+        vm.expectRevert(Chest__InvalidBoosterValue.selector);
+
+        chest.setMaxBooster(newMaxBooster);
+    }
+
+    function test_withdrawFees() external openPosition {
+        uint256 deployerJellyBalanceBefore = jellyToken.balanceOf(
+            deployerAddress
+        );
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+        uint256 totalFeesBefore = chest.totalFees();
+
+        vm.prank(deployerAddress);
+        chest.withdrawFees(deployerAddress);
+
+        uint256 deployerJellyBalanceAfter = jellyToken.balanceOf(
+            deployerAddress
+        );
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+        uint256 totalFeesAfter = chest.totalFees();
+
+        assertEq(
+            deployerJellyBalanceAfter,
+            deployerJellyBalanceBefore + totalFeesBefore
+        );
+        assertEq(
+            chestJellyBalanceAfter,
+            chestJellyBalanceBefore - totalFeesBefore
+        );
+        assertEq(totalFeesAfter, 0);
+    }
+
+    function test_withdrawFeesEmitsFeeWithdrawnEvent() external openPosition {
+        vm.prank(deployerAddress);
+
+        vm.expectEmit(true, false, false, true, address(chest));
+        emit FeeWithdrawn(deployerAddress);
+
+        chest.withdrawFees(deployerAddress);
+    }
+
+    function test_withdrawFeesCallerIsNotOwner() external openPosition {
+        vm.prank(testAddress);
+        vm.expectRevert(Ownable__CallerIsNotOwner.selector);
+
+        chest.withdrawFees(deployerAddress);
+    }
+
+    function test_calculateBooster() external openPosition {} // TO-DO
+
+    function test_transferFromChest() external openPosition {
+        vm.prank(testAddress);
+
+        vm.expectRevert(Chest__NonTransferrableToken.selector);
+        chest.transferFrom(testAddress, transferRecipientAddress, 0);
     }
 }

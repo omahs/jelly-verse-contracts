@@ -46,7 +46,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     uint256 internal tokenId;
     uint256 public fee;
     uint256 public totalFees;
-    uint128 internal maxBooster;
+    uint128 public maxBooster;
     uint8 internal timeFactor;
 
     event Staked(
@@ -78,6 +78,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     error Chest__FreezingPeriodNotOver();
     error Chest__CannotUnstakeMoreThanReleasable();
     error Chest__NothingToUnstake();
+    error Chest__InvalidBoosterValue();
 
     modifier onlyAuthorizedForToken(uint256 _tokenId) {
         if (!_isApprovedOrOwner(msg.sender, _tokenId))
@@ -349,12 +350,21 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
-    function setMaxBooster(uint64 maxBooster_) external onlyOwner {
+    function setMaxBooster(uint128 maxBooster_) external onlyOwner {
         // should define maximum value for this
+        if (maxBooster_ < INITIAL_BOOSTER) revert Chest__InvalidBoosterValue();
         maxBooster = maxBooster_;
         emit SetMaxBooster(maxBooster_);
     }
 
+    /**
+     * @notice Withdraws accumulated fees to the specified beneficiary.
+     * @dev Only the contract owner can call this function.
+     *
+     * @param beneficiary - address to receive the withdrawn fees.
+     *
+     * No return, reverts on error.
+     */
     function withdrawFees(address beneficiary) external onlyOwner {
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
 
@@ -435,6 +445,10 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         power = calculatePower(block.timestamp, vestingPosition);
     }
 
+    /**
+     * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
+     * @notice The URI is calculated based on the position values of the chest when called.
+     */
     function tokenURI(
         uint256 tokenId_
     ) public view virtual override returns (string memory) {
@@ -467,10 +481,19 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
+    /**
+     * @notice Gets the total supply of tokens.
+     * @return The total supply of tokens.
+     */
     function totalSupply() public view returns (uint256) {
         return tokenId;
     }
 
+    /**
+     * @dev Hook that is called before token transfer.
+     *      See {ERC721 - _beforeTokenTransfer}.
+     * @notice This hook disallows token transfers.
+     */
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -514,6 +537,14 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         }
     }
 
+    /**
+     * @notice Calculates the voting power of the chest based on the timestamp and vesting position.
+     *
+     * @param timestamp - current timestamp.
+     * @param vestingPosition - vesting position of the chest.
+     *
+     * @return power - voting power of the chest.
+     */
     function calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
