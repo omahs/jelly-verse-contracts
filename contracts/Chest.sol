@@ -13,7 +13,7 @@ import {VestingLib} from "./utils/VestingLibVani.sol";
 // TO-DO:
 // maybe change first 3 imports to be also from vendor folder
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
-// events for booster/nerft parameters? changed structure in vesting
+// events for booster/nerf parameters? changed structure in vesting
 // return values consistency in style
 // timeFactor changeable?
 
@@ -63,9 +63,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     );
     event Unstake(uint256 indexed tokenId, uint256 amount, uint256 totalStaked);
     event SetFee(uint256 fee);
-    event SetBoosterThreshold(uint256 boosterThreshold);
-    event SetMinimalStakingPower(uint256 minimalStakingPower);
     event SetMaxBooster(uint256 maxBooster);
+    event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
     error Chest__InvalidStakingAmount();
@@ -361,6 +360,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         uint256 amountToWithdraw = totalFees;
         totalFees = 0;
+
+        emit FeeWithdrawn(beneficiary);
 
         IERC20(i_jellyToken).safeTransfer(beneficiary, amountToWithdraw);
     }
