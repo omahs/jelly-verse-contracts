@@ -262,7 +262,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                         .cliffTimestamp = newCliffTimestamp;
                 } else {
                     // chest is open
-                    uint128 newBooster = calculateBooster(tokenId_);
+                    uint128 newBooster = calculateBooster(vestingPosition);
 
                     newCliffTimestamp = uint48(
                         block.timestamp + freezingPeriod
@@ -510,15 +510,13 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     /**
      * @notice Calculates the booster of the chest.
      *
-     * @param tokenId_ - id of the chest.
+     * @param vestingPosition - chest vesting position.
      *
      * @return booster - booster of the chest.
      */
     function calculateBooster(
-        uint256 tokenId_
+        VestingPosition memory vestingPosition
     ) internal view returns (uint128 booster) {
-        VestingPosition memory vestingPosition = vestingPositions[tokenId_];
-
         if (vestingPosition.vestingDuration > 0) {
             // special chest
             return INITIAL_BOOSTER;
@@ -551,14 +549,13 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     ) internal view returns (uint256 power) {
         uint256 vestingDuration = vestingPosition.vestingDuration;
         uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
-
-        if (timestamp > cliffTimestamp + vestingDuration) {
+        if (timestamp >= cliffTimestamp + vestingDuration) {
             return 0; // open chest
         }
 
         // Calculate unfreezing time based on whether vesting has started
         uint256 unfreezingTime;
-        if (timestamp > vestingPosition.cliffTimestamp) {
+        if (timestamp >= vestingPosition.cliffTimestamp) {
             // Vesting has started
             uint256 vestingEndTime = cliffTimestamp + vestingDuration;
             unfreezingTime = (vestingEndTime - timestamp) / timeFactor;
