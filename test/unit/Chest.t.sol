@@ -2427,4 +2427,168 @@ contract ChestTest is Test {
 
         assertEq(power, 0);
     }
+
+    // Getter tests
+    function test_getVotingPower() external {
+        uint256 amount = 100;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+
+        vm.startPrank(testAddress);
+
+        uint256 power;
+
+        for (uint256 i; i < 5; i++) {
+            jellyToken.approve(address(chest), amount + chest.fee());
+            chest.stake(amount, testAddress, freezingPeriod);
+
+            power += chestHarness.exposed_calculatePower(
+                block.timestamp,
+                chest.getVestingPosition(i)
+            );
+        }
+
+        uint256[] memory tokenIds = new uint256[](5);
+        tokenIds[0] = 0;
+        tokenIds[1] = 1;
+        tokenIds[2] = 2;
+        tokenIds[3] = 3;
+        tokenIds[4] = 4;
+
+        uint256 powerGetter = chest.getVotingPower(testAddress, tokenIds);
+
+        assertEq(power, powerGetter);
+    }
+
+    function test_getVotingPowerNotAuthorizedForToken() external openPosition {
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        vm.expectRevert(Chest__NotAuthorizedForToken.selector);
+        chest.getVotingPower(approvedAddress, tokenIds);
+    }
+
+    function test_getChestPowerAtSpecificMoment() external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+        uint256 powerHarness = chestHarness.exposed_calculatePower(
+            block.timestamp,
+            vestingPosition
+        );
+        uint256 powerGetter = chest.getChestPower(
+            block.timestamp,
+            vestingPosition
+        );
+
+        assertEq(powerHarness, powerGetter);
+
+        vm.warp(
+            vestingPosition.cliffTimestamp +
+                vestingPosition.vestingDuration +
+                vestingPosition.freezingPeriod
+        );
+
+        powerHarness = chestHarness.exposed_calculatePower(
+            block.timestamp,
+            vestingPosition
+        );
+        powerGetter = chest.getChestPower(block.timestamp, vestingPosition);
+
+        assertEq(powerHarness, powerGetter);
+    }
+
+    function test_getChestPowerUsingChestId() external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+        uint256 powerHarness = chestHarness.exposed_calculatePower(
+            block.timestamp,
+            vestingPosition
+        );
+        uint256 powerGetter = chest.getChestPower(positionIndex);
+
+        assertEq(powerHarness, powerGetter);
+
+        vm.warp(
+            vestingPosition.cliffTimestamp +
+                vestingPosition.vestingDuration +
+                vestingPosition.freezingPeriod
+        );
+
+        powerHarness = chestHarness.exposed_calculatePower(
+            block.timestamp,
+            vestingPosition
+        );
+        powerGetter = chest.getChestPower(positionIndex);
+
+        assertEq(powerHarness, powerGetter);
+    }
+
+    function test_getVestingPosition()
+        external
+        openPosition
+        openSpecialPosition
+    {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        assertEq(vestingPosition.totalVestedAmount, 100);
+        assertEq(vestingPosition.releasedAmount, 0);
+        assertEq(
+            vestingPosition.cliffTimestamp,
+            block.timestamp + MIN_FREEZING_PERIOD_REGULAR_CHEST
+        );
+        assertEq(vestingPosition.vestingDuration, 0);
+        assertEq(
+            vestingPosition.freezingPeriod,
+            MIN_FREEZING_PERIOD_REGULAR_CHEST
+        );
+        assertEq(vestingPosition.booster, INITIAL_BOOSTER);
+        assertEq(vestingPosition.nerfParameter, 0);
+
+        positionIndex = 1;
+        vestingPosition = chest.getVestingPosition(positionIndex);
+
+        assertEq(vestingPosition.totalVestedAmount, 100);
+        assertEq(vestingPosition.releasedAmount, 0);
+        assertEq(vestingPosition.cliffTimestamp, block.timestamp + 1000);
+        assertEq(vestingPosition.vestingDuration, 1000);
+        assertEq(vestingPosition.freezingPeriod, 1000);
+        assertEq(vestingPosition.booster, INITIAL_BOOSTER);
+        assertEq(vestingPosition.nerfParameter, 5);
+    }
+
+    function test_getVestingPositionNonExistentToken() external {
+        uint256 positionIndex = 0;
+
+        vm.expectRevert(Chest__NonExistentToken.selector);
+
+        chest.getVestingPosition(positionIndex);
+    }
+
+    function test_totalSupply() external openPosition {
+        uint256 totalSupply = chest.totalSupply();
+
+        assertEq(totalSupply, 1);
+
+        uint256 amount = 50;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+
+        vm.startPrank(testAddress);
+
+        for (uint256 i; i < 10; i++) {
+            jellyToken.approve(address(chest), amount + chest.fee());
+            chest.stake(amount, testAddress, freezingPeriod);
+
+            ++totalSupply;
+
+            assertEq(chest.totalSupply(), totalSupply);
+        }
+
+        vm.stopPrank();
+    }
 }

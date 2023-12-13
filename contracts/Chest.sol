@@ -379,13 +379,15 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     /**
      * @notice Calculates the voting power of all account's chests.
      *
-     * @param account - address of the account.
+     * @param account - address of the account
+     *
+     * @param tokenIds - ids of the chests.
      *
      * @return power - voting power of the account.
      */
     function getVotingPower(
         address account,
-        uint256[] calldata tokenIds
+        uint256[] memory tokenIds
     ) external view returns (uint256) {
         uint256 power;
         for (uint256 i = 0; i < tokenIds.length; ) {
