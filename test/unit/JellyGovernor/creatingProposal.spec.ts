@@ -121,6 +121,24 @@ export function shouldCreateProposals(): void {
 				assert(actualFinalSnapshot.eq(this.params.lastChestId), 'Incorrect final chest id value');
 			});
 
+			it('should set proposal proposer', async function () {
+				const proposer = await this.jellyGovernor.proposalProposer(
+					proposalId
+				);
+
+				assert(proposer === this.signers.deployer.address, 'Incorrect proposal proposer');
+			});
+
+			it('should have 0 votes', async function () {
+				const votes = await this.jellyGovernor.proposalVotes(
+					proposalId
+				);
+
+				assert(votes.againstVotes.eq(0), 'Incorrect against votes value');
+				assert(votes.abstainVotes.eq(0), 'Incorrect abstain votes value');
+				assert(votes.forVotes.eq(0), 'Incorrect for votes value');
+			});
+
 			it('should set deadline', async function () {
 				const latestBlockTime = BigNumber.from(await time.latest());
 				const expectedDeadline = latestBlockTime
@@ -331,6 +349,24 @@ export function shouldCreateProposals(): void {
 				);
 
 				assert(expectedSnapshot.eq(actualSnapshot), 'Incorrect snapshot value');
+			});
+
+			it('should set proposal proposer', async function () {
+				const proposer = await this.jellyGovernor.proposalProposer(
+					proposalId
+				);
+				
+				assert(proposer === this.signers.deployer.address, 'Incorrect proposal proposer');
+			});
+
+			it('should have 0 votes', async function () {
+				const votes = await this.jellyGovernor.proposalVotes(
+					proposalId
+				);
+
+				assert(votes.againstVotes.eq(0), 'Incorrect against votes value');
+				assert(votes.abstainVotes.eq(0), 'Incorrect abstain votes value');
+				assert(votes.forVotes.eq(0), 'Incorrect for votes value');
 			});
 
 			it('should set final chest id that can vote', async function () {
