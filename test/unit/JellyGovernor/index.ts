@@ -3,6 +3,7 @@ import { unitJellyGovernorFixture } from '../../fixtures/unit__Governor';
 import { Mocks, Params } from '../../shared/types';
 import { shouldCreateProposals } from './creatingProposal.spec';
 import { shouldDeploy } from './deployment.spec';
+import { shouldVoteOnProposals } from './voting.spec';
 
 export function shouldBehaveLikeJellyGovernor(): void {
 	describe('JellyGovernor', async function () {
@@ -36,5 +37,6 @@ export function shouldBehaveLikeJellyGovernor(): void {
 
 		shouldDeploy();
 		shouldCreateProposals();
+		shouldVoteOnProposals();
 	});
 }
