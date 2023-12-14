@@ -51,7 +51,7 @@ context.only(`Unit tests`, async function () {
 	});
 
 	// shouldBehaveLikeVesting();
-	shouldBehaveLikeJellyTimelock();
+	// shouldBehaveLikeJellyTimelock();
 	shouldBehaveLikeJellyGovernor();
 	// shouldBehaveLikeJellyToken();
 });

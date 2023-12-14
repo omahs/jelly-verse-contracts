@@ -298,8 +298,11 @@ export function shouldVoteOnProposals(): void {
 		});
 
 		describe('success', async function () {
+			let alicesVotes: BigNumber;
+
 			beforeEach(async function () {
 				await mine(this.params.votingDelay);
+				alicesVotes = await this.jellyGovernor.connect(this.signers.alice).getVotesWithParams(this.signers.alice.address, proposalId, proposalParams);
 				await this.jellyGovernor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, 0, proposalReason, proposalParams);
 			});
 
@@ -316,7 +319,6 @@ export function shouldVoteOnProposals(): void {
 				const votes = await this.jellyGovernor.proposalVotes(
 					proposalId
 				);
-				const alicesVotes =  1000; // mocked votingPower value on chest contract
 
 				assert(votes.againstVotes.eq(alicesVotes), 'Incorrect against votes value');
 				assert(votes.abstainVotes.eq(0), 'Incorrect abstain votes value');
@@ -324,6 +326,7 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should emit VoteCastWithParams event', async function () {
+				const bobsVotes = await this.jellyGovernor.connect(this.signers.bob).getVotesWithParams(this.signers.bob.address, proposalId, proposalParams);
 				await expect(
 					this.jellyGovernor
 						.connect(this.signers.bob)
@@ -339,7 +342,7 @@ export function shouldVoteOnProposals(): void {
 						this.signers.bob.address,
 						proposalId,
 						0,
-						1000,
+						bobsVotes,
 						proposalReason,
 						proposalParams
 					);

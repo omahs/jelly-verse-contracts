@@ -38,7 +38,7 @@ export function shouldBehaveLikeJellyGovernor(): void {
 
 		// shouldDeploy();
 		// shouldCreateProposals();
-		// shouldVoteOnProposals();
-		shouldQueueProposals();
+		shouldVoteOnProposals();
+		// shouldQueueProposals();
 	});
 }

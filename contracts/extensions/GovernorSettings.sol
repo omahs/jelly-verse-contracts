@@ -50,33 +50,6 @@ abstract contract GovernorSettings is Governor {
     }
 
     /**
-     * @dev Update the voting delay. This operation can only be performed through a governance proposal.
-     *
-     * Emits a {VotingDelaySet} event.
-     */
-    function setVotingDelay(uint256 newVotingDelay) public virtual onlyGovernance {
-        _setVotingDelay(newVotingDelay);
-    }
-
-    /**
-     * @dev Update the voting period. This operation can only be performed through a governance proposal.
-     *
-     * Emits a {VotingPeriodSet} event.
-     */
-    function setVotingPeriod(uint256 newVotingPeriod) public virtual onlyGovernance {
-        _setVotingPeriod(newVotingPeriod);
-    }
-
-    /**
-     * @dev Update the proposal threshold. This operation can only be performed through a governance proposal.
-     *
-     * Emits a {ProposalThresholdSet} event.
-     */
-    function setProposalThreshold(uint256 newProposalThreshold) public virtual onlyGovernance {
-        _setProposalThreshold(newProposalThreshold);
-    }
-
-    /**
      * @dev Internal setter for the voting delay.
      *
      * Emits a {VotingDelaySet} event.
