@@ -1,11 +1,6 @@
 import { assert, expect } from 'chai';
 import { utils, constants, BigNumber } from 'ethers';
-import {
-	time,
-	getStorageAt,
-	setStorageAt,
-	mine,
-} from '@nomicfoundation/hardhat-network-helpers';
+import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { JellyGovernor__factory, JellyGovernor } from '../../../typechain-types';
 import { ethers } from 'hardhat';
 import { deployMockJellyTimelock } from '../../shared/mocks';
@@ -312,7 +307,7 @@ export function shouldQueueProposals(): void {
 			});
 
 			it('should emit ProposalQueued event', async function () {
-				const nextBlockTimestamp = BigNumber.from(await time.latest()).add(
+				const nextBlockTimestamp = BigNumber.from(await time.latestBlock()).add(
 					constants.One
 				);
 				const execTime = nextBlockTimestamp.add(this.params.votingDelay);
