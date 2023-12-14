@@ -56,7 +56,8 @@ contract ChestHarness is Chest {
 contract ChestBoosterCalculationDifferentialTest is Test {
     using Strings for *;
 
-    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
+    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint64 private constant DECIMALS = 1e18;
     uint64 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
@@ -91,7 +92,9 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         uint32 freezingPeriod
     ) external {
         vm.assume(
-            amount > 0 && freezingPeriod > MIN_FREEZING_PERIOD_REGULAR_CHEST
+            amount > 0 &&
+                freezingPeriod < MAX_FREEZING_PERIOD_REGULAR_CHEST &&
+                freezingPeriod > MIN_FREEZING_PERIOD_REGULAR_CHEST
         );
 
         uint8 nerfParameter = 10;
@@ -127,6 +130,10 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         inputs[6] = vestingPosition.vestingDuration.toString();
         inputs[7] = vestingPosition.booster.toString();
         inputs[8] = chestHarness.maxBooster().toString();
+        console.log(inputs[5]);
+        console.log(inputs[6]);
+        console.log(inputs[7]);
+        console.log(inputs[8]);
         bytes memory result = vm.ffi(inputs);
         assembly {
             boosterRust := mload(add(result, 0x20))
