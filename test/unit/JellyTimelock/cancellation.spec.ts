@@ -1,6 +1,6 @@
 import { assert, expect } from 'chai';
 import { utils, constants } from 'ethers';
-import { time } from '@nomicfoundation/hardhat-network-helpers';
+import { mine, time } from '@nomicfoundation/hardhat-network-helpers';
 
 export function shouldCancelScheduledOperations(): void {
 	describe('#cancel', async function () {
@@ -51,7 +51,7 @@ export function shouldCancelScheduledOperations(): void {
 			});
 
 			it('should revert if operation is already executed', async function () {
-				time.increase(this.params.minTimelockDelay);
+				await mine(this.params.minTimelockDelay);
 
 				await this.jellyTimelock
 					.connect(this.signers.timelockExecutor)

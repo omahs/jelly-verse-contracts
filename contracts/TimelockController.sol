@@ -152,7 +152,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
      */
     function isOperationReady(bytes32 id) public view virtual returns (bool) {
         uint256 timestamp = getTimestamp(id);
-        return timestamp > _DONE_TIMESTAMP && timestamp <= block.timestamp;
+        return timestamp > _DONE_TIMESTAMP && timestamp <= block.number;
     }
 
     /**
@@ -268,7 +268,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
     function _schedule(bytes32 id, uint256 delay) private {
         require(!isOperation(id), "TimelockController: operation already scheduled");
         require(delay >= getMinDelay(), "TimelockController: insufficient delay");
-        _timestamps[id] = block.timestamp + delay;
+        _timestamps[id] = block.number + delay;
     }
 
     /**

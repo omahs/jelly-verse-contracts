@@ -15,7 +15,7 @@ type UnitJellyTimelockFixtureType = {
 
 
 export async function unitJellyTimelockFixture(): Promise<UnitJellyTimelockFixtureType> {
-	const ONE_DAYS_IN_SOLIDITY = BigNumber.from('86400');
+	const ONE_DAYS_IN_SOLIDITY = BigNumber.from('7200');
 	const {
 		deployer,
 		alice,

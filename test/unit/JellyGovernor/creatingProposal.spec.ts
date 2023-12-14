@@ -104,7 +104,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set snapshot', async function () {
-				const latestBlockTime = BigNumber.from(await time.latest());
+				const latestBlockTime = BigNumber.from(await time.latestBlock());
 				const expectedSnapshot = latestBlockTime.add(this.params.votingDelay);
 				const actualSnapshot = await this.jellyGovernor.proposalSnapshot(
 					proposalId
@@ -140,7 +140,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set deadline', async function () {
-				const latestBlockTime = BigNumber.from(await time.latest());
+				const latestBlockTime = BigNumber.from(await time.latestBlock());
 				const expectedDeadline = latestBlockTime
 					.add(this.params.votingDelay)
 					.add(this.params.votingPeriod);
@@ -153,7 +153,7 @@ export function shouldCreateProposals(): void {
 
 			it('should emit ProposalCreated event', async function () {
 				const targetsLength = [''];
-				const nextBlockNumber = BigNumber.from(await time.latest()).add(
+				const nextBlockNumber = BigNumber.from(await time.latestBlock()).add(
 					constants.One
 				);
 				const snapshot = nextBlockNumber.add(this.params.votingDelay);
@@ -342,7 +342,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set snapshot', async function () {
-				const latestBlockTime = BigNumber.from(await time.latest());
+				const latestBlockTime = BigNumber.from(await time.latestBlock());
 				const expectedSnapshot = latestBlockTime.add(minVotingDelay);
 				const actualSnapshot = await this.jellyGovernor.proposalSnapshot(
 					proposalId
@@ -378,7 +378,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set deadline', async function () {
-				const latestBlockTime = BigNumber.from(await time.latest());
+				const latestBlockTime = BigNumber.from(await time.latestBlock());
 				const expectedDeadline = latestBlockTime
 					.add(minVotingDelay)
 					.add(minVotingPeriod);
@@ -391,7 +391,7 @@ export function shouldCreateProposals(): void {
 
 			it('should emit ProposalCreated event', async function () {
 				const targetsLength = [''];
-				const nextBlockNumber = BigNumber.from(await time.latest()).add(
+				const nextBlockNumber = BigNumber.from(await time.latestBlock()).add(
 					constants.One
 				);
 				const snapshot = nextBlockNumber.add(minVotingDelay);

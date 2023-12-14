@@ -2,7 +2,7 @@ import {
 	MockContract,
 	deployMockContract,
 } from '@ethereum-waffle/mock-contract';
-import { BigNumber, Signer } from 'ethers';
+import { BigNumber, Signer, constants, utils } from 'ethers';
 import { artifacts, ethers } from 'hardhat';
 import { Artifact } from 'hardhat/types';
 
@@ -28,7 +28,13 @@ export async function deployMockJelly(deployer: Signer): Promise<MockContract> {
 	return mockJelly;
 }
 
-export async function deployMockJellyTimelock(deployer: Signer): Promise<MockContract> {
+export async function deployMockJellyTimelock(
+	deployer: Signer, 
+	jellyToken: MockContract, 
+	aliceAddress: string, 
+	operationDone: boolean, 
+	operationPending: boolean
+	): Promise<MockContract> {
 	const jellyTimelockArtifact: Artifact = await artifacts.readArtifact(
 		`JellyTimelock`
 	);
@@ -37,9 +43,34 @@ export async function deployMockJellyTimelock(deployer: Signer): Promise<MockCon
 		deployer,
 		jellyTimelockArtifact.abi
 	);
+	const amountToMint = utils.parseEther('100');
+	const targets = [jellyToken.address];
+	const values = [amountToMint];
+	const mintFunctionCalldata =
+	jellyToken.interface.encodeFunctionData('mint', [
+		aliceAddress,
+		amountToMint,
+	]); 
+	const payloads = [
+		mintFunctionCalldata
+	];
+	const predecessor = constants.HashZero; // Replace with actual bytes32 value
+	const proposalDescription = 'Test Proposal #1: Mint 100 JLY tokens to Alice';
+	const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
+	const hashedDescription = utils.keccak256(descriptionBytes);
+	const encodedData = ethers.utils.defaultAbiCoder.encode(
+		["address[]", "uint256[]", "bytes[]", "bytes32", "bytes32"],
+		[targets, values, payloads, predecessor, hashedDescription]
+	  );
+	const hash = ethers.utils.keccak256(encodedData); // hash Operation Batch return value
 
 	await mockJellyTimelock.mock.execute.returns();
+	await mockJellyTimelock.mock.scheduleBatch.returns();
+	await mockJellyTimelock.mock.getMinDelay.returns(BigNumber.from(7200)); // 1 day
+	await mockJellyTimelock.mock.hashOperationBatch.returns(hash);
 	await mockJellyTimelock.mock.executeBatch.returns();
+	await mockJellyTimelock.mock.isOperationDone.returns(operationDone);
+	await mockJellyTimelock.mock.isOperationPending.returns(operationPending);
 
 	return mockJellyTimelock;
 }

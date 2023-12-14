@@ -23,7 +23,7 @@ abstract contract GovernorVotes is Governor {
      * does not implement EIP-6372.
      */
     function clock() public view virtual override returns (uint48) {
-        return SafeCast.toUint48(block.timestamp);
+        return SafeCast.toUint48(block.number);
     }
 
     /**
@@ -31,7 +31,7 @@ abstract contract GovernorVotes is Governor {
      */
     // solhint-disable-next-line func-name-mixedcase
     function CLOCK_MODE() public view virtual override returns (string memory) {
-        return "mode=timestamp&from=default";
+        return "mode=blocknumber&from=default";
     }
 
     /**

@@ -19,17 +19,17 @@ type UnitJellyGovernorFixtureType = {
 
 
 export async function unitJellyGovernorFixture(): Promise<UnitJellyGovernorFixtureType> {
-	const { deployer } = await getSigners();
+	const { deployer, alice } = await getSigners();
 
 	const votingDelay = BigNumber.from('7200'); // 1 day
 	const votingPeriod = BigNumber.from('50400'); // 1 week
 	const proposalThreshold = BigNumber.from('0'); // anyone can create a proposal
-	const quorum = BigNumber.from('1000000'); // 1000000
+	const quorum = BigNumber.from('1001'); // 1001
 	const lastChestId = BigNumber.from('9'); // 9 (chest.totalSupply() - 1)
 
 	const mockJellyToken = await deployMockJelly(deployer);
 	const mockChest = await deployMockChest(deployer);
-	const mockJellyTimelock = await deployMockJellyTimelock(deployer);
+	const mockJellyTimelock = await deployMockJellyTimelock(deployer, mockJellyToken, alice.address, false, true);
 
 	const jellyGovernorFactory: JellyGovernor__factory =
 		await ethers.getContractFactory('JellyGovernor') as JellyGovernor__factory;

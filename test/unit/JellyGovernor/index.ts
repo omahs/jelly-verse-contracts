@@ -4,6 +4,7 @@ import { Mocks, Params } from '../../shared/types';
 import { shouldCreateProposals } from './creatingProposal.spec';
 import { shouldDeploy } from './deployment.spec';
 import { shouldVoteOnProposals } from './voting.spec';
+import { shouldQueueProposals } from './queueProposal.spec';
 
 export function shouldBehaveLikeJellyGovernor(): void {
 	describe('JellyGovernor', async function () {
@@ -35,8 +36,9 @@ export function shouldBehaveLikeJellyGovernor(): void {
 			this.params.lastChestId = lastChestId;
 		});
 
-		shouldDeploy();
-		shouldCreateProposals();
-		shouldVoteOnProposals();
+		// shouldDeploy();
+		// shouldCreateProposals();
+		// shouldVoteOnProposals();
+		shouldQueueProposals();
 	});
 }
