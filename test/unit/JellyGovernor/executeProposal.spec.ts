@@ -5,8 +5,8 @@ import { JellyGovernor__factory, JellyGovernor } from '../../../typechain-types'
 import { ethers } from 'hardhat';
 import { deployMockJellyTimelock } from '../../shared/mocks';
 
-export function shouldQueueProposals(): void {
-	describe('#queue', async function () {
+export function shouldExecuteProposals(): void {
+	describe('#execute', async function () {
 		const amountToMint = utils.parseEther('100');
 		const proposalDescription = 'Test Proposal #1: Mint 100 JLY tokens to Alice';
 		const proposalReason = 'I like this proposal.';
@@ -58,7 +58,7 @@ export function shouldQueueProposals(): void {
 		describe('failure', async function () {
 			it('should revert if proposal passed is invalid', async function () {
 				await expect(
-					this.jellyGovernor.queue(
+					this.jellyGovernor.execute(
 						proposalAddresses,
 						proposalValues,
 						proposalCalldata,
@@ -67,70 +67,48 @@ export function shouldQueueProposals(): void {
 				).to.be.revertedWith('Governor: unknown proposal id');
 			});
 
-			it('should revert if proposal deadline hasn\'t passed', async function () {
+			it('should revert if proposal voting hasn\'t ended', async function () {
+				await this.jellyGovernor.connect(this.signers.bob).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(
-					this.jellyGovernor.queue(
+					this.jellyGovernor.execute(
 						proposalAddresses,
 						proposalValues,
 						proposalCalldata,
 						hashedDescription
 					)
-				).to.be.revertedWith('Governor: proposal not successful');
+				).to.be.revertedWith('Governor: proposal not queued');
 			});
 
-			it('should revert if proposal quorum hasn\'t been reached', async function () {
-				await mine(this.params.votingPeriod);
+			it('should revert if proposal is not queued (successfull state)', async function () {
+				await this.jellyGovernor.connect(this.signers.bob).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
+				await mine(this.params.votingPeriod.add(constants.One));
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(
-					this.jellyGovernor.queue(
+					this.jellyGovernor.execute(
 						proposalAddresses,
 						proposalValues,
 						proposalCalldata,
 						hashedDescription
 					)
-				).to.be.revertedWith('Governor: proposal not successful');
+				).to.be.revertedWith('Governor: proposal not queued');
 			});
 
-			it('should revert if proposal has same or more against votes', async function () {
-				await this.jellyGovernor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
+			it('should revert if proposal is not queued (unsuccessfull state)', async function () {
 				await this.jellyGovernor.connect(this.signers.bob).castVoteWithReasonAndParams(proposalId, voteAgainst, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await mine(this.params.votingPeriod.add(constants.One));
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(
-					this.jellyGovernor.queue(
+					this.jellyGovernor.execute(
 						proposalAddresses,
 						proposalValues,
 						proposalCalldata,
 						hashedDescription
 					)
-				).to.be.revertedWith('Governor: proposal not successful');
-			});
-
-			it('should revert if proposal already queued', async function () {
-				await this.jellyGovernor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
-
-				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
-				const hashedDescription = utils.keccak256(descriptionBytes);
-				await this.jellyGovernor.queue(
-						proposalAddresses,
-						proposalValues,
-						proposalCalldata,
-						hashedDescription
-					);
-				
-				await expect(
-					this.jellyGovernor.queue(
-						proposalAddresses,
-						proposalValues,
-						proposalCalldata,
-						hashedDescription
-					)
-				).to.be.revertedWith('Governor: proposal not successful');
+				).to.be.revertedWith('Governor: proposal not queued');
 			});
 
 			it('should revert if proposal already executed', async function () {
@@ -138,8 +116,8 @@ export function shouldQueueProposals(): void {
 					this.signers.deployer, 
 					this.mocks.mockJellyToken, 
 					this.signers.alice.address, 
-					true,  // is executed
-					false
+					true, // is executed
+					false // is pending
 				);
 				const jellyGovernorFactory: JellyGovernor__factory =
 					await ethers.getContractFactory('JellyGovernor') as JellyGovernor__factory;
@@ -163,21 +141,21 @@ export function shouldQueueProposals(): void {
 
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
+
 				await governor.queue(
-						proposalAddresses,
-						proposalValues,
-						proposalCalldata,
-						hashedDescription
-					);
-				
+					proposalAddresses,
+					proposalValues,
+					proposalCalldata,
+					hashedDescription
+				);
 				await expect(
-					governor.queue(
+					governor.execute(
 						proposalAddresses,
 						proposalValues,
 						proposalCalldata,
 						hashedDescription
 					)
-				).to.be.revertedWith('Governor: proposal not successful');
+				).to.be.revertedWith('Governor: proposal not queued');
 			});
 
 			it('should revert if proposal already canceled', async function () {
@@ -185,8 +163,8 @@ export function shouldQueueProposals(): void {
 					this.signers.deployer, 
 					this.mocks.mockJellyToken, 
 					this.signers.alice.address, 
-					false,  // is executed
-					false   // is pending
+					false, // is executed
+					false  // is pending
 				);
 				const jellyGovernorFactory: JellyGovernor__factory =
 					await ethers.getContractFactory('JellyGovernor') as JellyGovernor__factory;
@@ -210,21 +188,21 @@ export function shouldQueueProposals(): void {
 
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
+
 				await governor.queue(
-						proposalAddresses,
-						proposalValues,
-						proposalCalldata,
-						hashedDescription
-					);
-				
+					proposalAddresses,
+					proposalValues,
+					proposalCalldata,
+					hashedDescription
+				);
 				await expect(
-					governor.queue(
+					governor.execute(
 						proposalAddresses,
 						proposalValues,
 						proposalCalldata,
 						hashedDescription
 					)
-				).to.be.revertedWith('Governor: proposal not successful');
+				).to.be.revertedWith('Governor: proposal not queued');
 			});
 		});
 
@@ -237,12 +215,19 @@ export function shouldQueueProposals(): void {
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				hashedDescription = utils.keccak256(descriptionBytes);
 
+				await this.jellyGovernor.queue(
+					proposalAddresses,
+					proposalValues,
+					proposalCalldata,
+					hashedDescription
+				);
+
 				if (this.currentTest) {
-					if (this.currentTest.title === 'should emit ProposalQueued event')
+					if (this.currentTest.title === 'should emit ProposalExecuted event')
 						return;
 				}
 
-				await this.jellyGovernor.queue(
+				await this.jellyGovernor.execute(
 					proposalAddresses,
 					proposalValues,
 					proposalCalldata,
@@ -250,36 +235,29 @@ export function shouldQueueProposals(): void {
 				);
 			});
 
-			it('should set proposal in queue', async function () {
-				const queuedState = 5;
+			it('should set proposal as executed', async function () {
+				const executedState = 7;
 				const state = await this.jellyGovernor.state(
 					proposalId
 				);
 
-				assert(state == queuedState, 'Incorrect state');
+				assert(state == executedState, 'Incorrect state');
 			});
 
-			it('should emit ProposalQueued event', async function () {
-				const nextBlockTimestamp = BigNumber.from(await time.latestBlock()).add(
-					constants.One
-				);
-				const execTime = nextBlockTimestamp.add(this.params.votingDelay);
-
+			it('should emit ProposalExecuted event', async function () {
 				await expect(
-					this.jellyGovernor.queue(
+					this.jellyGovernor.execute(
 						proposalAddresses,
 						proposalValues,
 						proposalCalldata,
 						hashedDescription
 					)
 				)
-					.to.emit(this.jellyGovernor, 'ProposalQueued')
+					.to.emit(this.jellyGovernor, 'ProposalExecuted')
 					.withArgs(
-						proposalId,
-						execTime
+						proposalId
 					);
 			});
 		});
 	});
-
 }

@@ -400,8 +400,8 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
 
         ProposalState currentState = state(proposalId);
         require(
-            currentState == ProposalState.Succeeded || currentState == ProposalState.Queued,
-            "Governor: proposal not successful"
+            currentState == ProposalState.Queued,
+            "Governor: proposal not queued"
         );
         _proposals[proposalId].executed = true;
 
