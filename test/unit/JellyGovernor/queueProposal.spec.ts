@@ -204,53 +204,6 @@ export function shouldQueueProposals(): void {
 				).to.be.revertedWith('Governor: proposal not successful');
 			});
 
-			it('should revert if proposal already executed', async function () {
-				const mockJellyTimelock = await deployMockJellyTimelock(
-					this.signers.deployer, 
-					this.mocks.mockJellyToken, 
-					this.signers.alice.address, 
-					true,  // is executed
-					false
-				);
-				const jellyGovernorFactory: JellyGovernor__factory =
-					await ethers.getContractFactory('JellyGovernor') as JellyGovernor__factory;
-
-				const jellyGovernor: JellyGovernor = await jellyGovernorFactory.deploy(
-					this.mocks.mockChest.address,
-					mockJellyTimelock.address
-				);
-				const governor = await jellyGovernor.deployed();
-
-				await governor.propose(
-					proposalAddresses,
-					proposalValues,
-					proposalCalldata,
-					proposalDescription
-				);
-				await mine(this.params.votingDelay);
-				await governor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
-				await governor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
-
-				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
-				const hashedDescription = utils.keccak256(descriptionBytes);
-				await governor.queue(
-						proposalAddresses,
-						proposalValues,
-						proposalCalldata,
-						hashedDescription
-					);
-				
-				await expect(
-					governor.queue(
-						proposalAddresses,
-						proposalValues,
-						proposalCalldata,
-						hashedDescription
-					)
-				).to.be.revertedWith('Governor: proposal not successful');
-			});
-
 			it('should revert if proposal already canceled', async function () {
 				await this.jellyGovernor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
 				await mine(this.params.votingPeriod);

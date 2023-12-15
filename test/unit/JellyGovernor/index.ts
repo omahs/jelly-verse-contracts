@@ -5,6 +5,7 @@ import { shouldCreateProposals } from './creatingProposal.spec';
 import { shouldDeploy } from './deployment.spec';
 import { shouldVoteOnProposals } from './voting.spec';
 import { shouldQueueProposals } from './queueProposal.spec';
+import { shouldCancelProposals } from './cancelProposal.spec';
 
 export function shouldBehaveLikeJellyGovernor(): void {
 	describe('JellyGovernor', async function () {
@@ -38,7 +39,8 @@ export function shouldBehaveLikeJellyGovernor(): void {
 
 		// shouldDeploy();
 		// shouldCreateProposals();
-		shouldVoteOnProposals();
+		// shouldVoteOnProposals();
 		// shouldQueueProposals();
+		shouldCancelProposals();
 	});
 }

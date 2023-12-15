@@ -496,14 +496,14 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
     ) internal virtual returns (uint256) {
         uint256 proposalId = hashProposal(targets, values, calldatas, descriptionHash);
 
-        ProposalState currentState = state(proposalId);
+        // ProposalState currentState = state(proposalId);
 
-        require(
-            currentState != ProposalState.Canceled &&
-                currentState != ProposalState.Expired &&
-                currentState != ProposalState.Executed,
-            "Governor: proposal not active"
-        );
+        // require(
+        //     currentState != ProposalState.Canceled &&
+        //         currentState != ProposalState.Expired &&
+        //         currentState != ProposalState.Executed,
+        //     "Governor: proposal not active"
+        // ); Proposal can be canceled only before voting starts (only pending state)
         _proposals[proposalId].canceled = true;
 
         emit ProposalCanceled(proposalId);

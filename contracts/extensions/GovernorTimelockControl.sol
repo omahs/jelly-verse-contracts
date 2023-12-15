@@ -134,10 +134,10 @@ abstract contract GovernorTimelockControl is IGovernorTimelock, Governor {
     ) internal virtual override returns (uint256) {
         uint256 proposalId = super._cancel(targets, values, calldatas, descriptionHash);
 
-        if (_timelockIds[proposalId] != 0) {
-            _timelock.cancel(_timelockIds[proposalId]);
-            delete _timelockIds[proposalId];
-        }
+        // if (_timelockIds[proposalId] != 0) {
+        //     _timelock.cancel(_timelockIds[proposalId]);
+        //     delete _timelockIds[proposalId];
+        // } Proposal can be canceled only before voting starts (no queued proposal)
 
         return proposalId;
     }
