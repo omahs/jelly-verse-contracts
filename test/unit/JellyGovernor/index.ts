@@ -7,6 +7,7 @@ import { shouldVoteOnProposals } from './voting.spec';
 import { shouldQueueProposals } from './queueProposal.spec';
 import { shouldCancelProposals } from './cancelProposal.spec';
 import { shouldExecuteProposals } from './executeProposal.spec';
+import { shouldRelayCallToGovernor } from './relay.spec';
 
 export function shouldBehaveLikeJellyGovernor(): void {
 	describe('JellyGovernor', async function () {
@@ -38,11 +39,12 @@ export function shouldBehaveLikeJellyGovernor(): void {
 			this.params.lastChestId = lastChestId;
 		});
 
-		// shouldDeploy();
-		// shouldCreateProposals();
-		// shouldVoteOnProposals();
-		// shouldQueueProposals();
-		// shouldCancelProposals();
+		shouldDeploy();
+		shouldCreateProposals();
+		shouldVoteOnProposals();
+		shouldQueueProposals();
+		shouldCancelProposals();
 		shouldExecuteProposals();
+		shouldRelayCallToGovernor();
 	});
 }

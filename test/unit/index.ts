@@ -50,8 +50,8 @@ context.only(`Unit tests`, async function () {
 		// this.mocks.mockMinterContract = await deployMockMinter(deployer);
 	});
 
-	// shouldBehaveLikeVesting();
-	// shouldBehaveLikeJellyTimelock();
+	shouldBehaveLikeVesting();
+	shouldBehaveLikeJellyTimelock();
 	shouldBehaveLikeJellyGovernor();
 	// shouldBehaveLikeJellyToken();
 });

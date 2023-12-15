@@ -24,6 +24,7 @@ export async function deployMockJelly(deployer: Signer): Promise<MockContract> {
 	await mockJelly.mock.transfer.returns(true);
 	await mockJelly.mock.transferFrom.returns(true);
 	await mockJelly.mock.mint.returns();
+	await mockJelly.mock.approve.revertsWithReason('Mock test revert');
 
 	return mockJelly;
 }
