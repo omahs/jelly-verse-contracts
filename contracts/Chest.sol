@@ -43,7 +43,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     address internal immutable i_allocator;
     address internal immutable i_distributor;
 
-    uint256 internal tokenId;
     uint256 public fee;
     uint256 public totalFees;
     uint128 public maxBooster;
@@ -137,8 +136,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             freezingPeriod < MIN_FREEZING_PERIOD_REGULAR_CHEST
         ) revert Chest__InvalidFreezingPeriod();
 
-        uint256 currentTokenId = tokenId;
-        vestingPositions[currentTokenId] = createVestingPosition(
+        uint256 currentTokenId = index;
+        createVestingPosition(
             amount,
             freezingPeriod,
             0,
@@ -148,7 +147,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         unchecked {
             totalFees += fee;
-            ++tokenId;
         }
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
 
@@ -187,8 +185,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             revert Chest__InvalidFreezingPeriod();
         // maybe check for minimum vesting duration/freeze in this case
 
-        uint256 currentTokenId = tokenId;
-        vestingPositions[currentTokenId] = createVestingPosition(
+        uint256 currentTokenId = index;
+        createVestingPosition(
             amount,
             freezingPeriod > 0 ? freezingPeriod : 1,
             vestingDuration,
@@ -197,7 +195,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         );
         unchecked {
             totalFees += fee;
-            ++tokenId;
         }
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
 
@@ -220,24 +217,24 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     /**
      * @notice Increases stake.
      *
-     * @param tokenId_ - id of the chest.
+     * @param tokenId - id of the chest.
      * @param amount - amount of tokens to stake.
      * @param freezingPeriod - duration of freezing period in seconds.
      *
      * No return, reverts on error.
      */
     function increaseStake(
-        uint256 tokenId_,
+        uint256 tokenId,
         uint256 amount,
         uint32 freezingPeriod
-    ) external onlyAuthorizedForToken(tokenId_) nonReentrant {
+    ) external onlyAuthorizedForToken(tokenId) nonReentrant {
         if (amount == 0 && freezingPeriod == 0)
             revert Chest__NothingToIncrease();
 
         if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
             revert Chest__InvalidFreezingPeriod();
 
-        VestingPosition memory vestingPosition = vestingPositions[tokenId_]; // check this, no need imo for reduntant checks for existance
+        VestingPosition memory vestingPosition = vestingPositions[tokenId]; // check this, no need imo for reduntant checks for existance
         uint48 newCliffTimestamp = vestingPosition.cliffTimestamp;
 
         if (vestingPosition.vestingDuration == 0) {
@@ -256,9 +253,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                         vestingPosition.cliffTimestamp +
                         freezingPeriod;
 
-                    vestingPositions[tokenId_]
+                    vestingPositions[tokenId]
                         .freezingPeriod = MAX_FREEZING_PERIOD_REGULAR_CHEST;
-                    vestingPositions[tokenId_]
+                    vestingPositions[tokenId]
                         .cliffTimestamp = newCliffTimestamp;
                 } else {
                     // chest is open
@@ -267,10 +264,10 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                     newCliffTimestamp = uint48(
                         block.timestamp + freezingPeriod
                     );
-                    vestingPositions[tokenId_].freezingPeriod = freezingPeriod;
+                    vestingPositions[tokenId].freezingPeriod = freezingPeriod;
 
-                    vestingPositions[tokenId_].booster = newBooster;
-                    vestingPositions[tokenId_]
+                    vestingPositions[tokenId].booster = newBooster;
+                    vestingPositions[tokenId]
                         .cliffTimestamp = newCliffTimestamp;
                 }
             }
@@ -281,9 +278,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         uint256 newTotalStaked = vestingPosition.totalVestedAmount + amount;
 
-        vestingPositions[tokenId_].totalVestedAmount = newTotalStaked;
+        vestingPositions[tokenId].totalVestedAmount = newTotalStaked;
 
-        emit IncreaseStake(tokenId_, newTotalStaked, newCliffTimestamp);
+        emit IncreaseStake(tokenId, newTotalStaked, newCliffTimestamp);
 
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
@@ -295,17 +292,17 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     /**
      * @notice Unstakes tokens.
      *
-     * @param tokenId_ - id of the chest.
+     * @param tokenId - id of the chest.
      * @param amount - amount of tokens to unstake.
      *
      * No return, reverts on error.
      */
     function unstake(
-        uint256 tokenId_,
+        uint256 tokenId,
         uint256 amount
-    ) external onlyAuthorizedForToken(tokenId_) nonReentrant {
-        VestingPosition memory vestingPosition = vestingPositions[tokenId_]; // check this, no need imo for reduntant checks for existance
-        uint256 releasableAmount = releasableAmount(tokenId_);
+    ) external onlyAuthorizedForToken(tokenId) nonReentrant {
+        VestingPosition memory vestingPosition = vestingPositions[tokenId]; // check this, no need imo for reduntant checks for existance
+        uint256 releasableAmount = releasableAmount(tokenId);
 
         // shall we use updateReleasedAmount method here?
         if (releasableAmount == 0 || amount == 0) {
@@ -318,12 +315,12 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         uint256 newTotalStaked = vestingPosition.totalVestedAmount - amount;
 
-        vestingPositions[tokenId_].totalVestedAmount = newTotalStaked;
-        vestingPositions[tokenId_].releasedAmount += amount;
-        vestingPositions[tokenId_].freezingPeriod = 0; // check this
-        vestingPositions[tokenId_].booster = INITIAL_BOOSTER;
+        vestingPositions[tokenId].totalVestedAmount = newTotalStaked;
+        vestingPositions[tokenId].releasedAmount += amount;
+        vestingPositions[tokenId].freezingPeriod = 0; // check this
+        vestingPositions[tokenId].booster = INITIAL_BOOSTER;
 
-        emit Unstake(tokenId_, amount, newTotalStaked);
+        emit Unstake(tokenId, amount, newTotalStaked);
 
         IERC20(i_jellyToken).safeTransfer(msg.sender, amount);
     }
@@ -420,30 +417,30 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
     /**
      * @dev Retrieves the vesting position at the specified index.
-     * @param tokenId_ The index of the vesting position to retrieve.
+     * @param tokenId The index of the vesting position to retrieve.
      * @return The vesting position at the specified index.
      */
     function getVestingPosition(
-        uint256 tokenId_
+        uint256 tokenId
     ) public view returns (VestingPosition memory) {
-        if (!_exists(tokenId_)) {
+        if (!_exists(tokenId)) {
             revert Chest__NonExistentToken();
         }
 
-        return vestingPositions[tokenId_];
+        return vestingPositions[tokenId];
     }
 
     /**
      * @notice Calculates the voting power of the chest for current block.timestamp.
      *
-     * @param tokenId_ - id of the chest.
+     * @param tokenId - id of the chest.
      *
      * @return power - voting power of the chest.
      */
     function getChestPower(
-        uint256 tokenId_
+        uint256 tokenId
     ) public view returns (uint256 power) {
-        VestingPosition memory vestingPosition = getVestingPosition(tokenId_);
+        VestingPosition memory vestingPosition = getVestingPosition(tokenId);
         power = calculatePower(block.timestamp, vestingPosition);
     }
 
@@ -452,9 +449,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      * @notice The URI is calculated based on the position values of the chest when called.
      */
     function tokenURI(
-        uint256 tokenId_
+        uint256 tokenId
     ) public view virtual override returns (string memory) {
-        VestingPosition memory vestingPosition = getVestingPosition(tokenId_);
+        VestingPosition memory vestingPosition = getVestingPosition(tokenId);
 
         string memory svg = string(
             abi.encodePacked(
@@ -488,7 +485,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      * @return The total supply of tokens.
      */
     function totalSupply() public view returns (uint256) {
-        return tokenId;
+        return index;
     }
 
     /**
