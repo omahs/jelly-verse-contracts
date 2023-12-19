@@ -22,7 +22,7 @@ contract LiquidityRewardDistrubtion is Ownable {
     uint256 public epoch;
 
     event Claimed(address claimant, uint256 week, uint256 balance);
-    event EpochAdded(uint256 Epoch, bytes32 merkleRoot);
+    event EpochAdded(uint256 Epoch, bytes32 merkleRoot, string _ipfs);
     event EpochRemoved(uint256 epoch);
 
     error Claim_LenMissmatch();
@@ -48,16 +48,16 @@ contract LiquidityRewardDistrubtion is Ownable {
      */
 
     function createEpoch(
-        bytes32 _merkleRoot
+        bytes32 _merkleRoot,
+        string memory _ipfs
     ) public onlyOwner returns (uint256 epochId) {
-
         epochId = epoch;
 
         merkleRoots[epochId] = _merkleRoot;
 
-        epoch+=1;
+        epoch += 1;
 
-        emit EpochAdded(epochId, _merkleRoot);
+        emit EpochAdded(epochId, _merkleRoot, _ipfs);
     }
 
     /**
@@ -169,12 +169,13 @@ contract LiquidityRewardDistrubtion is Ownable {
     }
 
     function _verifyClaim(
-        address _reveiver,
+        address _receiver,
         uint256 _epochId,
         uint256 _amount,
         bytes32[] memory _merkleProof
     ) private view returns (bool valid) {
-        bytes32 leaf = keccak256(abi.encodePacked(_reveiver, _amount));
+        bytes32 encodedData = keccak256(abi.encode(_receiver, _amount));
+        bytes32 leaf = keccak256(abi.encodePacked(encodedData));
 
         return MerkleProof.verify(_merkleProof, merkleRoots[_epochId], leaf);
     }
