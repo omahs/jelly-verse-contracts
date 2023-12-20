@@ -59,7 +59,6 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
         _mint(_vestingInvestor, 133_000_000 * 10 ** decimals());
         _mint(_allocator, 133_000_000 * 10 ** decimals());
 
-        _grantRole(MINTER_ROLE, _allocator);
         _grantRole(MINTER_ROLE, _minterContract);
 
         emit Preminted(_vestingTeam, _vestingInvestor, _allocator);

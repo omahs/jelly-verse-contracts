@@ -46,4 +46,8 @@ export interface Params {
 	minTimelockDelay: BigNumber;
 	proposers: string[];
 	executors: string[];
+	allocatorAddress: string;
+	vestingTeamAddress: string;
+	vestingInvestorsAddress: string;
+	minterAddress: string;
 }
