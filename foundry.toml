@@ -14,8 +14,8 @@ via_ir = true
 runs = 50
 
 [profile.default.invariant]
-depth = 20
-runs = 20
+depth = 100
+runs = 1000
 
 # FOUNDRY_PROFILE=testing forge test
 [profile.testing.fuzz]
