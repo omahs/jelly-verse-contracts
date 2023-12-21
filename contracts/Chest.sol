@@ -554,7 +554,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         // Calculate unfreezing time based on whether vesting has started
         uint256 unfreezingTime;
-        if (timestamp >= vestingPosition.cliffTimestamp) {
+        if (timestamp >= cliffTimestamp) {
             // Vesting has started
             uint256 vestingEndTime = cliffTimestamp + vestingDuration;
             unfreezingTime = (vestingEndTime - timestamp) / timeFactor;
