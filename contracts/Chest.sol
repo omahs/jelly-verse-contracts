@@ -8,7 +8,7 @@ import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
 import {Ownable} from "./utils/Ownable.sol";
-import {VestingLib} from "./utils/VestingLibVani.sol";
+import {VestingLib} from "./utils/VestingLib.sol";
 
 // TO-DO:
 // maybe change first 3 imports to be also from vendor folder
@@ -188,7 +188,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 currentTokenId = index;
         createVestingPosition(
             amount,
-            freezingPeriod > 0 ? freezingPeriod : 1,
+            freezingPeriod,
             vestingDuration,
             INITIAL_BOOSTER,
             nerfParameter

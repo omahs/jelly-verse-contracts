@@ -445,10 +445,10 @@ contract ChestTest is Test {
         assertEq(vestingPosition.totalVestedAmount, amount);
         assertEq(vestingPosition.releasedAmount, 0);
 
-        assertEq(vestingPosition.cliffTimestamp, block.timestamp + 1);
+        assertEq(vestingPosition.cliffTimestamp, block.timestamp);
 
         assertEq(vestingPosition.vestingDuration, 1000);
-        assertEq(vestingPosition.freezingPeriod, 1);
+        assertEq(vestingPosition.freezingPeriod, 0);
         assertEq(vestingPosition.booster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, nerfParameter);
 
