@@ -26,7 +26,7 @@ task(`deploy-chest`, `Deploys the Chest contract`)
             const [deployer] = await hre.ethers.getSigners();
 
             console.log(
-                `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${allocator} as the allocator address, ${distributor} as the distributor address, ${fee_} as the minting fee, ${maxBooster_} as the max booster, ${timeFactor_} as the time factor, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
+                `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${allocator} as the allocator address, ${distributor} as the distributor address, ${fee} as the minting fee, ${maxBooster} as the max booster, ${timeFactor} as the time factor, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
             );
 
             const ChestFactory: Chest__factory = await hre.ethers.getContractFactory(
@@ -48,7 +48,6 @@ task(`deploy-chest`, `Deploys the Chest contract`)
 
             console.log(`✅ Chest deployed to: ${chest.address}`);
 
-            /*
             // Verify the contract on Etherscan
             console.log(
                 `ℹ️  Attempting to verify the Chest smart contract on Etherscan...`
@@ -59,13 +58,11 @@ task(`deploy-chest`, `Deploys the Chest contract`)
                     address: chest.address,
                     constructorArguments: [
                         jellyToken,
+                        allocator,
+                        distributor,
                         fee,
-                        boosterThreshold,
-                        minimalStakingPower,
                         maxBooster,
                         timeFactor,
-                        startTimestamp,
-                        cliffDuration,
                         owner,
                         pendingOwner,
                     ],
@@ -76,9 +73,9 @@ task(`deploy-chest`, `Deploys the Chest contract`)
                 );
 
                 console.log(
-                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${fee} ${boosterThreshold} ${minimalStakingPower} ${maxBooster} ${timeFactor} ${startTimestamp} ${cliffDuration} ${owner} ${pendingOwner}`
+                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${allocator} ${distributor} ${fee} ${maxBooster} ${timeFactor} ${owner} ${pendingOwner}`
                 );
             }
-            */
+
         }
     );
