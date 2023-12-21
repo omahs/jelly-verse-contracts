@@ -120,7 +120,7 @@ contract ChestBoosterCalculationDifferentialTest is Test {
     }
 
     function ffi_booster() private returns (uint128 boosterRust) {
-        string[] memory inputs = new string[](10);
+        string[] memory inputs = new string[](9);
         inputs[0] = "cargo";
         inputs[1] = "run";
         inputs[2] = "--quiet";
@@ -130,10 +130,7 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         inputs[6] = vestingPosition.vestingDuration.toString();
         inputs[7] = vestingPosition.booster.toString();
         inputs[8] = chestHarness.maxBooster().toString();
-        console.log(inputs[5]);
-        console.log(inputs[6]);
-        console.log(inputs[7]);
-        console.log(inputs[8]);
+
         bytes memory result = vm.ffi(inputs);
         assembly {
             boosterRust := mload(add(result, 0x20))

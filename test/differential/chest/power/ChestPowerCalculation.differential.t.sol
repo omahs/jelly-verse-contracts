@@ -105,7 +105,7 @@ contract ChestPowerCalculationDifferentialTest is Test {
         freezingPeriod = bound(freezingPeriod, 1, MAX_FREEZING_PERIOD_CHEST);
         amount = bound(amount, 1, JELLY_MAX_SUPPLY);
         booster = bound(booster, INITIAL_BOOSTER, MAX_BOOSTER);
-        nerfParameter = bound(nerfParameter, 0, 10);
+        nerfParameter = bound(nerfParameter, 1, 10);
 
         vestingPosition = chestHarness.exposed_createVestingPosition(
             amount,
@@ -140,7 +140,7 @@ contract ChestPowerCalculationDifferentialTest is Test {
         inputs[7] = uint256(vestingPosition.cliffTimestamp).toString();
         inputs[8] = uint256(vestingPosition.vestingDuration).toString();
         inputs[9] = uint256(vestingPosition.booster).toString();
-
+        inputs[10] = uint256(vestingPosition.nerfParameter).toString();
         bytes memory result = vm.ffi(inputs);
         assembly {
             powerRust := mload(add(result, 0x20))
