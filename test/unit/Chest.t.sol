@@ -6,7 +6,6 @@ import {Chest} from "../../contracts/Chest.sol";
 import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 
 // TO-ADD:
-// - tests specific for releaseableAmount in both cases
 // - calculations overflow/underflow
 
 // contract for internal function testing
@@ -101,7 +100,7 @@ contract ChestTest is Test {
     event SetFee(uint256 fee);
     event SetBoosterThreshold(uint256 boosterThreshold);
     event SetMinimalStakingPower(uint256 minimalStakingPower);
-    event SetMaxBooster(uint256 maxBooster);
+    event SetMaxBooster(uint128 maxBooster);
     event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
@@ -117,6 +116,7 @@ contract ChestTest is Test {
     error Chest__CannotUnstakeMoreThanReleasable();
     error Chest__NothingToUnstake();
     error Chest__InvalidBoosterValue();
+    error Chest__NoFeesToWithdraw();
 
     error Ownable__CallerIsNotOwner();
 
@@ -1739,6 +1739,16 @@ contract ChestTest is Test {
         chest.withdrawFees(deployerAddress);
     }
 
+    function test_withdrawFeesNoFeesToWithdraw() external openPosition {
+        vm.startPrank(deployerAddress);
+        chest.withdrawFees(deployerAddress);
+
+        vm.expectRevert(Chest__NoFeesToWithdraw.selector);
+        chest.withdrawFees(deployerAddress);
+
+        vm.stopPrank();
+    }
+
     function test_transferFromChest() external openPosition {
         vm.prank(testAddress);
 
@@ -2436,7 +2446,7 @@ contract ChestTest is Test {
         vm.startPrank(testAddress);
 
         uint256 power;
-
+        uint256[] memory tokenIds = new uint256[](5);
         for (uint256 i; i < 5; i++) {
             jellyToken.approve(address(chest), amount + chest.fee());
             chest.stake(amount, testAddress, freezingPeriod);
@@ -2445,14 +2455,8 @@ contract ChestTest is Test {
                 block.timestamp,
                 chest.getVestingPosition(i)
             );
+            tokenIds[i] = i;
         }
-
-        uint256[] memory tokenIds = new uint256[](5);
-        tokenIds[0] = 0;
-        tokenIds[1] = 1;
-        tokenIds[2] = 2;
-        tokenIds[3] = 3;
-        tokenIds[4] = 4;
 
         uint256 powerGetter = chest.getVotingPower(testAddress, tokenIds);
 

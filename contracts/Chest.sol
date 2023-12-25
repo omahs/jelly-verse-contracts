@@ -62,7 +62,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     );
     event Unstake(uint256 indexed tokenId, uint256 amount, uint256 totalStaked);
     event SetFee(uint256 fee);
-    event SetMaxBooster(uint256 maxBooster);
+    event SetMaxBooster(uint128 maxBooster);
     event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
@@ -78,6 +78,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     error Chest__CannotUnstakeMoreThanReleasable();
     error Chest__NothingToUnstake();
     error Chest__InvalidBoosterValue();
+    error Chest__NoFeesToWithdraw();
 
     modifier onlyAuthorizedForToken(uint256 _tokenId) {
         if (!_isApprovedOrOwner(msg.sender, _tokenId))
@@ -366,6 +367,8 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
 
         uint256 amountToWithdraw = totalFees;
+        if (amountToWithdraw == 0) revert Chest__NoFeesToWithdraw();
+
         totalFees = 0;
 
         emit FeeWithdrawn(beneficiary);
