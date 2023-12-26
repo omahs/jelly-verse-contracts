@@ -561,6 +561,667 @@ contract ChestFuzzTest is Test {
         vm.stopPrank();
     }
 
+    // Regular chest increaseStake fuzz tests
+    function testFuzz_increaseStakeIncreaseStakingAmount(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        uint256 positionIndex = 0; // @dev assigning to zero for clarity & better code readability
+
+        increaseAmountFor = bound(
+            increaseAmountFor,
+            1,
+            JELLY_MAX_SUPPLY - chest.getVestingPosition(0).totalVestedAmount
+        ); // @dev substracting already staked amount
+        increaseFreezingPeriodFor = 0;
+
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+
+        vm.startPrank(testAddress);
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        vm.stopPrank();
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount + increaseAmountFor
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        assertEq(
+            vestingPositionAfter.freezingPeriod,
+            vestingPositionBefore.freezingPeriod
+        );
+        assertEq(vestingPositionAfter.booster, vestingPositionBefore.booster);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+
+        assertEq(
+            accountJellyBalanceAfter,
+            accountJellyBalanceBefore - increaseAmountFor
+        );
+        assertEq(
+            chestJellyBalanceAfter,
+            chestJellyBalanceBefore + increaseAmountFor
+        );
+    }
+
+    function testFuzz_increaseStakeIncreaseStakingAmountApprovedAddress(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        uint256 positionIndex = 0; // @dev assigning to zero for clarity & better code readability
+
+        increaseAmountFor = bound(
+            increaseAmountFor,
+            1,
+            JELLY_MAX_SUPPLY - chest.getVestingPosition(0).totalVestedAmount
+        ); // @dev substracting already staked amount
+        increaseFreezingPeriodFor = 0;
+
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.startPrank(approvedAddress);
+
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        vm.stopPrank();
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount + increaseAmountFor
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        assertEq(
+            vestingPositionAfter.freezingPeriod,
+            vestingPositionBefore.freezingPeriod
+        );
+        assertEq(vestingPositionAfter.booster, vestingPositionBefore.booster);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+
+        assertEq(
+            accountJellyBalanceAfter,
+            accountJellyBalanceBefore - increaseAmountFor
+        );
+        assertEq(
+            chestJellyBalanceAfter,
+            chestJellyBalanceBefore + increaseAmountFor
+        );
+    }
+
+    function testFuzz_increaseStakeIncreaseFreezingPeriodFrozenChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        increaseAmountFor = 0;
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+
+        uint256 positionIndex = 0; // @dev assigning to zero for clarity & better code readability
+
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
+
+        vm.prank(testAddress);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            (vestingPositionBefore.cliffTimestamp - freezingPeriodBefore) +
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
+        assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
+        assertEq(boosterAfter, boosterBefore);
+        assertEq(freezingPeriodAfter, MAX_FREEZING_PERIOD_REGULAR_CHEST);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+    }
+
+    function testFuzz_increaseStakeIncreaseFreezingPeriodOpenChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        increaseAmountFor = 0;
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+
+        uint256 positionIndex = 0;
+
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+        uint256 boosterBefore = vestingPositionBefore.booster;
+
+        vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+
+        vm.prank(testAddress);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            (block.timestamp + increaseFreezingPeriodFor)
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
+        assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
+        assertGt(boosterAfter, boosterBefore);
+        assertEq(freezingPeriodAfter, increaseFreezingPeriodFor);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+    }
+
+    function testFuzz_increaseStakeIncreaseFreezingPeriodApprovedAddressFrozenChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        increaseAmountFor = 0;
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.prank(approvedAddress);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            (vestingPositionBefore.cliffTimestamp - freezingPeriodBefore) +
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
+        assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
+        assertEq(boosterAfter, boosterBefore);
+        assertEq(freezingPeriodAfter, MAX_FREEZING_PERIOD_REGULAR_CHEST);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+    }
+
+    function testFuzz_increaseStakeIncreaseFreezingPeriodApprovedAddressOpenChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        increaseAmountFor = 0;
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+        uint256 boosterBefore = vestingPositionBefore.booster;
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+
+        vm.prank(approvedAddress);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            (block.timestamp + increaseFreezingPeriodFor)
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
+        assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
+        assertGt(boosterAfter, boosterBefore);
+        assertEq(freezingPeriodAfter, increaseFreezingPeriodFor);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+    }
+
+    function testFuzz_increaseStakeIncreaseStakingAmountAndFreezingPeriodFrozenChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        increaseAmountFor = bound(
+            increaseAmountFor,
+            1,
+            JELLY_MAX_SUPPLY - chest.getVestingPosition(0).totalVestedAmount
+        ); // @dev substracting already staked amount
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
+
+        uint256 totalVestedAmountBefore = vestingPositionBefore
+            .totalVestedAmount;
+
+        vm.startPrank(testAddress);
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+        vm.stopPrank();
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            totalVestedAmountBefore + increaseAmountFor
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            (vestingPositionBefore.cliffTimestamp - freezingPeriodBefore) +
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        // using direct calls for balance to avoid stack too deep error
+        assertEq(
+            jellyToken.balanceOf(testAddress),
+            accountJellyBalanceBefore - increaseAmountFor
+        );
+        assertEq(
+            jellyToken.balanceOf(address(chest)),
+            chestJellyBalanceBefore + increaseAmountFor
+        );
+        assertEq(boosterAfter, boosterBefore);
+        assertEq(freezingPeriodAfter, MAX_FREEZING_PERIOD_REGULAR_CHEST);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+    }
+
+    function testFuzz_increaseStakeIncreaseStakingAmountAndFreezingPeriodOpenChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        increaseAmountFor = bound(
+            increaseAmountFor,
+            1,
+            JELLY_MAX_SUPPLY - chest.getVestingPosition(0).totalVestedAmount
+        ); // @dev substracting already staked amount
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+
+        uint256 totalVestedAmountBefore = vestingPositionBefore
+            .totalVestedAmount;
+
+        uint256 boosterBefore = vestingPositionBefore.booster;
+
+        vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+
+        vm.startPrank(testAddress);
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+        vm.stopPrank();
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 boosterAfter = vestingPositionAfter.booster;
+        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount,
+            totalVestedAmountBefore + increaseAmountFor
+        );
+        assertEq(vestingPositionAfter.releasedAmount, 0);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            block.timestamp + increaseFreezingPeriodFor
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        // using direct calls for balances to avoid stack too deep error
+        assertEq(
+            jellyToken.balanceOf(testAddress),
+            accountJellyBalanceBefore - increaseAmountFor
+        );
+        assertEq(
+            jellyToken.balanceOf(address(chest)),
+            chestJellyBalanceBefore + increaseAmountFor
+        );
+        assertGt(boosterAfter, boosterBefore);
+        assertEq(freezingPeriodAfter, increaseFreezingPeriodFor);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+    }
+
+    function testFuzz_increaseStakeNotAuthorizedForToken(
+        address caller,
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        vm.assume(caller != testAddress);
+        increaseAmountFor = bound(
+            increaseAmountFor,
+            1,
+            JELLY_MAX_SUPPLY - chest.getVestingPosition(0).totalVestedAmount
+        ); // @dev substracting already staked amount
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+
+        uint positionIndex = 0;
+
+        vm.prank(caller);
+
+        vm.expectRevert(Chest__NotAuthorizedForToken.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    function testFuzz_increaseStakeNonExistentToken(
+        uint256 positionIndex,
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external {
+        increaseAmountFor = bound(increaseAmountFor, 1, JELLY_MAX_SUPPLY); // @dev substracting already staked amount
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+
+        vm.expectRevert("ERC721: invalid token ID");
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    function testFuzz_increaseStakeInvalidFreezingPeriod(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        uint256 positionIndex = 0;
+        vm.assume(
+            increaseFreezingPeriodFor > MAX_FREEZING_PERIOD_REGULAR_CHEST
+        );
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    // Special chest increaseStake fuzz tests
+    function testFuzz_increaseStakeSpecialChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openSpecialPosition {
+        increaseAmountFor = bound(
+            increaseAmountFor,
+            1,
+            JELLY_MAX_SUPPLY - chest.getVestingPosition(0).totalVestedAmount
+        ); // @dev substracting already staked amount
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            )
+        );
+
+        uint256 indexPosition = 0;
+
+        vm.startPrank(testAddress);
+        jellyToken.approve(address(chest), increaseAmountFor);
+
+        vm.expectRevert(Chest__CannotModifySpecial.selector);
+        chest.increaseStake(
+            indexPosition,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+        vm.stopPrank();
+    }
+
     // setFee fuzz tests
     function testFuzz_setFee(uint256 newFee) external {
         vm.prank(deployerAddress);
