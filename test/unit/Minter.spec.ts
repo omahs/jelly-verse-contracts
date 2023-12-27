@@ -116,7 +116,7 @@ describe.only("Minter", function () {
         
         describe('failure', function () {
             it('should revert if mint is called too soon', async function () {
-                await expect(minter.mint()).to.be.revertedWith("Minter: mint too soon");
+                await expect(minter.mint()).to.be.revertedWithCustomError(minter, "Minter_MintTooSoon");
             });
         });
     });

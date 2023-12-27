@@ -49,8 +49,7 @@ contract Minter is Ownable, ReentrancyGuard {
         uint256 indexed mintedAmount
     );
 
-    error OfficialPoolsRegister_MaxPools10();
-    error OfficialPoolsRegister_InvalidPool();
+    error Minter_MintTooSoon();
 
     constructor(
         address jellyToken_,
@@ -73,8 +72,11 @@ contract Minter is Ownable, ReentrancyGuard {
         uint256 mintingPeriod = _mintingPeriod;
         uint256 currentTimestamp = block.timestamp;
         uint256 secondsSinceLastMint = currentTimestamp - _lastMintedTimestamp;
-        require(secondsSinceLastMint > mintingPeriod, "Minter: mint too soon");
-        
+
+        if(secondsSinceLastMint < mintingPeriod) {
+            revert Minter_MintTooSoon();
+        }
+
         _lastMintedTimestamp += mintingPeriod;
        
         uint256 mintAmount = _inflationRate * mintingPeriod;
