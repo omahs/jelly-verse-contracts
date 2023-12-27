@@ -7,6 +7,7 @@ import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyG
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
+import {IStakingRewardDistribution} from "./IStakingRewardDistribution.sol";  
 
 /**
  * @title Minter
@@ -43,6 +44,8 @@ contract Minter is Ownable, ReentrancyGuard {
 
     event JellyMinted(
         address indexed sender,
+        address lpRewardsContract,
+        address stakingRewardsContract,
         uint256 indexed mintedTimestamp,
         uint256 newLastMintedTimestamp,
         uint256 mintingPeriod,
@@ -80,11 +83,24 @@ contract Minter is Ownable, ReentrancyGuard {
         _lastMintedTimestamp += mintingPeriod;
        
         uint256 mintAmount = _inflationRate * mintingPeriod;
+        uint256 halfOfMintAmount = mintAmount / 2;
+        // mint half of the amount to LP rewards contract
+        JellyToken(_jellyToken).mint(_lpRewardsContract, halfOfMintAmount);
 
-        JellyToken(_jellyToken).mint(_lpRewardsContract, mintAmount / 2);
-        JellyToken(_jellyToken).mint(_stakingRewardsContract, mintAmount / 2);
+        // add other half of the amount to staking rewards contract, via deposit function
+        JellyToken(_jellyToken).mint(address(this), halfOfMintAmount);
+        JellyToken(_jellyToken).approve(_stakingRewardsContract, halfOfMintAmount);
+        IStakingRewardDistribution(_stakingRewardsContract).deposit(IERC20(_jellyToken), halfOfMintAmount);
 
-        emit JellyMinted(msg.sender, currentTimestamp, _lastMintedTimestamp, mintingPeriod, mintAmount);
+        emit JellyMinted(
+            msg.sender,
+            _lpRewardsContract,
+            _stakingRewardsContract,
+            currentTimestamp, 
+            _lastMintedTimestamp, 
+            mintingPeriod, 
+            mintAmount
+            );
     }
 
     /**

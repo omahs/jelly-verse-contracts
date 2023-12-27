@@ -1,6 +1,6 @@
 import { Minter, Minter__factory } from '../../typechain-types';
 import { ethers } from 'hardhat';
-import { deployMockJelly } from '../shared/mocks';
+import { deployMockJellyNoReverts, deployMockStakingRewardContract } from '../shared/mocks';
 import { MockContract } from '@ethereum-waffle/mock-contract';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -10,12 +10,13 @@ type UnitMinterFixtureType = {
     deployer: SignerWithAddress;
     otherAccount: SignerWithAddress;
     lpRewardsContract: SignerWithAddress;
-    stakingRewardsContract: SignerWithAddress;
+    stakingRewardsContract: MockContract;
 };
 
 export async function deployMinterFixture(): Promise<UnitMinterFixtureType> {
-    const [deployer, otherAccount, lpRewardsContract, stakingRewardsContract] = await ethers.getSigners();
-    const jellyToken = await deployMockJelly(deployer);
+    const [deployer, otherAccount, lpRewardsContract] = await ethers.getSigners();
+    const jellyToken = await deployMockJellyNoReverts(deployer);
+    const stakingRewardsContract = await deployMockStakingRewardContract(deployer);
 
     const MinterFactory: Minter__factory = await ethers.getContractFactory("Minter");
     const minter: Minter = await MinterFactory.deploy(

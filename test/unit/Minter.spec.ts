@@ -12,7 +12,7 @@ describe.only("Minter", function () {
     let deployer: SignerWithAddress;
     let otherAccount: SignerWithAddress;
     let lpRewardsContract: SignerWithAddress;
-    let stakingRewardsContract: SignerWithAddress;
+    let stakingRewardsContract: MockContract;
 
     beforeEach(async function () {
         const fixture = await loadFixture(deployMinterFixture);
@@ -82,10 +82,9 @@ describe.only("Minter", function () {
     describe('#mint', function () {
         describe('success', function () {
             it('should emit JellyMinted event', async function () {
-                await time.increase(7 * 24 * 60 * 60);
-
-                const lastMintedTimestampOld = await minter._lastMintedTimestamp();
                 const mintingPeriod = await minter._mintingPeriod();
+                await time.increase(mintingPeriod);
+                const lastMintedTimestampOld = await minter._lastMintedTimestamp();
                 const inflationRate = await minter._inflationRate();
                 const lastMintedTimestampNew = lastMintedTimestampOld.add(mintingPeriod);
                 const mintAmount = BigNumber.from(inflationRate).mul(mintingPeriod);
@@ -93,7 +92,15 @@ describe.only("Minter", function () {
                 const currentTimePlusOne = currentTime + 1; // add 1 second to account for time passage during the test
 
                 await expect(minter.mint()).to.emit(minter, 'JellyMinted')
-                .withArgs(deployer.address, currentTimePlusOne, lastMintedTimestampNew, mintingPeriod, mintAmount);
+                .withArgs(
+                    deployer.address, 
+                    lpRewardsContract.address,
+                    stakingRewardsContract.address,
+                    currentTimePlusOne, 
+                    lastMintedTimestampNew, 
+                    mintingPeriod, 
+                    mintAmount
+                );
             });
         });
         

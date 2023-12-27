@@ -29,6 +29,44 @@ export async function deployMockJelly(deployer: Signer): Promise<MockContract> {
 	return mockJelly;
 }
 
+export async function deployMockStakingRewardContract(deployer: Signer): Promise<MockContract> {
+	const lpRewardContractArtifact: Artifact = await artifacts.readArtifact(
+		`StakingRewardDistrubtion`
+	);
+
+	const mockLpRewardContract: MockContract = await deployMockContract(
+		deployer,
+		lpRewardContractArtifact.abi
+	);
+
+	await mockLpRewardContract.mock.deposit.returns();
+
+	return mockLpRewardContract;
+}
+
+export async function deployMockJellyNoReverts(deployer: Signer): Promise<MockContract> {
+	const jellyTokenArtifact: Artifact = await artifacts.readArtifact(
+		`JellyToken`
+	);
+
+	const mockJelly: MockContract = await deployMockContract(
+		deployer,
+		jellyTokenArtifact.abi
+	);
+
+	const premintAmount: number = 3 * 133_000_000;
+	await mockJelly.mock.totalSupply.returns(
+		ethers.utils.parseEther(premintAmount.toString())
+	);
+	await mockJelly.mock.cap.returns(ethers.utils.parseEther(`1000000000`));
+	await mockJelly.mock.transfer.returns(true);
+	await mockJelly.mock.transferFrom.returns(true);
+	await mockJelly.mock.mint.returns();
+	await mockJelly.mock.approve.returns(true);
+
+	return mockJelly;
+}
+
 export async function deployMockJellyTimelock(
 	deployer: Signer, 
 	jellyToken: MockContract, 
