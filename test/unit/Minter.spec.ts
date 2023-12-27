@@ -1,29 +1,12 @@
 import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { deployMockJelly } from "../shared/mocks";
 import { MockContract } from "@ethereum-waffle/mock-contract";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Minter } from '../../typechain-types';
 import { BigNumber } from "ethers";
+import { deployMinterFixture } from "../fixtures/unit__Minter";
 
 describe.only("Minter", function () {
-    async function deployMinterFixture() {
-        const [deployer, otherAccount, lpRewardsContract, stakingRewardsContract] = await ethers.getSigners();
-        const jellyToken = await deployMockJelly(deployer);
-
-        const MinterFactory = await ethers.getContractFactory("Minter");
-        const minter = await MinterFactory.deploy(
-            jellyToken.address, 
-            lpRewardsContract.address, 
-            stakingRewardsContract.address, 
-            deployer.address, 
-            otherAccount.address
-        );
-
-        return { minter, jellyToken, deployer, otherAccount, lpRewardsContract, stakingRewardsContract };
-    }
-
     let minter: Minter;
     let jellyToken: MockContract;
     let deployer: SignerWithAddress;
