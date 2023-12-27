@@ -6,6 +6,7 @@ import "./JellyToken.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
+import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 
 /**
  * @title Minter
@@ -17,17 +18,17 @@ contract Minter is Ownable, ReentrancyGuard {
     address public _lpRewardsContract;
     address public _stakingRewardsContract;
     uint256 public _lastMintedTimestamp;
-    uint48 public _inflationRate;
-    uint48 public _mintingPeriod = 7 days;
+    uint256 public _inflationRate;
+    uint256 public _mintingPeriod = 7 days;
 
     event InflationRateSet(
         address indexed sender,
-        uint48 indexed inflationRate
+        uint256 indexed inflationRate
     );
 
     event MintingPeriodSet(
         address indexed sender,
-        uint48 indexed mintingPeriod
+        uint256 indexed mintingPeriod
     );
 
     event LPRewardsContractSet(
