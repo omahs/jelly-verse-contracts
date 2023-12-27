@@ -49,8 +49,8 @@ describe.only("Minter", function () {
             expect(await minter._stakingRewardsContract()).to.equal(stakingRewardsContract.address);
         });
 
-        it("should set the correct _lastMintedTimestamp address", async function () {
-            expect(await minter._lastMintedTimestamp()).to.equal(await time.latest());
+        it("should set the correct _lastMintedTimestamp", async function () {
+            expect(await minter._lastMintedTimestamp()).to.equal(0);
         });
     });
 
@@ -82,6 +82,7 @@ describe.only("Minter", function () {
     describe('#mint', function () {
         describe('success', function () {
             it('should emit JellyMinted event', async function () {
+                await minter.startMinting();
                 const mintingPeriod = await minter._mintingPeriod();
                 await time.increase(mintingPeriod);
                 const lastMintedTimestampOld = await minter._lastMintedTimestamp();
@@ -105,7 +106,11 @@ describe.only("Minter", function () {
         });
         
         describe('failure', function () {
+            it('should revert if minting has not started', async function () {
+                await expect(minter.mint()).to.be.revertedWithCustomError(minter, "Minter_MintingNotStarted");
+            });
             it('should revert if mint is called too soon', async function () {
+                await minter.startMinting();
                 await expect(minter.mint()).to.be.revertedWithCustomError(minter, "Minter_MintTooSoon");
             });
         });
@@ -136,6 +141,42 @@ describe.only("Minter", function () {
         });
     });
     
+    describe('#startMinting', function () {
+        describe('success', function () {
+            it('should emit MintingStarted event', async function () {
+                const currentTime = await time.latest() + 1;
+                await expect(minter.startMinting())
+                    .to.emit(minter, 'MintingStarted')
+                    .withArgs(deployer.address, currentTime);
+            });
+
+            it('should set started to true', async function () {
+                await minter.startMinting() 
+                expect(await minter._started()).to.equal(true);
+            });
+
+            it('should set lastMintedTimestamp corectlly', async function () {
+                const currentTime = await time.latest();
+                const lastMintedTimestamp = BigNumber.from(currentTime).add(1);
+                await minter.startMinting() 
+                expect(await minter._lastMintedTimestamp()).to.equal(lastMintedTimestamp);
+            });
+        });
+        
+        describe('failure', function () {
+            it('should revert if a non-owner tries to call startMinting function', async function () {
+                await expect(minter.connect(otherAccount).startMinting())
+                    .to.be.revertedWithCustomError(minter, "Ownable__CallerIsNotOwner");
+            });
+
+            it('should revert if a owner tries to start it twice', async function () {
+                await minter.startMinting();
+                await expect(minter.startMinting())
+                    .to.be.revertedWithCustomError(minter, "Minter_MintingAlreadyStarted");
+            });
+        });
+    });
+
     describe('#setStakingRewardsContract', function () {
         describe('success', function () {
             it('should emit StakingRewardsContractSet event', async function () {

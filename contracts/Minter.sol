@@ -21,6 +21,26 @@ contract Minter is Ownable, ReentrancyGuard {
     uint256 public _lastMintedTimestamp;
     uint256 public _inflationRate;
     uint256 public _mintingPeriod = 7 days;
+    bool public _started;
+
+    modifier onlyStarted() {
+        if(_started == false) {
+            revert Minter_MintingNotStarted();
+        }
+        _;
+    }   
+
+    modifier onlyNotStarted() {
+        if (_started == true) {
+            revert Minter_MintingAlreadyStarted();
+        }
+        _;
+    }
+
+    event MintingStarted(
+        address indexed sender,
+        uint256 indexed startTimestamp
+    );
 
     event InflationRateSet(
         address indexed sender,
@@ -52,6 +72,8 @@ contract Minter is Ownable, ReentrancyGuard {
         uint256 indexed mintedAmount
     );
 
+    error Minter_MintingNotStarted();
+    error Minter_MintingAlreadyStarted();
     error Minter_MintTooSoon();
 
     constructor(
@@ -64,14 +86,22 @@ contract Minter is Ownable, ReentrancyGuard {
         _jellyToken = jellyToken_;
         _lpRewardsContract = lpRewardsContract_;
         _stakingRewardsContract = stakingRewardsContract_;
+    }
 
+    /**
+     * @notice Starts minting process for jelly tokens, and sets last minted timestamp so that minting can start immediately
+     */
+    function startMinting() external onlyOwner onlyNotStarted {
+        _started = true;
         _lastMintedTimestamp = block.timestamp;
+
+        emit MintingStarted(msg.sender, block.timestamp);
     }
 
     /**
      * @notice Mint new tokens based on inflation rate, called by anyone
      */
-    function mint() nonReentrant external {
+    function mint() onlyStarted nonReentrant external {
         uint256 mintingPeriod = _mintingPeriod;
         uint256 currentTimestamp = block.timestamp;
         uint256 secondsSinceLastMint = currentTimestamp - _lastMintedTimestamp;
