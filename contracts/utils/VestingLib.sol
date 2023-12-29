@@ -35,11 +35,11 @@ abstract contract VestingLib {
         uint32 vestingDuration;
         uint32 freezingPeriod;
         uint128 booster;
-        uint16 nerfParameter;
+        uint8 nerfParameter;
     }
 
     event NewVestingPosition(VestingPosition position, uint256 index);
-    // changed from uint32 to uint256
+
     mapping(uint256 => VestingPosition) internal vestingPositions;
 
     /**

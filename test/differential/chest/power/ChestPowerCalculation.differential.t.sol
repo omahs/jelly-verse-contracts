@@ -13,7 +13,7 @@ contract ChestHarness is Chest {
         address distributor,
         uint256 fee_,
         uint128 maxBooster_,
-        uint8 timeFactor_,
+        uint32 timeFactor_,
         address owner,
         address pendingOwner
     )
@@ -77,7 +77,7 @@ contract ChestPowerCalculationDifferentialTest is Test {
         uint128 maxBooster = MAX_BOOSTER;
         address owner = msg.sender;
         address pendingOwner = allocator;
-        uint8 timeFactor = 2;
+        uint32 timeFactor = 7 days;
 
         chestHarness = new ChestHarness(
             jellyToken,

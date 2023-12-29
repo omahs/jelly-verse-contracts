@@ -15,10 +15,10 @@ import {VestingLib} from "./utils/VestingLib.sol";
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
 // events for booster/nerf parameters? changed structure in vesting
 // return values consistency in style
-// timeFactor changeable?
 
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    using Math for uint256;
 
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
@@ -42,11 +42,11 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     address internal immutable i_jellyToken;
     address internal immutable i_allocator;
     address internal immutable i_distributor;
+    uint32 internal immutable timeFactor;
 
     uint256 public fee;
     uint256 public totalFees;
     uint128 public maxBooster;
-    uint8 internal timeFactor;
 
     event Staked(
         address indexed user,
@@ -81,14 +81,16 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     error Chest__NoFeesToWithdraw();
 
     modifier onlyAuthorizedForToken(uint256 _tokenId) {
-        if (!_isApprovedOrOwner(msg.sender, _tokenId))
+        if (!_isApprovedOrOwner(msg.sender, _tokenId)) {
             revert Chest__NotAuthorizedForToken();
+        }
         _;
     }
 
     modifier onlyAuthorizedForSpecialChest() {
-        if (msg.sender != i_allocator && msg.sender != i_distributor)
+        if (msg.sender != i_allocator && msg.sender != i_distributor) {
             revert Chest__NotAuthorizedForSpecial();
+        }
         _;
     }
 
@@ -98,7 +100,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         address distributor,
         uint256 fee_,
         uint128 maxBooster_,
-        uint8 timeFactor_,
+        uint32 timeFactor_,
         address owner,
         address pendingOwner
     ) ERC721("Chest", "CHEST") Ownable(owner, pendingOwner) {
@@ -106,7 +108,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             jellyToken == address(0) ||
             allocator == address(0) ||
             distributor == (address(0))
-        ) revert Chest__ZeroAddress();
+        ) {
+            revert Chest__ZeroAddress();
+        }
 
         i_jellyToken = jellyToken;
         i_allocator = allocator;
@@ -135,7 +139,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         if (
             freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST ||
             freezingPeriod < MIN_FREEZING_PERIOD_REGULAR_CHEST
-        ) revert Chest__InvalidFreezingPeriod();
+        ) {
+            revert Chest__InvalidFreezingPeriod();
+        }
 
         uint256 currentTokenId = index;
         createVestingPosition(
@@ -182,8 +188,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     ) external onlyAuthorizedForSpecialChest nonReentrant {
         if (amount == 0) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
-        if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST)
+        if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST) {
             revert Chest__InvalidFreezingPeriod();
+        }
         // maybe check for minimum vesting duration/freeze in this case
 
         uint256 currentTokenId = index;
@@ -229,11 +236,13 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 amount,
         uint32 freezingPeriod
     ) external onlyAuthorizedForToken(tokenId) nonReentrant {
-        if (amount == 0 && freezingPeriod == 0)
+        if (amount == 0 && freezingPeriod == 0) {
             revert Chest__NothingToIncrease();
+        }
 
-        if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST)
+        if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST) {
             revert Chest__InvalidFreezingPeriod();
+        }
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId]; // check this, no need imo for reduntant checks for existance
         uint48 newCliffTimestamp = vestingPosition.cliffTimestamp;
@@ -391,8 +400,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     ) external view returns (uint256) {
         uint256 power;
         for (uint256 i = 0; i < tokenIds.length; ) {
-            if (ownerOf(tokenIds[i]) != account)
+            if (ownerOf(tokenIds[i]) != account) {
                 revert Chest__NotAuthorizedForToken();
+            }
             power += getChestPower(tokenIds[i]);
 
             unchecked {
@@ -551,36 +561,53 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     ) internal view returns (uint256 power) {
         uint256 vestingDuration = vestingPosition.vestingDuration;
         uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
-        if (timestamp >= cliffTimestamp + vestingDuration) {
-            return 0; // open chest
+        uint256 unfreezeTime = cliffTimestamp + vestingDuration;
+
+        // chest is open, return 0 power
+        if (timestamp > unfreezeTime) {
+            return 0;
         }
 
-        // Calculate unfreezing time based on whether vesting has started
-        uint256 unfreezingTime;
-        if (timestamp >= cliffTimestamp) {
-            // Vesting has started
-            uint256 vestingEndTime = cliffTimestamp + vestingDuration;
-            unfreezingTime = (vestingEndTime - timestamp) / timeFactor;
-        } else {
-            // Vesting has not started
-            unfreezingTime = cliffTimestamp - timestamp;
-        }
+        // Calculate regular freezing time in weeks
+        uint256 regularFreezingTime = (cliffTimestamp > timestamp)
+            ? Math.ceilDiv(cliffTimestamp - timestamp, timeFactor)
+            : 0;
 
         // Calculate power based on vesting type
         if (vestingPosition.vestingDuration == 0) {
             // Regular chest
-            uint256 booster = vestingPosition.booster;
+            uint128 booster = vestingPosition.booster;
             power =
-                (booster * vestingPosition.totalVestedAmount * unfreezingTime) /
+                (booster *
+                    vestingPosition.totalVestedAmount *
+                    regularFreezingTime) /
                 DECIMALS;
         } else {
             // Special chest
-            uint16 nerfParameter = vestingPosition.nerfParameter;
+            uint256 linearFreezingTime;
+            if (timestamp < cliffTimestamp) {
+                // Before the cliff, linear freezing time remains constant
+                linearFreezingTime =
+                    Math.ceilDiv(vestingDuration, timeFactor) /
+                    2;
+            } else {
+                // After the cliff, linear freezing time starts to decrease
+                linearFreezingTime =
+                    Math.ceilDiv(unfreezeTime - timestamp, timeFactor) /
+                    2;
+            }
+
+            // Calculate total freezing time in weeks
+            uint256 totalFreezingTimeInWeeks = regularFreezingTime +
+                linearFreezingTime;
+
+            // Apply nerf parameter
+            uint8 nerfParameter = vestingPosition.nerfParameter;
             power =
                 (vestingPosition.totalVestedAmount *
-                    unfreezingTime *
+                    totalFreezingTimeInWeeks *
                     nerfParameter) /
-                10; // nerf parameter has value between 1 and 10
+                10;
         }
     }
 }

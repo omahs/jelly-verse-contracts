@@ -1,7 +1,7 @@
 use alloy_primitives::U256;
 use std::env;
 
-const TIME_FACTOR: u8 = 2;
+const TIME_FACTOR: u32 = 7 * 24 * 60 * 60; // 7 days in seconds
 
 fn power(
     timestamp: U256,
@@ -12,23 +12,33 @@ fn power(
     nerf_parameter: U256,
 ) -> U256 {
     let decimals: U256 = U256::from(1_000_000_000_000_000_000u64);
+    let unfreeze_time: U256 = cliff_timestamp + vesting_duration;
 
-    if timestamp > cliff_timestamp + vesting_duration {
+    if timestamp > unfreeze_time {
         return U256::from(0);
     }
-    let unfreezing_time: U256;
 
-    if timestamp > cliff_timestamp {
-        let vesting_end_time: U256 = cliff_timestamp + vesting_duration;
-        unfreezing_time = (vesting_end_time - timestamp) / U256::from(TIME_FACTOR);
+    let regular_freezing_time: U256;
+
+    if cliff_timestamp > timestamp {
+        regular_freezing_time = (cliff_timestamp - timestamp).div_ceil(U256::from(TIME_FACTOR));
     } else {
-        unfreezing_time = cliff_timestamp - timestamp;
+        regular_freezing_time = U256::from(0);
     }
 
     if vesting_duration == U256::from(0) {
-        return booster * amount * unfreezing_time / decimals;
+        return booster * amount * regular_freezing_time / decimals;
     } else {
-        return amount * unfreezing_time * nerf_parameter / U256::from(10);
+        let linear_freezing_time: U256;
+        if timestamp < cliff_timestamp {
+            linear_freezing_time =
+                vesting_duration.div_ceil(U256::from(TIME_FACTOR)) / U256::from(2);
+        } else {
+            linear_freezing_time =
+                (unfreeze_time - timestamp).div_ceil(U256::from(TIME_FACTOR)) / U256::from(2);
+        }
+        return amount * (regular_freezing_time + linear_freezing_time) * nerf_parameter
+            / U256::from(10);
     }
 }
 

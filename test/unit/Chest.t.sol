@@ -16,7 +16,7 @@ contract ChestHarness is Chest {
         address distributor,
         uint256 fee_,
         uint128 maxBooster_,
-        uint8 timeFactor_,
+        uint32 timeFactor_,
         address owner,
         address pendingOwner
     )
@@ -163,7 +163,7 @@ contract ChestTest is Test {
         uint128 maxBooster = 2e18;
         address owner = msg.sender;
         address pendingOwner = testAddress;
-        uint8 timeFactor = 2;
+        uint32 timeFactor = 7 days;
 
         jellyToken = new ERC20Token("Jelly", "JELLY");
         chest = new Chest(
@@ -1991,77 +1991,23 @@ contract ChestTest is Test {
             vestingPositionRegularChestFreezingPeriodMinimum
         );
 
-        assertEq(power, amount * freezingPeriodMinimum);
+        uint256 regularFreezingTime = 1; // @dev expected value for minimum freezing period is 1
 
-        // Chest is frozen, 1/8 of freezing period passed check
-        timestamp = block.timestamp + (freezingPeriodMinimum / 8);
+        assertEq(power, amount * regularFreezingTime);
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMinimum
-        );
+        // Chest is frozen, day by day check in minimum freezing period range
+        for (uint256 i = 1; i < 7; i++) {
+            timestamp = block.timestamp + i * 1 days;
 
-        assertEq(power, ((amount * freezingPeriodMinimum) * 7) / 8);
+            power = chestHarness.exposed_calculatePower(
+                timestamp,
+                vestingPositionRegularChestFreezingPeriodMinimum
+            );
 
-        // Chest is frozen, 1/4 of freezing period passed check
-        timestamp = block.timestamp + (freezingPeriodMinimum / 4);
+            regularFreezingTime = 1;
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMinimum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMinimum) * 3) / 4);
-
-        // Chest is frozen, 3/8 of freezing period passed check
-        timestamp = block.timestamp + ((3 * freezingPeriodMinimum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMinimum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMinimum) * 5) / 8);
-
-        // Chest is frozen, 1/2 of freezing period passed check
-        timestamp = block.timestamp + (freezingPeriodMinimum / 2);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMinimum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMinimum) * 1) / 2);
-
-        // Chest is frozen, 5/8 of freezing period passed check
-        timestamp = block.timestamp + ((5 * freezingPeriodMinimum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMinimum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMinimum) * 3) / 8);
-
-        // Chest is frozen, 3/4 of freezing period passed check
-        timestamp = block.timestamp + ((3 * freezingPeriodMinimum) / 4);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMinimum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMinimum) * 1) / 4);
-
-        // Chest is frozen, 7/8 of freezing period passed check
-        timestamp = block.timestamp + ((7 * freezingPeriodMinimum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMinimum
-        );
-
-        assertEq(power, (amount * freezingPeriodMinimum) / 8);
+            assertEq(power, amount * regularFreezingTime);
+        }
 
         // Chest is frozen, end of freezing period check
         timestamp = block.timestamp + freezingPeriodMinimum;
@@ -2111,78 +2057,23 @@ contract ChestTest is Test {
             vestingPositionRegularChestFreezingPeriodMaximum
         );
 
-        assertEq(power, amount * freezingPeriodMaximum);
+        uint256 regularFreezingTime = 157; // @dev expected value for maximum freezing period is 157
 
-        // Chest is frozen, 1/8 of freezing period passed check
-        timestamp = block.timestamp + (freezingPeriodMaximum / 8);
+        assertEq(power, amount * regularFreezingTime);
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
+        // Chest is frozen, week by week check in maximum freezing period range
+        for (uint256 i = 1; i < 157; i++) {
+            timestamp = block.timestamp + (i * 1 weeks);
 
-        assertEq(power, ((amount * freezingPeriodMaximum) * 7) / 8);
+            power = chestHarness.exposed_calculatePower(
+                timestamp,
+                vestingPositionRegularChestFreezingPeriodMaximum
+            );
 
-        // Chest is frozen, 1/4 of freezing period passed check
-        timestamp = block.timestamp + (freezingPeriodMaximum / 4);
+            regularFreezingTime = 157 - i;
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMaximum) * 3) / 4);
-
-        // Chest is frozen, 3/8 of freezing period passed check
-        timestamp = block.timestamp + ((3 * freezingPeriodMaximum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMaximum) * 5) / 8);
-
-        // Chest is frozen, 1/2 of freezing period passed check
-        timestamp = block.timestamp + (freezingPeriodMaximum / 2);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMaximum) * 1) / 2);
-
-        // Chest is frozen, 5/8 of freezing period passed check
-        timestamp = block.timestamp + ((5 * freezingPeriodMaximum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMaximum) * 3) / 8);
-
-        // Chest is frozen, 3/4 of freezing period passed check
-        timestamp = block.timestamp + ((3 * freezingPeriodMaximum) / 4);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(power, ((amount * freezingPeriodMaximum) * 1) / 4);
-
-        // Chest is frozen, 7/8 of freezing period passed check
-        timestamp = block.timestamp + ((7 * freezingPeriodMaximum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(power, (amount * freezingPeriodMaximum) / 8);
-
+            assertEq(power, amount * regularFreezingTime);
+        }
         // Chest is frozen, end of freezing period check
         timestamp = block.timestamp + freezingPeriodMaximum;
 
@@ -2198,17 +2089,16 @@ contract ChestTest is Test {
         external
     {
         uint256 amount = 100;
-        uint32 freezingPeriodMaximum = MAX_FREEZING_PERIOD_SPECIAL_CHEST;
         uint8 nerfParameter = 4; // 4/10 nerfing
 
         // Special chest position with maximum freezing period
-        uint32 vestingDuration = 7 days;
-        uint32 freezingPeriod = freezingPeriodMaximum;
+        uint32 vestingDuration = 2 weeks;
+
         ChestHarness.VestingPosition
             memory vestingPositionRegularChestFreezingPeriodMaximum = chestHarness
                 .exposed_createVestingPosition(
                     amount,
-                    freezingPeriod,
+                    MAX_FREEZING_PERIOD_SPECIAL_CHEST, // @dev using constant to avoid stack too deep error
                     vestingDuration,
                     INITIAL_BOOSTER,
                     nerfParameter
@@ -2216,7 +2106,7 @@ contract ChestTest is Test {
 
         // Chest is open
         uint256 timestamp = block.timestamp +
-            (freezingPeriod + vestingDuration);
+            (MAX_FREEZING_PERIOD_SPECIAL_CHEST + vestingDuration);
 
         uint256 power = chestHarness.exposed_calculatePower(
             timestamp,
@@ -2233,200 +2123,92 @@ contract ChestTest is Test {
             vestingPositionRegularChestFreezingPeriodMaximum
         );
 
-        assertEq(power, (amount * freezingPeriodMaximum * nerfParameter) / 10);
-
-        // Chest is frozen, 1/8 of freezing period passed check, , vesting not started
-        timestamp = block.timestamp + (freezingPeriodMaximum / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
+        uint256 regularFreezingTime = 261; // @dev expected value for maximum freezing period is 261
+        uint256 linearFreezingTime = 1; // @dev expected value for 2 weeks vesting duration is 1 and constant until vesting starts
 
         assertEq(
             power,
-            (((amount * freezingPeriodMaximum * nerfParameter) / 10) * 7) / 8
+            (amount *
+                (regularFreezingTime + linearFreezingTime) *
+                nerfParameter) / 10
         );
 
-        // Chest is frozen, 1/4 of freezing period passed check, , vesting not started
-        timestamp = block.timestamp + (freezingPeriodMaximum / 4);
+        // Chest is frozen, week by week check in maximum freezing period range
+        for (uint256 i = 1; i < 261; i++) {
+            timestamp = block.timestamp + (i * 1 weeks);
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
+            power = chestHarness.exposed_calculatePower(
+                timestamp,
+                vestingPositionRegularChestFreezingPeriodMaximum
+            );
 
-        assertEq(
-            power,
-            (((amount * freezingPeriodMaximum * nerfParameter) / 10) * 3) / 4
-        );
+            regularFreezingTime = 261 - i;
 
-        // Chest is frozen, 3/8 of freezing period passed check, , vesting not started
-        timestamp = block.timestamp + ((3 * freezingPeriodMaximum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            (((amount * freezingPeriodMaximum * nerfParameter) / 10) * 5) / 8
-        );
-
-        // Chest is frozen, 1/2 of freezing period passed check, vesting not started
-        timestamp = block.timestamp + (freezingPeriodMaximum / 2);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            (((amount * freezingPeriodMaximum * nerfParameter) / 10) * 1) / 2
-        );
-
-        // Chest is frozen, 5/8 of freezing period passed check, vesting not started
-        timestamp = block.timestamp + ((5 * freezingPeriodMaximum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            (((amount * freezingPeriodMaximum * nerfParameter) / 10) * 3) / 8
-        );
-
-        // Chest is frozen, 3/4 of freezing period passed check, vesting not started
-        timestamp = block.timestamp + ((3 * freezingPeriodMaximum) / 4);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            (((amount * freezingPeriodMaximum * nerfParameter) / 10) * 1) / 4
-        );
-
-        // Chest is frozen, 7/8 of freezing period passed check, vesting not started
-        timestamp = block.timestamp + ((7 * freezingPeriodMaximum) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            ((amount * freezingPeriodMaximum * nerfParameter) / 10) / 8
-        );
+            assertEq(
+                power,
+                (amount *
+                    (regularFreezingTime + linearFreezingTime) *
+                    nerfParameter) / 10
+            );
+        }
 
         // Chest is frozen, end of freezing period check, vesting started
-        uint256 cliffTimestamp = block.timestamp + freezingPeriodMaximum;
+        uint256 cliffTimestamp = block.timestamp +
+            MAX_FREEZING_PERIOD_SPECIAL_CHEST;
 
         power = chestHarness.exposed_calculatePower(
             cliffTimestamp,
             vestingPositionRegularChestFreezingPeriodMaximum
         );
 
-        assertEq(power, ((vestingDuration * amount * nerfParameter) / 10) / 2);
-
-        // Chest is frozen,  1/8 of vesting duration passed
-        timestamp = cliffTimestamp + (vestingDuration / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
+        regularFreezingTime = 0;
+        linearFreezingTime = 1; // @dev expected value at begining for 2 weeks vesting duration is 1
 
         assertEq(
             power,
-            ((((vestingDuration * 7) / 8) * amount * nerfParameter) / 10) / 2
+            (amount *
+                (regularFreezingTime + linearFreezingTime) *
+                nerfParameter) / 10
         );
 
-        // Chest is frozen,  1/4 of vesting duration passed
-        timestamp = cliffTimestamp + (vestingDuration / 4);
+        // Chest is frozen, day by day check in vesting duration range
+        // First week
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
+        for (uint256 i = 1; i < 7; i++) {
+            timestamp = cliffTimestamp + (i * 1 days);
 
-        assertEq(
-            power,
-            ((((vestingDuration * 3) / 4) * amount * nerfParameter) / 10) / 2
-        );
+            power = chestHarness.exposed_calculatePower(
+                timestamp,
+                vestingPositionRegularChestFreezingPeriodMaximum
+            );
 
-        // Chest is frozen, 3/8 of vesting duration passed
-        timestamp = cliffTimestamp + ((3 * vestingDuration) / 8);
+            linearFreezingTime = 1; // @dev expected value during week 1
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
+            assertEq(
+                power,
+                (amount *
+                    (regularFreezingTime + linearFreezingTime) *
+                    nerfParameter) / 10
+            );
+        }
+        // Second week
+        for (uint256 i = 7; i < 14; i++) {
+            timestamp = cliffTimestamp + (i * 1 days);
 
-        assertEq(
-            power,
-            ((((vestingDuration * 5) / 8) * amount * nerfParameter) / 10) / 2
-        );
+            power = chestHarness.exposed_calculatePower(
+                timestamp,
+                vestingPositionRegularChestFreezingPeriodMaximum
+            );
 
-        // Chest is frozen,  1/2 of vesting duration passed
-        timestamp = cliffTimestamp + (vestingDuration / 2);
+            linearFreezingTime = 0; // @dev expected value during week 2
 
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            ((((vestingDuration * 1) / 2) * amount * nerfParameter) / 10) / 2
-        );
-
-        // Chest is frozen,  5/8 of vesting duration passed
-        timestamp = cliffTimestamp + ((5 * vestingDuration) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            ((((vestingDuration * 3) / 8) * amount * nerfParameter) / 10) / 2
-        );
-
-        // Chest is frozen,  3/4 of vesting duration passed
-        timestamp = cliffTimestamp + ((3 * vestingDuration) / 4);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            ((((vestingDuration * 1) / 4) * amount * nerfParameter) / 10) / 2
-        );
-
-        // Chest is frozen, 7/8 of vesting duration passed
-        timestamp = cliffTimestamp + ((7 * vestingDuration) / 8);
-
-        power = chestHarness.exposed_calculatePower(
-            timestamp,
-            vestingPositionRegularChestFreezingPeriodMaximum
-        );
-
-        assertEq(
-            power,
-            ((((vestingDuration * 1) / 8) * amount * nerfParameter) / 10) / 2
-        );
-
+            assertEq(
+                power,
+                (amount *
+                    (regularFreezingTime + linearFreezingTime) *
+                    nerfParameter) / 10
+            );
+        }
         // Chest is open, vesting ended
         timestamp = cliffTimestamp + vestingDuration;
 
