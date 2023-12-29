@@ -1222,6 +1222,400 @@ contract ChestFuzzTest is Test {
         vm.stopPrank();
     }
 
+    // Regular chest unstake fuzz tests
+    function testFuzz_unstake(uint256 unstakeAmount) external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPositionBefore.totalVestedAmount
+        );
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+
+        vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+
+        vm.prank(testAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+        assertEq(vestingPositionAfter.freezingPeriod, 0);
+        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+
+        assertEq(
+            accountJellyBalanceAfter,
+            accountJellyBalanceBefore + unstakeAmount
+        );
+
+        assertEq(
+            chestJellyBalanceAfter,
+            chestJellyBalanceBefore - unstakeAmount
+        );
+    }
+
+    function testFuzz_unstakeApprovedAddress(
+        uint256 unstakeAmount
+    ) external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPositionBefore.totalVestedAmount
+        );
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.warp(vestingPositionBefore.cliffTimestamp + 1);
+
+        vm.prank(approvedAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+
+        assertEq(vestingPositionAfter.freezingPeriod, 0);
+        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+
+        assertEq(
+            accountJellyBalanceAfter,
+            accountJellyBalanceBefore + unstakeAmount
+        );
+
+        assertEq(
+            chestJellyBalanceAfter,
+            chestJellyBalanceBefore - unstakeAmount
+        );
+    }
+
+    function testFuzz_unstakeNotAuthorizedForToken(
+        uint256 unstakeAmount,
+        address caller
+    ) external openPosition {
+        vm.assume(caller != testAddress);
+
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPosition.totalVestedAmount
+        );
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        vm.prank(nonApprovedAddress);
+        vm.expectRevert(Chest__NotAuthorizedForToken.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function testFuzz_unstakeNothingToUnstake(
+        uint256 unstakeAmount
+    ) external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPosition.totalVestedAmount
+        );
+
+        vm.warp(vestingPosition.cliffTimestamp - 1);
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        unstakeAmount = 0;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function testFuzz_unstakeCannotUnstakeMoreThanReleasable(
+        uint256 unstakeAmount
+    ) external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        vm.assume(unstakeAmount > vestingPosition.totalVestedAmount);
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__CannotUnstakeMoreThanReleasable.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    // Special chest unstake fuzz tests
+    function testFuzz_unstakeSpecialChest(
+        uint256 unstakeAmount
+    ) external openSpecialPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPositionBefore.totalVestedAmount
+        );
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+
+        vm.warp(
+            vestingPositionBefore.cliffTimestamp +
+                vestingPositionBefore.vestingDuration
+        );
+
+        vm.prank(testAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+
+        assertEq(vestingPositionAfter.freezingPeriod, 0);
+        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+
+        assertEq(
+            accountJellyBalanceAfter,
+            accountJellyBalanceBefore + unstakeAmount
+        );
+        assertEq(
+            chestJellyBalanceAfter,
+            chestJellyBalanceBefore - unstakeAmount
+        );
+    }
+
+    function testFuzz_unstakeSpecialChestApprovedAddress(
+        uint256 unstakeAmount
+    ) external openSpecialPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPositionBefore.totalVestedAmount
+        );
+
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
+
+        vm.prank(testAddress);
+        chest.approve(approvedAddress, positionIndex);
+
+        vm.warp(
+            vestingPositionBefore.cliffTimestamp +
+                vestingPositionBefore.vestingDuration
+        );
+
+        vm.prank(approvedAddress);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        Chest.VestingPosition memory vestingPositionAfter = chest
+            .getVestingPosition(positionIndex);
+
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
+            approvedAddress
+        );
+        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
+
+        assertEq(
+            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionBefore.totalVestedAmount
+        );
+        assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
+        assertEq(
+            vestingPositionAfter.cliffTimestamp,
+            vestingPositionBefore.cliffTimestamp
+        );
+        assertEq(
+            vestingPositionAfter.vestingDuration,
+            vestingPositionBefore.vestingDuration
+        );
+
+        assertEq(vestingPositionAfter.freezingPeriod, 0);
+        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(
+            vestingPositionAfter.nerfParameter,
+            vestingPositionBefore.nerfParameter
+        );
+
+        assertEq(
+            accountJellyBalanceAfter,
+            accountJellyBalanceBefore + unstakeAmount
+        );
+
+        assertEq(
+            chestJellyBalanceAfter,
+            chestJellyBalanceBefore - unstakeAmount
+        );
+    }
+
+    function testFuzz_unstakeSpecialChestNotAuthorizedForToken(
+        uint256 unstakeAmount,
+        address caller
+    ) external openSpecialPosition {
+        vm.assume(caller != testAddress);
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPosition.totalVestedAmount
+        );
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        vm.prank(nonApprovedAddress);
+        vm.expectRevert(Chest__NotAuthorizedForToken.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function testFuzz_unstakeSpecialChestNothingToUnstake(
+        uint256 unstakeAmount
+    ) external openSpecialPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        unstakeAmount = bound(
+            unstakeAmount,
+            1,
+            vestingPosition.totalVestedAmount
+        );
+
+        vm.warp(vestingPosition.cliffTimestamp - 1);
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+
+        vm.warp(vestingPosition.cliffTimestamp + 1);
+
+        unstakeAmount = 0;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__NothingToUnstake.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
+    function testFuzz_unstakeSpecialChestCannotUnstakeMoreThanReleasable(
+        uint256 unstakeAmount
+    ) external openSpecialPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+        vm.assume(unstakeAmount > vestingPosition.totalVestedAmount);
+
+        vm.warp(
+            vestingPosition.cliffTimestamp + vestingPosition.vestingDuration
+        );
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__CannotUnstakeMoreThanReleasable.selector);
+        chest.unstake(positionIndex, unstakeAmount);
+    }
+
     // setFee fuzz tests
     function testFuzz_setFee(uint256 newFee) external {
         vm.prank(deployerAddress);
