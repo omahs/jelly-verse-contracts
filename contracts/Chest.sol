@@ -14,7 +14,6 @@ import {VestingLib} from "./utils/VestingLib.sol";
 // maybe change first 3 imports to be also from vendor folder
 // maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
 // events for booster/nerf parameters? changed structure in vesting
-// return values consistency in style
 
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -392,7 +391,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      *
      * @param tokenIds - ids of the chests.
      *
-     * @return power - voting power of the account.
+     * @return - voting power of the account.
      */
     function getVotingPower(
         address account,
@@ -419,19 +418,20 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      *
      * @param vestingPosition - vesting position of the chest.
      *
-     * @return power - voting power of the chest.
+     * @return - voting power of the chest.
      */
     function getChestPower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
-    ) external view returns (uint256 power) {
-        power = calculatePower(timestamp, vestingPosition);
+    ) external view returns (uint256) {
+        uint256 power = calculatePower(timestamp, vestingPosition);
+        return power;
     }
 
     /**
      * @dev Retrieves the vesting position at the specified index.
      * @param tokenId The index of the vesting position to retrieve.
-     * @return The vesting position at the specified index.
+     * @return - The vesting position at the specified index.
      */
     function getVestingPosition(
         uint256 tokenId
@@ -448,13 +448,13 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      *
      * @param tokenId - id of the chest.
      *
-     * @return power - voting power of the chest.
+     * @return - voting power of the chest.
      */
-    function getChestPower(
-        uint256 tokenId
-    ) public view returns (uint256 power) {
+    function getChestPower(uint256 tokenId) public view returns (uint256) {
         VestingPosition memory vestingPosition = getVestingPosition(tokenId);
-        power = calculatePower(block.timestamp, vestingPosition);
+
+        uint256 power = calculatePower(block.timestamp, vestingPosition);
+        return power;
     }
 
     /**
@@ -495,7 +495,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
     /**
      * @notice Gets the total supply of tokens.
-     * @return The total supply of tokens.
+     * @return - The total supply of tokens.
      */
     function totalSupply() public view returns (uint256) {
         return index;
@@ -524,11 +524,12 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      *
      * @param vestingPosition - chest vesting position.
      *
-     * @return booster - booster of the chest.
+     * @return - booster of the chest.
      */
     function calculateBooster(
         VestingPosition memory vestingPosition
-    ) internal view returns (uint128 booster) {
+    ) internal view returns (uint128) {
+        uint128 booster;
         if (vestingPosition.vestingDuration > 0) {
             // special chest
             return INITIAL_BOOSTER;
@@ -545,6 +546,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         if (booster > maxBooster) {
             booster = maxBooster;
         }
+        return booster;
     }
 
     /**
@@ -553,12 +555,14 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
      * @param timestamp - current timestamp.
      * @param vestingPosition - vesting position of the chest.
      *
-     * @return power - voting power of the chest.
+     * @return - voting power of the chest.
      */
     function calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
-    ) internal view returns (uint256 power) {
+    ) internal view returns (uint256) {
+        uint256 power;
+
         uint256 vestingDuration = vestingPosition.vestingDuration;
         uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
         uint256 unfreezeTime = cliffTimestamp + vestingDuration;
@@ -609,5 +613,6 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                     nerfParameter) /
                 10;
         }
+        return power;
     }
 }
