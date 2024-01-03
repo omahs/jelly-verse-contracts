@@ -6,7 +6,7 @@ import { Minter } from '../../typechain-types';
 import { BigNumber } from "ethers";
 import { deployMinterFixture } from "../fixtures/unit__Minter";
 
-describe.only("Minter", function () {
+describe("Minter", function () {
     let minter: Minter;
     let jellyToken: MockContract;
     let deployer: SignerWithAddress;
@@ -52,29 +52,42 @@ describe.only("Minter", function () {
         it("should set the correct _lastMintedTimestamp", async function () {
             expect(await minter._lastMintedTimestamp()).to.equal(0);
         });
+
+        it("should set the correct _mintingStartedTimestamp", async function () {
+            expect(await minter._mintingStartedTimestamp()).to.equal(0);
+        });
     });
 
-    describe("#setInflationRate", function () {
+    describe("#calculateMintAmount", function () {
         describe("success", function () {
-            it("should allow the owner to set a new inflation rate", async function () {
-                const newInflationRate = 5;
-                await minter.setInflationRate(newInflationRate);
-                expect(await minter._inflationRate()).to.equal(newInflationRate);
+            it("should be able to calculate mint amount at 0 days since start", async function () {
+                const daysSinceMintingStarted = 0;
+                const expectedMintAmount = "900000000000000000000000";
+                expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
             });
 
-            it("should emit InflationRateSet event", async function () {
-                const newInflationRate = 5;
-                await expect(minter.setInflationRate(newInflationRate))
-                    .to.emit(minter, "InflationRateSet")
-                    .withArgs(deployer.address, newInflationRate);
+            it("should be able to calculate mint amount at 10 days since start", async function () {
+                const daysSinceMintingStarted = 10;
+                const expectedMintAmount = "886600000000000000000000";
+                expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
             });
-        });
 
-        describe("failure", function () {
-            it("should revert if a non-owner tries to set the inflation rate", async function () {
-                const newInflationRate = 5;
-                await expect(minter.connect(otherAccount).setInflationRate(newInflationRate))
-                    .to.be.revertedWithCustomError(minter, "Ownable__CallerIsNotOwner");
+            it("should be able to calculate mint amount at 100 days since start", async function () {
+                const daysSinceMintingStarted = 100;
+                const expectedMintAmount = "774637000000000000000000";
+                expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
+            });
+
+            it("should be able to calculate mint amount at 1000 days since start", async function () {
+                const daysSinceMintingStarted = 1000;
+                const expectedMintAmount = "200817000000000000000000";
+                expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
+            });
+
+            it("should be able to calculate mint amount at 10000 days since start", async function () {
+                const daysSinceMintingStarted = 10000;
+                const expectedMintAmount = 0;
+                expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
             });
         });
     });
@@ -84,11 +97,9 @@ describe.only("Minter", function () {
             it('should emit JellyMinted event', async function () {
                 await minter.startMinting();
                 const mintingPeriod = await minter._mintingPeriod();
-                await time.increase(mintingPeriod);
                 const lastMintedTimestampOld = await minter._lastMintedTimestamp();
-                const inflationRate = await minter._inflationRate();
                 const lastMintedTimestampNew = lastMintedTimestampOld.add(mintingPeriod);
-                const mintAmount = BigNumber.from(inflationRate).mul(mintingPeriod);
+                const mintAmount = BigNumber.from("900000000000000000000000");
                 const currentTime = await time.latest();
                 const currentTimePlusOne = currentTime + 1; // add 1 second to account for time passage during the test
 
@@ -111,6 +122,7 @@ describe.only("Minter", function () {
             });
             it('should revert if mint is called too soon', async function () {
                 await minter.startMinting();
+                await minter.mint();
                 await expect(minter.mint()).to.be.revertedWithCustomError(minter, "Minter_MintTooSoon");
             });
         });
@@ -157,9 +169,16 @@ describe.only("Minter", function () {
 
             it('should set lastMintedTimestamp corectlly', async function () {
                 const currentTime = await time.latest();
-                const lastMintedTimestamp = BigNumber.from(currentTime).add(1);
+                const lastMintedTimestamp = BigNumber.from(currentTime).add(1).sub(await minter._mintingPeriod());
                 await minter.startMinting() 
                 expect(await minter._lastMintedTimestamp()).to.equal(lastMintedTimestamp);
+            });
+
+            it('should set mintingStartedTimestamp corectlly', async function () {
+                const currentTime = await time.latest();
+                const mintingStartedTimestamp = BigNumber.from(currentTime).add(1);
+                await minter.startMinting() 
+                expect(await minter._mintingStartedTimestamp()).to.equal(mintingStartedTimestamp);
             });
         });
         

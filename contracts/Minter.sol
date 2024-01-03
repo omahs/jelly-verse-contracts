@@ -8,6 +8,7 @@ import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC2
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 import {IStakingRewardDistribution} from "./IStakingRewardDistribution.sol";  
+import {SD59x18, convert, exp, mul, div, sd, intoUint256} from "./vendor/prb/math/v0.4.1/SD59x18.sol";
 
 /**
  * @title Minter
@@ -19,9 +20,12 @@ contract Minter is Ownable, ReentrancyGuard {
     address public _lpRewardsContract;
     address public _stakingRewardsContract;
     uint256 public _lastMintedTimestamp;
-    uint256 public _inflationRate;
+    uint256 public _mintingStartedTimestamp;
     uint256 public _mintingPeriod = 7 days;
     bool public _started;
+
+    int256 constant K = -15;
+    uint256 constant DECIMALS = 1e18;
 
     modifier onlyStarted() {
         if(_started == false) {
@@ -40,11 +44,6 @@ contract Minter is Ownable, ReentrancyGuard {
     event MintingStarted(
         address indexed sender,
         uint256 indexed startTimestamp
-    );
-
-    event InflationRateSet(
-        address indexed sender,
-        uint256 indexed inflationRate
     );
 
     event MintingPeriodSet(
@@ -93,13 +92,14 @@ contract Minter is Ownable, ReentrancyGuard {
      */
     function startMinting() external onlyOwner onlyNotStarted {
         _started = true;
-        _lastMintedTimestamp = block.timestamp;
+        _lastMintedTimestamp = block.timestamp - _mintingPeriod;
+        _mintingStartedTimestamp = block.timestamp;
 
         emit MintingStarted(msg.sender, block.timestamp);
     }
 
     /**
-     * @notice Mint new tokens based on inflation rate, called by anyone
+     * @notice Mint new tokens based on exponential function, callable by anyone
      */
     function mint() onlyStarted nonReentrant external {
         uint256 mintingPeriod = _mintingPeriod;
@@ -111,9 +111,10 @@ contract Minter is Ownable, ReentrancyGuard {
         }
 
         _lastMintedTimestamp += mintingPeriod;
-       
-        uint256 mintAmount = _inflationRate * mintingPeriod;
+        int256 daysSinceMintingStarted = int256((block.timestamp - _mintingStartedTimestamp) / 1 days);
+        uint256 mintAmount = this.calculateMintAmount(daysSinceMintingStarted);
         uint256 halfOfMintAmount = mintAmount / 2;
+
         // mint half of the amount to LP rewards contract
         JellyToken(_jellyToken).mint(_lpRewardsContract, halfOfMintAmount);
 
@@ -132,18 +133,21 @@ contract Minter is Ownable, ReentrancyGuard {
             mintAmount
             );
     }
-
+    
     /**
-     * @notice Set new Inflation Rate
+     * @notice Calculate mint amount based on exponential function
      *
-     * @dev Only owner can call.
+     * @param daysSinceMintingStarted - number of days since minting started
      *
-     * @param newInflationRate_ new inflation rate
+     * @return mintAmount - amount of tokens to mint multiplied with decimals
      */
-    function setInflationRate(uint48 newInflationRate_) external onlyOwner {
-        _inflationRate = newInflationRate_;
+    function calculateMintAmount(int256 daysSinceMintingStarted) external pure returns (uint256) {
+        // 900_000 * e ^ (-0.0015 * n)
+        SD59x18 exponentMultiplier = div(convert(K), convert(10000));
+        SD59x18 exponent = mul(exponentMultiplier, convert(daysSinceMintingStarted));
+        uint256 mintAmount = intoUint256(mul(exp(exponent), sd(900_000)));
 
-        emit InflationRateSet(msg.sender, newInflationRate_);
+        return mintAmount * DECIMALS;
     }
 
     /**
