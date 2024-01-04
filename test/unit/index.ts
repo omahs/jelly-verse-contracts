@@ -13,7 +13,7 @@ import { shouldBehaveLikeJellyTimelock } from './JellyTimelock';
 import { shouldBehaveLikeJellyGovernor } from './JellyGovernor';
 import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
 
-context.only(`Unit tests`, async function () {
+context(`Unit tests`, async function () {
 	before(async function () {
 		this.signers = {} as Signers;
 

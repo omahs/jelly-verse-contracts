@@ -113,7 +113,8 @@ contract Minter is Ownable, ReentrancyGuard {
         _lastMintedTimestamp += mintingPeriod;
         int256 daysSinceMintingStarted = int256((block.timestamp - _mintingStartedTimestamp) / 1 days);
         uint256 mintAmount = this.calculateMintAmount(daysSinceMintingStarted);
-        uint256 halfOfMintAmount = mintAmount / 2;
+        uint256 mintAmountWithDecimals = mintAmount * DECIMALS;
+        uint256 halfOfMintAmount = mintAmountWithDecimals / 2;
 
         // mint half of the amount to LP rewards contract
         JellyToken(_jellyToken).mint(_lpRewardsContract, halfOfMintAmount);
@@ -130,7 +131,7 @@ contract Minter is Ownable, ReentrancyGuard {
             currentTimestamp, 
             _lastMintedTimestamp, 
             mintingPeriod, 
-            mintAmount
+            mintAmountWithDecimals
             );
     }
     
@@ -139,7 +140,7 @@ contract Minter is Ownable, ReentrancyGuard {
      *
      * @param daysSinceMintingStarted - number of days since minting started
      *
-     * @return mintAmount - amount of tokens to mint multiplied with decimals
+     * @return mintAmount - amount of tokens to mint
      */
     function calculateMintAmount(int256 daysSinceMintingStarted) external pure returns (uint256) {
         // 900_000 * e ^ (-0.0015 * n)
@@ -147,7 +148,7 @@ contract Minter is Ownable, ReentrancyGuard {
         SD59x18 exponent = mul(exponentMultiplier, convert(daysSinceMintingStarted));
         uint256 mintAmount = intoUint256(mul(exp(exponent), sd(900_000)));
 
-        return mintAmount * DECIMALS;
+        return mintAmount;
     }
 
     /**

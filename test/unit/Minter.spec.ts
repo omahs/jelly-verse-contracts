@@ -62,25 +62,25 @@ describe("Minter", function () {
         describe("success", function () {
             it("should be able to calculate mint amount at 0 days since start", async function () {
                 const daysSinceMintingStarted = 0;
-                const expectedMintAmount = "900000000000000000000000";
+                const expectedMintAmount = "900000";
                 expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
             });
 
             it("should be able to calculate mint amount at 10 days since start", async function () {
                 const daysSinceMintingStarted = 10;
-                const expectedMintAmount = "886600000000000000000000";
+                const expectedMintAmount = "886600";
                 expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
             });
 
             it("should be able to calculate mint amount at 100 days since start", async function () {
                 const daysSinceMintingStarted = 100;
-                const expectedMintAmount = "774637000000000000000000";
+                const expectedMintAmount = "774637";
                 expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
             });
 
             it("should be able to calculate mint amount at 1000 days since start", async function () {
                 const daysSinceMintingStarted = 1000;
-                const expectedMintAmount = "200817000000000000000000";
+                const expectedMintAmount = "200817";
                 expect(await minter.calculateMintAmount(daysSinceMintingStarted)).to.equal(expectedMintAmount);
             });
 
