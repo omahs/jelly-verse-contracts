@@ -19,35 +19,35 @@ contract ChestHandler is Test {
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
 
-    address immutable beneficiary;
+    address immutable i_beneficiary;
 
     address[] private actors;
 
-    Chest private immutable chest;
-    ERC20Token private immutable jellyToken;
+    Chest private immutable i_chest;
+    ERC20Token private immutable i_jellyToken;
 
     constructor(
-        address beneficiary_,
-        Chest chest_,
-        ERC20Token jellyToken_,
+        address beneficiary,
+        Chest chest,
+        ERC20Token jellyToken,
         address allocator,
         address distributor
     ) {
-        beneficiary = beneficiary_;
-        chest = chest_;
-        jellyToken = jellyToken_;
+        i_beneficiary = beneficiary;
+        i_chest = chest;
+        i_jellyToken = jellyToken;
         actors.push(allocator);
         actors.push(distributor);
     }
 
     // ERC721 functionalities
     function transferFrom(address from, address to, uint256 tokenId) external {
-        tokenId = bound(tokenId, 0, chest.totalSupply() - 1);
-        from = chest.ownerOf(tokenId);
+        tokenId = bound(tokenId, 0, i_chest.totalSupply() - 1);
+        from = i_chest.ownerOf(tokenId);
         vm.assume(to != address(0) && to != address(this));
 
         vm.prank(from);
-        chest.transferFrom(from, to, tokenId);
+        i_chest.transferFrom(from, to, tokenId);
     }
 
     function safeTransferFrom(
@@ -55,23 +55,23 @@ contract ChestHandler is Test {
         address to,
         uint256 tokenId
     ) external {
-        tokenId = bound(tokenId, 0, chest.totalSupply() - 1);
-        from = chest.ownerOf(tokenId);
+        tokenId = bound(tokenId, 0, i_chest.totalSupply() - 1);
+        from = i_chest.ownerOf(tokenId);
         vm.assume(to != address(0) && to != address(this));
         assumePayable(to);
 
         vm.prank(from);
-        chest.safeTransferFrom(from, to, tokenId);
+        i_chest.safeTransferFrom(from, to, tokenId);
     }
 
     function approve(address to, uint256 tokenId) external {
-        vm.assume(tokenId < chest.totalSupply());
+        vm.assume(tokenId < i_chest.totalSupply());
         vm.assume(to != address(0) && to != address(this));
 
-        address owner = chest.ownerOf(tokenId);
+        address owner = i_chest.ownerOf(tokenId);
 
         vm.prank(owner);
-        chest.approve(to, tokenId);
+        i_chest.approve(to, tokenId);
     }
 
     function setApprovalForAll(address operator, bool approved) external {
@@ -81,19 +81,19 @@ contract ChestHandler is Test {
                 operator != msg.sender
         );
 
-        chest.setApprovalForAll(operator, approved);
+        i_chest.setApprovalForAll(operator, approved);
     }
 
     // staking functionalities
     function stake(
         uint256 amount,
-        address beneficiary_,
+        address beneficiary,
         uint32 freezingPeriod,
         address caller
     ) external {
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY - chest.fee()); // @dev substracting fee so it's not bigger than max supply
-        vm.assume(beneficiary_ != address(0) && beneficiary_ != address(this));
-        assumePayable(beneficiary_);
+        amount = bound(amount, 1, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
+        vm.assume(beneficiary != address(0) && beneficiary != address(this));
+        assumePayable(beneficiary);
         freezingPeriod = uint32(
             bound(
                 freezingPeriod,
@@ -104,25 +104,25 @@ contract ChestHandler is Test {
         vm.assume(caller != address(0));
 
         vm.startPrank(caller);
-        jellyToken.mint(amount + chest.fee());
+        i_jellyToken.mint(amount + i_chest.fee());
 
-        jellyToken.approve(address(chest), amount + chest.fee());
-        chest.stake(amount, beneficiary, freezingPeriod);
+        i_jellyToken.approve(address(i_chest), amount + i_chest.fee());
+        i_chest.stake(amount, beneficiary, freezingPeriod);
 
         vm.stopPrank();
     }
 
     function stakeSpecial(
         uint256 amount,
-        address beneficiary_,
+        address beneficiary,
         uint32 freezingPeriod,
         uint32 vestingDuration,
         uint8 nerfParameter,
         uint256 actorIndexSeed
     ) external {
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY - chest.fee()); // @dev substracting fee so it's not bigger than max supply
-        vm.assume(beneficiary_ != address(0) && beneficiary_ != address(this));
-        assumePayable(beneficiary_);
+        amount = bound(amount, 1, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
+        vm.assume(beneficiary != address(0) && beneficiary != address(this));
+        assumePayable(beneficiary);
         freezingPeriod = uint32(
             bound(freezingPeriod, 0, MAX_FREEZING_PERIOD_SPECIAL_CHEST)
         );
@@ -134,10 +134,10 @@ contract ChestHandler is Test {
         address sender = actors[bound(actorIndexSeed, 0, actors.length - 1)];
 
         vm.startPrank(sender);
-        jellyToken.mint(amount + chest.fee());
+        i_jellyToken.mint(amount + i_chest.fee());
 
-        jellyToken.approve(address(chest), amount + chest.fee());
-        chest.stakeSpecial(
+        i_jellyToken.approve(address(i_chest), amount + i_chest.fee());
+        i_chest.stakeSpecial(
             amount,
             beneficiary,
             freezingPeriod,
@@ -152,12 +152,11 @@ contract ChestHandler is Test {
         uint32 increaseFreezingPeriodFor,
         uint256 positionIndex
     ) external {
-        positionIndex = bound(positionIndex, 0, chest.totalSupply() - 1);
-        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
-            positionIndex
-        );
+        positionIndex = bound(positionIndex, 0, i_chest.totalSupply() - 1);
+        Chest.VestingPosition memory vestingPosition = i_chest
+            .getVestingPosition(positionIndex);
 
-        uint256 maxStakingAmount = JELLY_MAX_SUPPLY - chest.fee();
+        uint256 maxStakingAmount = JELLY_MAX_SUPPLY - i_chest.fee();
         if (vestingPosition.totalVestedAmount >= maxStakingAmount) {
             return;
         } else {
@@ -166,18 +165,21 @@ contract ChestHandler is Test {
             increaseAmountFor = bound(
                 increaseAmountFor,
                 1,
-                JELLY_MAX_SUPPLY - stakedAmount - chest.fee()
+                JELLY_MAX_SUPPLY - stakedAmount - i_chest.fee()
             ); // @dev in this way we assure that we can't increase staking amount above JELLY_MAX_SUPPLY
 
             increaseFreezingPeriodFor = 0;
 
-            address owner = chest.ownerOf(positionIndex);
+            address owner = i_chest.ownerOf(positionIndex);
 
             vm.startPrank(owner);
-            jellyToken.mint(increaseAmountFor + chest.fee());
+            i_jellyToken.mint(increaseAmountFor + i_chest.fee());
 
-            jellyToken.approve(address(chest), increaseAmountFor + chest.fee());
-            chest.increaseStake(
+            i_jellyToken.approve(
+                address(i_chest),
+                increaseAmountFor + i_chest.fee()
+            );
+            i_chest.increaseStake(
                 positionIndex,
                 increaseAmountFor,
                 increaseFreezingPeriodFor
@@ -200,12 +202,12 @@ contract ChestHandler is Test {
                 MAX_FREEZING_PERIOD_REGULAR_CHEST
             )
         );
-        positionIndex = bound(positionIndex, 0, chest.totalSupply() - 1);
+        positionIndex = bound(positionIndex, 0, i_chest.totalSupply() - 1);
 
-        address owner = chest.ownerOf(positionIndex);
+        address owner = i_chest.ownerOf(positionIndex);
 
         vm.startPrank(owner);
-        chest.increaseStake(
+        i_chest.increaseStake(
             positionIndex,
             increaseAmountFor,
             increaseFreezingPeriodFor
@@ -218,12 +220,11 @@ contract ChestHandler is Test {
         uint32 increaseFreezingPeriodFor,
         uint256 positionIndex
     ) external {
-        positionIndex = bound(positionIndex, 0, chest.totalSupply() - 1);
-        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
-            positionIndex
-        );
+        positionIndex = bound(positionIndex, 0, i_chest.totalSupply() - 1);
+        Chest.VestingPosition memory vestingPosition = i_chest
+            .getVestingPosition(positionIndex);
 
-        uint256 maxStakingAmount = JELLY_MAX_SUPPLY - chest.fee();
+        uint256 maxStakingAmount = JELLY_MAX_SUPPLY - i_chest.fee();
         if (vestingPosition.totalVestedAmount >= maxStakingAmount) {
             return;
         } else {
@@ -232,18 +233,21 @@ contract ChestHandler is Test {
             increaseAmountFor = bound(
                 increaseAmountFor,
                 1,
-                JELLY_MAX_SUPPLY - stakedAmount - chest.fee()
+                JELLY_MAX_SUPPLY - stakedAmount - i_chest.fee()
             ); // @dev in this way we assure that we can't increase staking amount above JELLY_MAX_SUPPLY
 
             increaseFreezingPeriodFor = 100;
 
-            address owner = chest.ownerOf(positionIndex);
+            address owner = i_chest.ownerOf(positionIndex);
 
             vm.startPrank(owner);
-            jellyToken.mint(increaseAmountFor + chest.fee());
+            i_jellyToken.mint(increaseAmountFor + i_chest.fee());
 
-            jellyToken.approve(address(chest), increaseAmountFor + chest.fee());
-            chest.increaseStake(
+            i_jellyToken.approve(
+                address(i_chest),
+                increaseAmountFor + i_chest.fee()
+            );
+            i_chest.increaseStake(
                 positionIndex,
                 increaseAmountFor,
                 increaseFreezingPeriodFor
@@ -258,10 +262,9 @@ contract ChestHandler is Test {
         uint256 positionIndex,
         uint256 timestamp
     ) external {
-        positionIndex = bound(positionIndex, 0, chest.totalSupply() - 1);
-        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
-            positionIndex
-        );
+        positionIndex = bound(positionIndex, 0, i_chest.totalSupply() - 1);
+        Chest.VestingPosition memory vestingPosition = i_chest
+            .getVestingPosition(positionIndex);
 
         unstakeAmount = bound(
             unstakeAmount,
@@ -272,20 +275,20 @@ contract ChestHandler is Test {
         uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
 
         timestamp = bound(timestamp, cliffTimestamp, type(uint32).max);
-        address owner = chest.ownerOf(positionIndex);
+        address owner = i_chest.ownerOf(positionIndex);
 
         vm.warp(timestamp);
 
         vm.startPrank(owner);
-        chest.unstake(positionIndex, unstakeAmount);
+        i_chest.unstake(positionIndex, unstakeAmount);
         vm.stopPrank();
     }
 
     function withdrawFees() external {
-        uint256 totalFees = chest.totalFees();
+        uint256 totalFees = i_chest.totalFees();
         if (totalFees > 0) {
-            vm.startPrank(chest.owner());
-            chest.withdrawFees(beneficiary);
+            vm.startPrank(i_chest.owner());
+            i_chest.withdrawFees(i_beneficiary);
             vm.stopPrank();
         }
     }

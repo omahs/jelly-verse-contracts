@@ -71,7 +71,7 @@ contract ChestTest is Test {
     uint64 private constant DECIMALS = 1e18;
     uint64 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
-    address immutable deployerAddress;
+    address immutable i_deployerAddress;
 
     address allocator = makeAddr("allocator"); // replace with mock
     address distributor = makeAddr("distributor"); // replace with mock
@@ -155,7 +155,7 @@ contract ChestTest is Test {
     }
 
     constructor() {
-        deployerAddress = msg.sender;
+        i_deployerAddress = msg.sender;
     }
 
     function setUp() public {
@@ -1631,7 +1631,7 @@ contract ChestTest is Test {
     function test_setFee() external {
         uint256 newFee = 100;
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
         chest.setFee(newFee);
 
         assertEq(chest.fee(), newFee);
@@ -1640,7 +1640,7 @@ contract ChestTest is Test {
     function test_setFeeEmitsSetFeeEvent() external {
         uint256 newFee = 100;
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
 
         vm.expectEmit(false, false, false, true, address(chest));
         emit SetFee(newFee);
@@ -1660,7 +1660,7 @@ contract ChestTest is Test {
     function test_setMaxBooster() external {
         uint128 newMaxBooster = 5e18;
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
         chest.setMaxBooster(newMaxBooster);
 
         assertEq(chest.maxBooster(), newMaxBooster);
@@ -1669,7 +1669,7 @@ contract ChestTest is Test {
     function test_setMaxBoosterEmitsSetMaxBoosterEvent() external {
         uint128 newMaxBooster = 5e18;
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
 
         vm.expectEmit(false, false, false, true, address(chest));
         emit SetMaxBooster(newMaxBooster);
@@ -1689,7 +1689,7 @@ contract ChestTest is Test {
     function test_setMaxBoosterInvalidBoosterValue() external {
         uint128 newMaxBooster = INITIAL_BOOSTER - 1;
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
         vm.expectRevert(Chest__InvalidBoosterValue.selector);
 
         chest.setMaxBooster(newMaxBooster);
@@ -1697,16 +1697,16 @@ contract ChestTest is Test {
 
     function test_withdrawFees() external openPosition {
         uint256 deployerJellyBalanceBefore = jellyToken.balanceOf(
-            deployerAddress
+            i_deployerAddress
         );
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
         uint256 totalFeesBefore = chest.totalFees();
 
-        vm.prank(deployerAddress);
-        chest.withdrawFees(deployerAddress);
+        vm.prank(i_deployerAddress);
+        chest.withdrawFees(i_deployerAddress);
 
         uint256 deployerJellyBalanceAfter = jellyToken.balanceOf(
-            deployerAddress
+            i_deployerAddress
         );
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
         uint256 totalFeesAfter = chest.totalFees();
@@ -1723,27 +1723,27 @@ contract ChestTest is Test {
     }
 
     function test_withdrawFeesEmitsFeeWithdrawnEvent() external openPosition {
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
 
         vm.expectEmit(true, false, false, true, address(chest));
-        emit FeeWithdrawn(deployerAddress);
+        emit FeeWithdrawn(i_deployerAddress);
 
-        chest.withdrawFees(deployerAddress);
+        chest.withdrawFees(i_deployerAddress);
     }
 
     function test_withdrawFeesCallerIsNotOwner() external openPosition {
         vm.prank(testAddress);
         vm.expectRevert(Ownable__CallerIsNotOwner.selector);
 
-        chest.withdrawFees(deployerAddress);
+        chest.withdrawFees(i_deployerAddress);
     }
 
     function test_withdrawFeesNoFeesToWithdraw() external openPosition {
-        vm.startPrank(deployerAddress);
-        chest.withdrawFees(deployerAddress);
+        vm.startPrank(i_deployerAddress);
+        chest.withdrawFees(i_deployerAddress);
 
         vm.expectRevert(Chest__NoFeesToWithdraw.selector);
-        chest.withdrawFees(deployerAddress);
+        chest.withdrawFees(i_deployerAddress);
 
         vm.stopPrank();
     }

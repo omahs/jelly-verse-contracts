@@ -12,8 +12,6 @@ import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLib.sol";
 
 // TO-DO:
-// CLEANING
-// immutable variables naming convention
 //EVENTS
 // events for booster/nerf parameters? changed structure in vesting
 
@@ -43,7 +41,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     address internal immutable i_jellyToken;
     address internal immutable i_allocator;
     address internal immutable i_distributor;
-    uint32 internal immutable timeFactor;
+    uint32 internal immutable i_timeFactor;
 
     uint256 public fee;
     uint256 public totalFees;
@@ -101,7 +99,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         address distributor,
         uint256 fee_,
         uint128 maxBooster_,
-        uint32 timeFactor_,
+        uint32 timeFactor,
         address owner,
         address pendingOwner
     ) ERC721("Chest", "CHEST") Ownable(owner, pendingOwner) {
@@ -118,7 +116,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         i_distributor = distributor;
         fee = fee_;
         maxBooster = maxBooster_;
-        timeFactor = timeFactor_;
+        i_timeFactor = timeFactor;
     }
 
     /**
@@ -576,7 +574,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         // Calculate regular freezing time in weeks
         uint256 regularFreezingTime = (cliffTimestamp > timestamp)
-            ? Math.ceilDiv(cliffTimestamp - timestamp, timeFactor)
+            ? Math.ceilDiv(cliffTimestamp - timestamp, i_timeFactor)
             : 0;
 
         // Calculate power based on vesting type
@@ -594,12 +592,12 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             if (timestamp < cliffTimestamp) {
                 // Before the cliff, linear freezing time remains constant
                 linearFreezingTime =
-                    Math.ceilDiv(vestingDuration, timeFactor) /
+                    Math.ceilDiv(vestingDuration, i_timeFactor) /
                     2;
             } else {
                 // After the cliff, linear freezing time starts to decrease
                 linearFreezingTime =
-                    Math.ceilDiv(unfreezeTime - timestamp, timeFactor) /
+                    Math.ceilDiv(unfreezeTime - timestamp, i_timeFactor) /
                     2;
             }
 

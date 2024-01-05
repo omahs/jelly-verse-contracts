@@ -69,7 +69,7 @@ contract ChestFuzzTest is Test {
 
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
 
-    address immutable deployerAddress;
+    address immutable i_deployerAddress;
 
     address allocator = makeAddr("allocator"); // replace with mock
     address distributor = makeAddr("distributor"); // replace with mock
@@ -152,7 +152,7 @@ contract ChestFuzzTest is Test {
     }
 
     constructor() {
-        deployerAddress = msg.sender;
+        i_deployerAddress = msg.sender;
     }
 
     function setUp() public {
@@ -1618,7 +1618,7 @@ contract ChestFuzzTest is Test {
 
     // setFee fuzz tests
     function testFuzz_setFee(uint256 newFee) external {
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
         chest.setFee(newFee);
 
         assertEq(chest.fee(), newFee);
@@ -1628,7 +1628,7 @@ contract ChestFuzzTest is Test {
         uint256 newFee,
         address caller
     ) external {
-        vm.assume(caller != deployerAddress);
+        vm.assume(caller != i_deployerAddress);
         vm.prank(caller);
 
         vm.expectRevert(Ownable__CallerIsNotOwner.selector);
@@ -1640,7 +1640,7 @@ contract ChestFuzzTest is Test {
     function testFuzz_setMaxBooster(uint128 newMaxBooster) external {
         vm.assume(newMaxBooster > INITIAL_BOOSTER);
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
         chest.setMaxBooster(newMaxBooster);
 
         assertEq(chest.maxBooster(), newMaxBooster);
@@ -1650,7 +1650,7 @@ contract ChestFuzzTest is Test {
         uint128 newMaxBooster,
         address caller
     ) external {
-        vm.assume(caller != deployerAddress);
+        vm.assume(caller != i_deployerAddress);
         vm.prank(caller);
 
         vm.expectRevert(Ownable__CallerIsNotOwner.selector);
@@ -1662,7 +1662,7 @@ contract ChestFuzzTest is Test {
     ) external {
         vm.assume(newMaxBooster < INITIAL_BOOSTER);
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
 
         vm.expectRevert(Chest__InvalidBoosterValue.selector);
         chest.setMaxBooster(newMaxBooster);
@@ -1684,7 +1684,7 @@ contract ChestFuzzTest is Test {
         );
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
-        vm.prank(deployerAddress);
+        vm.prank(i_deployerAddress);
         chest.withdrawFees(beneficiary);
 
         assertEq(chest.totalFees(), 0);
@@ -1703,7 +1703,7 @@ contract ChestFuzzTest is Test {
         address caller
     ) external openPosition {
         vm.assume(beneficiary != address(0));
-        vm.assume(caller != deployerAddress);
+        vm.assume(caller != i_deployerAddress);
         vm.prank(caller);
 
         vm.expectRevert(Ownable__CallerIsNotOwner.selector);
@@ -1721,7 +1721,7 @@ contract ChestFuzzTest is Test {
         );
         assumePayable(beneficiary);
 
-        vm.startPrank(deployerAddress);
+        vm.startPrank(i_deployerAddress);
         chest.withdrawFees(beneficiary);
 
         vm.expectRevert(Chest__NoFeesToWithdraw.selector);
