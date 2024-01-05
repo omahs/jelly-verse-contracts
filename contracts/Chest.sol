@@ -11,8 +11,10 @@ import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLib.sol";
 
 // TO-DO:
+// CLEANING
 // maybe change first 3 imports to be also from vendor folder
-// maybe reduntant checks in stake and stakeSpecial as VestingLib already checks for zero address/amount
+// immutable variables naming convention
+//EVENTS
 // events for booster/nerf parameters? changed structure in vesting
 
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
@@ -310,7 +312,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 tokenId,
         uint256 amount
     ) external onlyAuthorizedForToken(tokenId) nonReentrant {
-        VestingPosition memory vestingPosition = vestingPositions[tokenId]; // check this, no need imo for reduntant checks for existance
+        VestingPosition storage vestingPosition = vestingPositions[tokenId]; // check this, no need imo for reduntant checks for existance
         uint256 releasableAmount = releasableAmount(tokenId);
 
         // shall we use updateReleasedAmount method here?
@@ -322,12 +324,12 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             revert Chest__CannotUnstakeMoreThanReleasable();
         }
 
-        uint256 newTotalStaked = vestingPosition.totalVestedAmount - amount;
+        vestingPosition.releasedAmount += amount;
+        vestingPosition.freezingPeriod = 0; // check this
+        vestingPosition.booster = INITIAL_BOOSTER;
 
-        vestingPositions[tokenId].totalVestedAmount = newTotalStaked;
-        vestingPositions[tokenId].releasedAmount += amount;
-        vestingPositions[tokenId].freezingPeriod = 0; // check this
-        vestingPositions[tokenId].booster = INITIAL_BOOSTER;
+        uint256 newTotalStaked = vestingPosition.totalVestedAmount -
+            vestingPosition.releasedAmount;
 
         emit Unstake(tokenId, amount, newTotalStaked);
 

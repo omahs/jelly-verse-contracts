@@ -1249,7 +1249,7 @@ contract ChestFuzzTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
@@ -1314,7 +1314,7 @@ contract ChestFuzzTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
@@ -1446,7 +1446,7 @@ contract ChestFuzzTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
@@ -1514,7 +1514,7 @@ contract ChestFuzzTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);

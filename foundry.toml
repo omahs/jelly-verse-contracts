@@ -12,7 +12,7 @@ runs = 50
 
 [profile.default.invariant]
 depth = 20
-runs = 20
+runs = 500
 
 # FOUNDRY_PROFILE=testing forge test
 [profile.testing.fuzz]

@@ -1246,7 +1246,7 @@ contract ChestTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
@@ -1305,7 +1305,7 @@ contract ChestTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
@@ -1342,8 +1342,6 @@ contract ChestTest is Test {
             positionIndex
         );
 
-        uint256 totalVestedAmountBefore = vestingPosition.totalVestedAmount;
-
         uint256 unstakeAmount = 50;
 
         vm.warp(vestingPosition.cliffTimestamp + 1);
@@ -1352,7 +1350,8 @@ contract ChestTest is Test {
         emit Unstake(
             positionIndex,
             unstakeAmount,
-            totalVestedAmountBefore - unstakeAmount
+            (vestingPosition.totalVestedAmount -
+                vestingPosition.releasedAmount) - unstakeAmount
         );
 
         vm.prank(testAddress);
@@ -1441,7 +1440,7 @@ contract ChestTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
@@ -1506,7 +1505,7 @@ contract ChestTest is Test {
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
-            vestingPositionAfter.totalVestedAmount + unstakeAmount,
+            vestingPositionAfter.totalVestedAmount,
             vestingPositionBefore.totalVestedAmount
         );
         assertEq(vestingPositionAfter.releasedAmount, unstakeAmount);
