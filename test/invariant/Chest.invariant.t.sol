@@ -414,8 +414,8 @@ contract InvariantChest is Test {
         assertLe(booster, chest.maxBooster());
     }
 
-    function invariant_votingPower() external {
-        // @dev this is the maximum voting power in case fee and booster are constant
+    function invariant_maxVotingPower() external {
+        // @dev this is the maximum voting power for regular chest in case fee and booster are constant
         uint256 maxStakingAmount = JELLY_MAX_SUPPLY - chest.fee();
         uint256 maxFreezingPeriod = 157 weeks;
         uint256 maxVotingPower = maxStakingAmount *

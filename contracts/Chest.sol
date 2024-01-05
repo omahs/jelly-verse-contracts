@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/Base64.sol";
+import {ERC721} from "./vendor/openzeppelin/v4.9.0/token/ERC721/ERC721.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
+import {Math} from "./vendor/openzeppelin/v4.9.0/utils/math/Math.sol";
+import {Strings} from "./vendor/openzeppelin/v4.9.0/utils/Strings.sol";
+import {Base64} from "./vendor/openzeppelin/v4.9.0/utils/Base64.sol";
 import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLib.sol";
 
 // TO-DO:
 // CLEANING
-// maybe change first 3 imports to be also from vendor folder
 // immutable variables naming convention
 //EVENTS
 // events for booster/nerf parameters? changed structure in vesting
