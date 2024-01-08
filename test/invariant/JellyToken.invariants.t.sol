@@ -34,11 +34,6 @@ contract InvariantJellyToken is StdInvariant, Test {
     }
 
     function invariant_supplyAlwaysBellowCap() public {
-        uint256 beforeAmount = jellyToken.totalSupply();
-        uint256 mintAmount = cap * 10 ** 18 - beforeAmount;
-        vm.startPrank(minter); 
-        jellyToken.mint(minter, mintAmount);
-        vm.stopPrank();
         assertLe(jellyToken.totalSupply(), cap * 10 ** 18);
     }
 

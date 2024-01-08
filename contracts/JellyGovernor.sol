@@ -17,7 +17,7 @@ contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Go
     {}
 
     function quorum(uint256 blockNumber) public pure override returns (uint256) {
-        return 1001;
+        return 1001; //TOOD: change to real value
     }
 
     // The following functions are overrides required by Solidity.
