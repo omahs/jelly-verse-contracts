@@ -12,8 +12,8 @@ import {Ownable} from "./utils/Ownable.sol";
 import {VestingLib} from "./utils/VestingLib.sol";
 
 // TO-DO:
-//EVENTS
-// events for booster/nerf parameters? changed structure in vesting
+// CLEANING
+// comments cleaning
 
 contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -52,14 +52,22 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 indexed tokenId,
         uint256 amount,
         uint256 freezedUntil,
-        uint32 vestingDuration
+        uint32 vestingDuration,
+        uint128 booster,
+        uint8 nerfParameter
     );
     event IncreaseStake(
         uint256 indexed tokenId,
         uint256 totalStaked,
-        uint256 freezedUntil
+        uint256 freezedUntil,
+        uint128 booster
     );
-    event Unstake(uint256 indexed tokenId, uint256 amount, uint256 totalStaked);
+    event Unstake(
+        uint256 indexed tokenId,
+        uint256 amount,
+        uint256 totalStaked,
+        uint128 booster
+    );
     event SetFee(uint256 fee);
     event SetMaxBooster(uint128 maxBooster);
     event FeeWithdrawn(address indexed beneficiary);
@@ -148,7 +156,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             freezingPeriod,
             0,
             INITIAL_BOOSTER,
-            0 // OR 1? shouldn't be included in calculation anyway
+            10 // @dev nerf parameter is hardcoded to 10 for regular chests (no nerf, not included in calculations)
         );
 
         unchecked {
@@ -156,7 +164,15 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         }
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
 
-        emit Staked(beneficiary, currentTokenId, amount, cliffTimestamp, 0);
+        emit Staked(
+            beneficiary,
+            currentTokenId,
+            amount,
+            cliffTimestamp,
+            0,
+            INITIAL_BOOSTER,
+            10
+        );
 
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
@@ -210,7 +226,9 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
             currentTokenId,
             amount,
             cliffTimestamp,
-            vestingDuration
+            vestingDuration,
+            INITIAL_BOOSTER,
+            nerfParameter
         );
 
         IERC20(i_jellyToken).safeTransferFrom(
@@ -245,7 +263,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId]; // check this, no need imo for reduntant checks for existance
         uint48 newCliffTimestamp = vestingPosition.cliffTimestamp;
-
+        uint128 newBooster = vestingPosition.booster;
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
             if (freezingPeriod != 0) {
@@ -268,7 +286,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
                         .cliffTimestamp = newCliffTimestamp;
                 } else {
                     // chest is open
-                    uint128 newBooster = calculateBooster(vestingPosition);
+                    newBooster = calculateBooster(vestingPosition);
 
                     newCliffTimestamp = uint48(
                         block.timestamp + freezingPeriod
@@ -289,7 +307,12 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
 
         vestingPositions[tokenId].totalVestedAmount = newTotalStaked;
 
-        emit IncreaseStake(tokenId, newTotalStaked, newCliffTimestamp);
+        emit IncreaseStake(
+            tokenId,
+            newTotalStaked,
+            newCliffTimestamp,
+            newBooster
+        );
 
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
@@ -329,7 +352,7 @@ contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
         uint256 newTotalStaked = vestingPosition.totalVestedAmount -
             vestingPosition.releasedAmount;
 
-        emit Unstake(tokenId, amount, newTotalStaked);
+        emit Unstake(tokenId, amount, newTotalStaked, INITIAL_BOOSTER);
 
         IERC20(i_jellyToken).safeTransfer(msg.sender, amount);
     }

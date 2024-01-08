@@ -264,7 +264,7 @@ contract ChestFuzzTest is Test {
         assertEq(vestingPosition.vestingDuration, 0);
         assertEq(vestingPosition.freezingPeriod, freezingPeriod);
         assertEq(vestingPosition.booster, INITIAL_BOOSTER);
-        assertEq(vestingPosition.nerfParameter, 0);
+        assertEq(vestingPosition.nerfParameter, 10);
 
         // using direct calls for balances to avoid stack too deep error
         assertEq(chest.totalFees(), totalFeesBefore + chest.fee());
