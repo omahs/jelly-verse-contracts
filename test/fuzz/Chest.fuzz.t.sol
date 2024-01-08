@@ -71,8 +71,8 @@ contract ChestFuzzTest is Test {
 
     address immutable i_deployerAddress;
 
-    address allocator = makeAddr("allocator"); // replace with mock
-    address distributor = makeAddr("distributor"); // replace with mock
+    address allocator = makeAddr("allocator");
+    address distributor = makeAddr("distributor");
     address testAddress = makeAddr("testAddress");
     address approvedAddress = makeAddr("approvedAddress");
     address nonApprovedAddress = makeAddr("nonApprovedAddress");
@@ -1172,7 +1172,7 @@ contract ChestFuzzTest is Test {
         );
     }
 
-    function testFuzz_increaseStakeInvalidFreezingPeriod(
+    function testFuzz_increaseStakeInvalidFreezingPeriodMax(
         uint256 increaseAmountFor,
         uint32 increaseFreezingPeriodFor
     ) external openPosition {
@@ -1180,6 +1180,25 @@ contract ChestFuzzTest is Test {
         vm.assume(
             increaseFreezingPeriodFor > MAX_FREEZING_PERIOD_REGULAR_CHEST
         );
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    function testFuzz_increaseStakeInvalidFreezingPeriodOpenChest(
+        uint256 increaseAmountFor,
+        uint32 increaseFreezingPeriodFor
+    ) external openPosition {
+        uint256 positionIndex = 0;
+        vm.assume(increaseAmountFor > 0);
+        increaseFreezingPeriodFor = 0;
+
+        vm.warp(chest.getVestingPosition(positionIndex).cliffTimestamp + 1);
 
         vm.prank(testAddress);
         vm.expectRevert(Chest__InvalidFreezingPeriod.selector);

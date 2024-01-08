@@ -8,9 +8,9 @@ import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 // Invariants Definitions:
 // 1. TransferFrom Restriction: Prohibits the transfer of any chest token.
 // 2. Withdrawal Limit: Guarantees that the withdrawal amount cannot exceed the staked balance.
-// 4. Booster Cap: Ensures that the booster value for any chest does not surpass the defined maximum booster limit.
-// 5. Voting Power Cap: Confirms that the voting power associated with any chest remains within the stipulated maximum threshold.
-// 6. Fee Withdrawal Bound: Restricts the owner from withdrawing more fees than the total amount of fees accumulated.
+// 3. Booster Cap: Ensures that the booster value for any chest does not surpass the defined maximum booster limit.
+// 4. Voting Power Cap: Confirms that the voting power associated with any chest remains within the stipulated maximum threshold.
+// 5. Fee Withdrawal Bound: Restricts the owner from withdrawing more fees than the total amount of fees accumulated.
 
 contract ChestHandler is Test {
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
@@ -84,7 +84,7 @@ contract ChestHandler is Test {
         i_chest.setApprovalForAll(operator, approved);
     }
 
-    // staking functionalities
+    // Staking functionalities
     function stake(
         uint256 amount,
         address beneficiary,

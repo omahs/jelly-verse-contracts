@@ -5,10 +5,6 @@ import {Test} from "forge-std/Test.sol";
 import {Chest} from "../../contracts/Chest.sol";
 import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
 
-// TO-ADD:
-// - calculations overflow/underflow
-// - BOOSTER check for fixed value(currently 2)
-
 // contract for internal function testing
 contract ChestHarness is Chest {
     constructor(
@@ -74,8 +70,8 @@ contract ChestTest is Test {
 
     address immutable i_deployerAddress;
 
-    address allocator = makeAddr("allocator"); // replace with mock
-    address distributor = makeAddr("distributor"); // replace with mock
+    address allocator = makeAddr("allocator");
+    address distributor = makeAddr("distributor");
     address testAddress = makeAddr("testAddress");
     address approvedAddress = makeAddr("approvedAddress");
     address nonApprovedAddress = makeAddr("nonApprovedAddress");
@@ -1207,12 +1203,35 @@ contract ChestTest is Test {
         );
     }
 
-    function test_increaseStakeInvalidFreezingPeriod() external openPosition {
+    function test_increaseStakeInvalidFreezingPeriodMax()
+        external
+        openPosition
+    {
         uint256 positionIndex = 0;
 
         uint256 increaseAmountFor = 0;
         uint32 increaseFreezingPeriodFor = MAX_FREEZING_PERIOD_REGULAR_CHEST +
             1;
+
+        vm.prank(testAddress);
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.increaseStake(
+            positionIndex,
+            increaseAmountFor,
+            increaseFreezingPeriodFor
+        );
+    }
+
+    function test_increaseStakeInvalidFreezingPeriodOpenChest()
+        external
+        openPosition
+    {
+        uint256 positionIndex = 0;
+
+        uint256 increaseAmountFor = 100;
+        uint32 increaseFreezingPeriodFor = 0;
+
+        vm.warp(chest.getVestingPosition(positionIndex).cliffTimestamp + 1); // open chest
 
         vm.prank(testAddress);
         vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
