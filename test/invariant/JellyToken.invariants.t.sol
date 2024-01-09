@@ -20,17 +20,22 @@ contract InvariantJellyToken is StdInvariant, Test {
     function setUp() public {
         defaultAdminRole = makeAddr("defaultAdminRole");
         vesting = makeAddr("vesting");
-        vestingJelly = makeAddr("vestingJelly");
         allocator = makeAddr("allocator");
         minter = makeAddr("minter");
 
         jellyToken = new JellyToken(defaultAdminRole);
 
         vm.startPrank(defaultAdminRole);
-        jellyToken.premint(vesting, vestingJelly, allocator, minter);
+        jellyToken.premint(vesting, defaultAdminRole, allocator, minter);
         vm.stopPrank();
 
         targetSender(defaultAdminRole);
+        excludeContract(address(jellyToken));
+        
+        bytes4[] memory selectors = new bytes4[](1);
+        selectors[0] = jellyToken.mint.selector;
+        selectors[0] = jellyToken.mint.selector;
+        targetSelector(FuzzSelector(address(jellyToken), selectors));
     }
 
     function invariant_supplyAlwaysBellowCap() public {
