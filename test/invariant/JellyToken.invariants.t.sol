@@ -31,9 +31,8 @@ contract InvariantJellyToken is StdInvariant, Test {
 
         targetSender(defaultAdminRole);
         excludeContract(address(jellyToken));
-        
+
         bytes4[] memory selectors = new bytes4[](1);
-        selectors[0] = jellyToken.mint.selector;
         selectors[0] = jellyToken.mint.selector;
         targetSelector(FuzzSelector(address(jellyToken), selectors));
     }
