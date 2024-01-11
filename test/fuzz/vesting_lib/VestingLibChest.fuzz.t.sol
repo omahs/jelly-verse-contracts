@@ -3,15 +3,15 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import {VestingLib} from "../../contracts/utils/VestingLib.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {SafeCast} from "../../contracts/vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
-import {VestingLibTest} from "../../contracts/test/VestingLibTest.sol";
+import {VestingLibChest} from "../../../contracts/utils/VestingLibChest.sol";
+import {Strings} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/Strings.sol";
+import {SafeCast} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
+import {VestingLibChestTest} from "../../../contracts/test/VestingLibChestTest.sol";
 
-contract VestingLibFuzzTest is VestingLib, Test {
+contract VestingLibChestFuzzTest is VestingLibChest, Test {
     using Strings for uint256;
 
-    VestingLibTest vestingLibTest;
+    VestingLibChestTest vestingLibChestTest;
     address beneficiary;
     uint256 amount;
     uint32 cliffDuration;
@@ -26,8 +26,8 @@ contract VestingLibFuzzTest is VestingLib, Test {
         vestingDuration = SafeCast.toUint32(44582400); // @dev 18 month Tuesday, 1 June 1971 00:00:00
         booster = SafeCast.toUint128(10 ether); // @dev max booster value
         nerfParameter = 10; // @dev no nerf
-        vestingLibTest = new VestingLibTest();
-        vestingPosition = vestingLibTest.createNewVestingPosition(
+        vestingLibChestTest = new VestingLibChestTest();
+        vestingPosition = vestingLibChestTest.createNewVestingPosition(
             amount,
             cliffDuration,
             vestingDuration,

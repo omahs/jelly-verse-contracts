@@ -2,8 +2,8 @@
 pragma solidity 0.8.19;
 
 import {Test} from "forge-std/Test.sol";
-import {Chest} from "../../contracts/Chest.sol";
-import {ERC20Token} from "../../contracts/test/ERC20Token.sol";
+import {Chest} from "../../../contracts/Chest.sol";
+import {ERC20Token} from "../../../contracts/test/ERC20Token.sol";
 
 contract ChestHarness is Chest {
     constructor(

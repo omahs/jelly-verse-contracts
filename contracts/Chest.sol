@@ -9,9 +9,9 @@ import {Math} from "./vendor/openzeppelin/v4.9.0/utils/math/Math.sol";
 import {Strings} from "./vendor/openzeppelin/v4.9.0/utils/Strings.sol";
 import {Base64} from "./vendor/openzeppelin/v4.9.0/utils/Base64.sol";
 import {Ownable} from "./utils/Ownable.sol";
-import {VestingLib} from "./utils/VestingLib.sol";
+import {VestingLibChest} from "./utils/VestingLibChest.sol";
 
-contract Chest is ERC721, Ownable, VestingLib, ReentrancyGuard {
+contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
