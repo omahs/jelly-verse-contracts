@@ -141,3 +141,6 @@ artifacts
 # Foundry files
 cache_forge/
 target/
+
+# Bin files
+bin/
