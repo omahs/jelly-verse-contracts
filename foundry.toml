@@ -14,8 +14,8 @@ via_ir = true
 runs = 50
 
 [profile.default.invariant]
-depth = 100
-runs = 1000
+depth = 20
+runs = 500
 
 # FOUNDRY_PROFILE=testing forge test
 [profile.testing.fuzz]
@@ -24,3 +24,5 @@ runs = 1000
 [profile.testing.invariant]
 depth = 100
 runs = 1000
+
+gas_reports = ["Chest"]

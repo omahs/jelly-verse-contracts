@@ -6,6 +6,8 @@ import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomicfoundation/hardhat-foundry';
 import '@nomicfoundation/hardhat-network-helpers';
 import './deployment';
+import 'hardhat-contract-sizer';
+
 
 dotenv.config();
 

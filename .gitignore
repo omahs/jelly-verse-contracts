@@ -143,3 +143,5 @@ cache_forge/
 target/
 
 *.DS_Store
+# Bin files
+bin/
