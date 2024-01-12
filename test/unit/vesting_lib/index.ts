@@ -1,14 +1,15 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { Mocks, Signers } from '../shared/types';
+import { Mocks, Signers } from '../../shared/types';
 import { shouldBehaveLikeVesting } from './Vesting.spec';
-import { getSigners } from '../shared/utils';
+import { shouldBehaveLikeVestingChest } from './VestingChest.spec';
+import { getSigners } from '../../shared/utils';
 import {
 	deployMockAllocator,
 	deployMockJelly,
 	deployMockMinter,
 	deployMockVestingInvestor,
 	deployMockVestingTeam,
-} from '../shared/mocks';
+} from '../../shared/mocks';
 // import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
 
 context(`Unit tests`, async function () {
@@ -41,5 +42,6 @@ context(`Unit tests`, async function () {
 	});
 
 	shouldBehaveLikeVesting();
+	shouldBehaveLikeVestingChest();
 	// shouldBehaveLikeJellyToken();
 });
