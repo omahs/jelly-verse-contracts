@@ -24,6 +24,9 @@ export interface Signers {
 	timelockAdmin: SignerWithAddress;
 	timelockProposer: SignerWithAddress;
 	timelockExecutor: SignerWithAddress;
+	allocator: SignerWithAddress;
+	distributor: SignerWithAddress;
+	investor: SignerWithAddress;
 }
 
 export interface Mocks {
