@@ -4,7 +4,7 @@ import { shouldBehaveLikeVesting } from './Vesting.spec';
 import { shouldBehaveLikeVestingChest } from './VestingChest.spec';
 import { getSigners } from '../../shared/utils';
 
-context(`Unit tests`, async function () {
+context(`Vesting Libs Unit tests`, async function () {
 	before(async function () {
 		this.signers = {} as Signers;
 
