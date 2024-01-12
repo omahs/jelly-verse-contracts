@@ -46,6 +46,23 @@ export function shouldScheduleOperations(): void {
 	context('Schedulling single operation', async function () {
 		describe('#schedule', async function () {
 			describe('failure', async function () {
+				it('should revert if not called by the Proposer role', async function () {
+					await expect(
+						this.jellyTimelock
+							.connect(this.signers.timelockAdmin)
+							.schedule(
+								this.mocks.mockJellyToken.address,
+								constants.Zero,
+								mintFunctionCalldata,
+								constants.HashZero,
+								SALT,
+								this.params.minTimelockDelay
+							)
+					).to.be.revertedWith(
+						`AccessControl: account ${this.signers.timelockAdmin.address.toLowerCase()} is missing role ${PROPOSER_ROLE}`
+					);
+				});
+
 				it('should revert if operation is already scheduled', async function () {
 					await this.jellyTimelock
 						.connect(this.signers.timelockProposer)
@@ -94,24 +111,6 @@ export function shouldScheduleOperations(): void {
 				it('should schedule operation when proposer calls', async function () {
 					await this.jellyTimelock
 						.connect(this.signers.timelockProposer)
-						.schedule(
-							this.mocks.mockJellyToken.address,
-							constants.Zero,
-							mintFunctionCalldata,
-							constants.HashZero,
-							SALT,
-							this.params.minTimelockDelay
-						);
-
-					assert(
-						await this.jellyTimelock.isOperationPending(idMint),
-						'Operation not scheduled'
-					);
-				});
-
-				it('should schedule operation when anyone calls', async function () {
-					await this.jellyTimelock
-						.connect(this.signers.bob)
 						.schedule(
 							this.mocks.mockJellyToken.address,
 							constants.Zero,

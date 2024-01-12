@@ -214,7 +214,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
      *
      * Requirements:
      *
-     * - the caller must have the 'proposer' role or that role must be open.
+     * - the caller must have the 'proposer' role.
      */
     function schedule(
         address target,
@@ -223,7 +223,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
         bytes32 predecessor,
         bytes32 salt,
         uint256 delay
-    ) public virtual onlyRoleOrOpenRole(PROPOSER_ROLE) {
+    ) public virtual onlyRole(PROPOSER_ROLE) {
         bytes32 id = hashOperation(target, value, data, predecessor, salt);
         _schedule(id, delay);
         emit CallScheduled(id, 0, target, value, data, predecessor, delay);
@@ -239,7 +239,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
      *
      * Requirements:
      *
-     * - the caller must have the 'proposer' role or that role must be open.
+     * - the caller must have the 'proposer' role.
      */
     function scheduleBatch(
         address[] calldata targets,
@@ -248,7 +248,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
         bytes32 predecessor,
         bytes32 salt,
         uint256 delay
-    ) public virtual onlyRoleOrOpenRole(PROPOSER_ROLE) {
+    ) public virtual onlyRole(PROPOSER_ROLE) {
         require(targets.length == values.length, "TimelockController: length mismatch");
         require(targets.length == payloads.length, "TimelockController: length mismatch");
 
