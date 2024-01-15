@@ -6,7 +6,7 @@ import { DailySnapshot } from '../../typechain-types';
 
 // @notice -- I did not test ownable cuz it is not necessary and it is community approved
 
-describe.only('DailySnapshot', function () {
+describe('DailySnapshot', function () {
   let dailySnapshot: DailySnapshot;
   let owner: SignerWithAddress;
   let pendingOwner: SignerWithAddress;
@@ -41,10 +41,10 @@ describe.only('DailySnapshot', function () {
         expect(await dailySnapshot.started()).to.be.true;
       });
 
-      it("should set beginingOfNewDayBlocknumber to current blockNumber", async () => {
+      it("should set beginningOfTheNewDayBlocknumber to current blockNumber", async () => {
         const currentBlockNumber = await time.latestBlock();
         await dailySnapshot.startSnapshoting();
-        expect(await dailySnapshot.beginingOfNewDayBlocknumber()).to.equal(currentBlockNumber + 1);
+        expect(await dailySnapshot.beginningOfTheNewDayBlocknumber()).to.equal(currentBlockNumber + 1);
       });
 
       it("should emit SnapshotingStarted event", async () => {
@@ -82,32 +82,32 @@ describe.only('DailySnapshot', function () {
         expect(epochDaysIndexAfter).to.equal(epochDaysIndexBefore + 1);
       });
 
-      it("should increase beginingOfNewDayBlocknumber by ONE_DAY", async () => {
-        const beginingOfNewDayBlocknumberBefore = await dailySnapshot.beginingOfNewDayBlocknumber();
+      it("should increase beginningOfTheNewDayBlocknumber by ONE_DAY", async () => {
+        const beginningOfTheNewDayBlocknumberBefore = await dailySnapshot.beginningOfTheNewDayBlocknumber();
         await mine(ONE_DAY);
         await dailySnapshot.dailySnapshot();
-        const beginingOfNewDayBlocknumberAfter = await dailySnapshot.beginingOfNewDayBlocknumber();
-        expect(beginingOfNewDayBlocknumberAfter).to.equal(beginingOfNewDayBlocknumberBefore + ONE_DAY);
+        const beginningOfTheNewDayBlocknumberAfter = await dailySnapshot.beginningOfTheNewDayBlocknumber();
+        expect(beginningOfTheNewDayBlocknumberAfter).to.equal(beginningOfTheNewDayBlocknumberBefore + ONE_DAY);
       });
 
       it("should set dailySnapshotsPerEpoch correctly", async () => {
         await mine(ONE_DAY);
         const epoch = await dailySnapshot.epoch();
         const epochDaysIndex = await dailySnapshot.epochDaysIndex();
-        const beginingOfNewDayBlocknumber = await dailySnapshot.beginingOfNewDayBlocknumber();
+        const beginningOfTheNewDayBlocknumber = await dailySnapshot.beginningOfTheNewDayBlocknumber();
         const randomValueBasedOnPrevrandao = 6204; // always the same in tests (block.prevrandao % 7200)
         await dailySnapshot.dailySnapshot();
-        expect(await dailySnapshot.dailySnapshotsPerEpoch(epoch, epochDaysIndex)).to.equal(beginingOfNewDayBlocknumber + randomValueBasedOnPrevrandao);
+        expect(await dailySnapshot.dailySnapshotsPerEpoch(epoch, epochDaysIndex)).to.equal(beginningOfTheNewDayBlocknumber + randomValueBasedOnPrevrandao);
       });
 
       it("should emit DailySnapshotAdded event", async () => {
-        const beginingOfNewDayBlocknumber = await dailySnapshot.beginingOfNewDayBlocknumber();
+        const beginningOfTheNewDayBlocknumber = await dailySnapshot.beginningOfTheNewDayBlocknumber();
         const randomValueBasedOnPrevrandao = 6204; // always the same in tests
         const epoch = await dailySnapshot.epoch();
         await mine(ONE_DAY);
         await expect(dailySnapshot.dailySnapshot())
         .to.emit(dailySnapshot, 'DailySnapshotAdded')
-        .withArgs(owner.address, epoch, beginingOfNewDayBlocknumber + randomValueBasedOnPrevrandao);
+        .withArgs(owner.address, epoch, beginningOfTheNewDayBlocknumber + randomValueBasedOnPrevrandao);
       });
 
       it("should set epochDaysIndex to 0 if 7 snapshoots done", async () => {
