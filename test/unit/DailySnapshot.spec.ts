@@ -48,10 +48,9 @@ describe('DailySnapshot', function () {
       });
 
       it("should emit SnapshotingStarted event", async () => {
-        const currentBlockNumber = await time.latestBlock();
         await expect(dailySnapshot.startSnapshoting())
         .to.emit(dailySnapshot, 'SnapshotingStarted')
-        .withArgs(owner.address, currentBlockNumber + 1);
+        .withArgs(owner.address);
       });
     })
 
@@ -104,10 +103,11 @@ describe('DailySnapshot', function () {
         const beginningOfTheNewDayBlocknumber = await dailySnapshot.beginningOfTheNewDayBlocknumber();
         const randomValueBasedOnPrevrandao = 6204; // always the same in tests
         const epoch = await dailySnapshot.epoch();
+        const epochDaysIndex = await dailySnapshot.epochDaysIndex();
         await mine(ONE_DAY);
         await expect(dailySnapshot.dailySnapshot())
         .to.emit(dailySnapshot, 'DailySnapshotAdded')
-        .withArgs(owner.address, epoch, beginningOfTheNewDayBlocknumber + randomValueBasedOnPrevrandao);
+        .withArgs(owner.address, epoch, beginningOfTheNewDayBlocknumber + randomValueBasedOnPrevrandao, epochDaysIndex);
       });
 
       it("should set epochDaysIndex to 0 if 7 snapshoots done", async () => {

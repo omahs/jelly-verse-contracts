@@ -16,8 +16,8 @@ contract DailySnapshot is Ownable {
   uint48 constant ONE_DAY = 7200; // 7200 blocks = 1 day
   mapping(uint48 => uint48[7]) public dailySnapshotsPerEpoch;
   
-  event SnapshotingStarted(address sender, uint48 indexed blockNumber);
-  event DailySnapshotAdded(address sender, uint48 indexed epoch, uint48 indexed blockNumber);
+  event SnapshotingStarted(address sender);
+  event DailySnapshotAdded(address sender, uint48 indexed epoch, uint48 indexed randomDayBlocknumber, uint8 indexed epochDaysIndex);
 
   error DailySnapshot_AlreadyStarted(); 
   error DailySnapshot_NotStarted(); 
@@ -38,7 +38,7 @@ contract DailySnapshot is Ownable {
     started = true;
     beginningOfTheNewDayBlocknumber = uint48(block.number);
     
-    emit SnapshotingStarted(msg.sender, beginningOfTheNewDayBlocknumber);
+    emit SnapshotingStarted(msg.sender);
   }
 
   /**
@@ -54,7 +54,7 @@ contract DailySnapshot is Ownable {
     uint48 randomDailyBlock = beginningOfTheNewDayBlocknumber + randomBlockOffset;
     dailySnapshotsPerEpoch[epoch][epochDaysIndex] = randomDailyBlock;
 
-    emit DailySnapshotAdded(msg.sender, epoch, randomDailyBlock);
+    emit DailySnapshotAdded(msg.sender, epoch, randomDailyBlock, epochDaysIndex);
 
     unchecked {
       beginningOfTheNewDayBlocknumber += ONE_DAY;
