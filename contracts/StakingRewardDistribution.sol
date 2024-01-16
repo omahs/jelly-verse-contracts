@@ -7,11 +7,11 @@ import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC2
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
- * @title StakingRewardDistrubtion contract
+ * @title StakingRewardDistribution contract
  * @notice Contract for distributing staking rewards
  */
 
-contract StakingRewardDistrubtion is Ownable {
+contract StakingRewardDistribution is Ownable {
     using SafeERC20 for IERC20;
 
     mapping(uint256 => bytes32) public merkleRoots;

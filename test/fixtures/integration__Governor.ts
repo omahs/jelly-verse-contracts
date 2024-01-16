@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { BigNumber } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { getSigners } from "../shared/utils";
 import { Signers } from "./types";
 import {
@@ -13,6 +13,9 @@ import {
     Chest__factory,
     StakingRewardDistribution,
     StakingRewardDistribution__factory,
+    OfficialPoolsRegister,
+    OfficialPoolsRegister__factory,
+
 } from "../../typechain";
 
 type IntegrationJellyGovernorFixtureType = {
@@ -21,6 +24,7 @@ type IntegrationJellyGovernorFixtureType = {
     jellyTimelock: JellyTimelock;
     chest: Chest;
     stakingRewardDistribution: StakingRewardDistribution;
+    officialPoolsRegister: OfficialPoolsRegister;
     votingDelay: BigNumber;
     votingPeriod: BigNumber;
     proposalThreshold: BigNumber;
@@ -46,12 +50,10 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
     } = await getSigners();
 
     const fee = BigNumber.from("10"); // 10 wei
-    const boosterThreshold = BigNumber.from("1000"); // 1000 wei, removed in new version
-    const minimalStakingPower = BigNumber.from("1000"); // 1000 wei, removed in new version
-    const maxBooster = BigNumber.from("1000"); // 1000 wei, removed in new version
+    const maxBooster = utils.parseEther("2"); // 2e18
     const timeFactor = ONE_WEEK_IN_SOLIDITY; // 7 days in seconds
 
-    const votingDelay = BigNumber.from("1"); // 1 block
+    const votingDelay = BigNumber.from("7200"); // 7200 blocks
     const votingPeriod = BigNumber.from("50400"); // 1 week
     const proposalThreshold = BigNumber.from("0"); // anyone can create a proposal
     const quorum = BigNumber.from("1001"); // 1001
@@ -83,8 +85,6 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
             allocator.address,
             distributor.address,
             fee,
-            boosterThreshold,
-            minimalStakingPower,
             maxBooster,
             timeFactor,
             deployer.address,
@@ -98,6 +98,14 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
         await stakingRewardDistributionFactory
             .connect(deployer)
             .deploy(deployer.address, jellyTimelock.address);
+    await stakingRewardDistribution.deployed();
+
+    const officialPoolsRegisterFactory: OfficialPoolsRegister__factory =
+        await ethers.getContractFactory("OfficialPoolsRegister");
+    const officialPoolsRegister: OfficialPoolsRegister = await officialPoolsRegisterFactory
+        .connect(deployer)
+        .deploy(deployer.address, jellyTimelock.address);
+    await officialPoolsRegister.deployed();
 
     const jellyGovernorFactory: JellyGovernor__factory =
         await ethers.getContractFactory("JellyGovernor");
@@ -133,6 +141,7 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
         jellyTimelock,
         chest,
         stakingRewardDistribution,
+        officialPoolsRegister,
         votingDelay,
         votingPeriod,
         proposalThreshold,

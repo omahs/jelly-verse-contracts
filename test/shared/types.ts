@@ -54,3 +54,20 @@ export interface Params {
 	vestingInvestorsAddress: string;
 	minterAddress: string;
 }
+
+export enum ProposalState {
+    Pending,
+    Active,
+    Canceled,
+    Defeated,
+    Succeeded,
+    Queued,
+    Expired,
+    Executed,
+}
+
+export enum VoteType {
+    Against,
+    For,
+    Abstain,
+}

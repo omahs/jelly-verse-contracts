@@ -3,13 +3,15 @@ import { integrationJellyGovernorFixture } from "../../fixtures/integration__Gov
 import { Params } from "../../shared/types";
 import { utils, BigNumber } from "ethers";
 import { assert, expect } from "chai";
+import { shouldCastVotes as shouldCastVotesOfficialPoolRegister } from "./officialPoolRegister/castingVotes.spec";
 
 export function shouldBehaveLikeJellyGovernor() {
     describe("JellyGovernor", function () {
         const amountToMint = utils.parseEther("10");
-        const freezingPeriod = BigNumber.from("604800");
+        const freezingPeriod = BigNumber.from("604800"); // 1 week
+        const vestingPeriod = BigNumber.from("31536000"); // 1 year
         const amountToStake = utils.parseEther("5");
-
+        const nerfParameter = BigNumber.from(5); // 50% nerf
         beforeEach(async function () {
             const {
                 jellyGovernor,
@@ -17,6 +19,7 @@ export function shouldBehaveLikeJellyGovernor() {
                 jellyTimelock,
                 chest,
                 stakingRewardDistribution,
+                officialPoolsRegister,
                 votingDelay,
                 votingPeriod,
                 proposalThreshold,
@@ -31,6 +34,7 @@ export function shouldBehaveLikeJellyGovernor() {
             this.jellyTimelock = jellyTimelock;
             this.chest = chest;
             this.stakingRewardDistribution = stakingRewardDistribution;
+            this.officialPoolsRegister = officialPoolsRegister;
 
             this.params = {} as Params;
             this.params.votingDelay = votingDelay;
@@ -42,6 +46,8 @@ export function shouldBehaveLikeJellyGovernor() {
             this.params.executors = executors;
 
             // mint tokens to alice, bob and allocator
+            const chestFee = await this.chest.fee();
+
             await this.jellyToken
                 .connect(this.signers.deployer)
                 .mint(this.signers.alice.address, amountToMint);
@@ -54,27 +60,30 @@ export function shouldBehaveLikeJellyGovernor() {
                 .connect(this.signers.deployer)
                 .mint(this.signers.allocator.address, amountToMint);
 
-            // stake tokens and mint chests
             await this.jellyToken
                 .connect(this.signers.alice)
-                .approve(this.chest.address, amountToStake);
+                .approve(this.chest.address, amountToStake + chestFee);
+
             await this.chest
                 .connect(this.signers.alice)
                 .stake(amountToStake, this.signers.alice.address, freezingPeriod);
 
             await this.jellyToken
                 .connect(this.signers.bob)
-                .approve(this.chest.address, amountToStake);
+                .approve(this.chest.address, amountToStake + chestFee);
             await this.chest
                 .connect(this.signers.bob)
                 .stake(amountToStake, this.signers.bob.address, freezingPeriod);
 
             await this.jellyToken
                 .connect(this.signers.allocator)
-                .approve(this.chest.address, amountToStake);
+                .approve(this.chest.address, amountToStake + chestFee);
             await this.chest
                 .connect(this.signers.allocator)
-                .stakeSpecial(amountToStake, this.signers.investor.address);
+                .stakeSpecial(amountToStake, this.signers.investor.address, freezingPeriod, vestingPeriod, nerfParameter);
         });
+
+        // Official Pool Register
+        shouldCastVotesOfficialPoolRegister();
     });
 }
