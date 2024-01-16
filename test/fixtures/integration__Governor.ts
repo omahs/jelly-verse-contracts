@@ -97,14 +97,14 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
     const stakingRewardDistribution: StakingRewardDistribution =
         await stakingRewardDistributionFactory
             .connect(deployer)
-            .deploy(deployer.address, jellyTimelock.address);
+            .deploy(jellyTimelock.address, ADDRESS_ZERO);
     await stakingRewardDistribution.deployed();
 
     const officialPoolsRegisterFactory: OfficialPoolsRegister__factory =
         await ethers.getContractFactory("OfficialPoolsRegister");
     const officialPoolsRegister: OfficialPoolsRegister = await officialPoolsRegisterFactory
         .connect(deployer)
-        .deploy(deployer.address, jellyTimelock.address);
+        .deploy(jellyTimelock.address, ADDRESS_ZERO);
     await officialPoolsRegister.deployed();
 
     const jellyGovernorFactory: JellyGovernor__factory =

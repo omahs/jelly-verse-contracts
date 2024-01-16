@@ -4,6 +4,7 @@ import { Params } from "../../shared/types";
 import { utils, BigNumber } from "ethers";
 import { assert, expect } from "chai";
 import { shouldCastVotes as shouldCastVotesOfficialPoolRegister } from "./officialPoolRegister/castingVotes.spec";
+import { shouldFollowProposalLifeCycle as shouldFollowProposalLifeCycleOfficialPoolRegister } from "./officialPoolRegister/proposalLifecycle.spec";
 
 export function shouldBehaveLikeJellyGovernor() {
     describe("JellyGovernor", function () {
@@ -85,5 +86,6 @@ export function shouldBehaveLikeJellyGovernor() {
 
         // Official Pool Register
         shouldCastVotesOfficialPoolRegister();
+        shouldFollowProposalLifeCycleOfficialPoolRegister();
     });
 }
