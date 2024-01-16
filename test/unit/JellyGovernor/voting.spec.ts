@@ -212,6 +212,7 @@ export function shouldVoteOnProposals(): void {
 		let proposalParams: string;
 		let proposalId: BigNumber;
 		let chestIDs: number[];
+		let lastChestIdForProposal: number;
 
 		beforeEach(async function () {
 			mintFunctionCalldata =
@@ -225,7 +226,7 @@ export function shouldVoteOnProposals(): void {
 				[amountToMint],
 				[mintFunctionCalldata],
 				proposalDescription
-			);
+			)
 
 			await this.jellyGovernor.propose(
 				[this.mocks.mockJellyToken.address],
@@ -235,6 +236,7 @@ export function shouldVoteOnProposals(): void {
 			);
 
 			chestIDs = [1, 2, 3];
+			lastChestIdForProposal = 4;
 
 			proposalParams = utils.defaultAbiCoder.encode(
 			['uint256[]'],
@@ -302,7 +304,7 @@ export function shouldVoteOnProposals(): void {
 
 			beforeEach(async function () {
 				await mine(this.params.votingDelay);
-				alicesVotes = await this.jellyGovernor.connect(this.signers.alice).getVotesWithParams(this.signers.alice.address, proposalId, proposalParams);
+				alicesVotes = await this.jellyGovernor.connect(this.signers.alice).getVotesWithParams(this.signers.alice.address, lastChestIdForProposal, proposalParams);
 				await this.jellyGovernor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, 0, proposalReason, proposalParams);
 			});
 
@@ -326,7 +328,7 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should emit VoteCastWithParams event', async function () {
-				const bobsVotes = await this.jellyGovernor.connect(this.signers.bob).getVotesWithParams(this.signers.bob.address, proposalId, proposalParams);
+				const bobsVotes = await this.jellyGovernor.connect(this.signers.bob).getVotesWithParams(this.signers.bob.address, lastChestIdForProposal, proposalParams);
 				await expect(
 					this.jellyGovernor
 						.connect(this.signers.bob)
