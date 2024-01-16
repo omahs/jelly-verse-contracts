@@ -24,7 +24,7 @@ contract StakingRewardDistrubtion is Ownable {
     event Claimed(address claimant, uint256 balance, IERC20 token);
     event EpochAdded(uint256 Epoch, bytes32 merkleRoot, string _ipfs);
     event EpochRemoved(uint256 epoch);
-    event Deposited(IERC20 token, uint256 amount);
+    event Deposited(IERC20 token, uint256 amount, uint256 epoch);
 
     error Claim_LenMissmatch();
     error Claim_ZeroAmount();
@@ -88,7 +88,7 @@ contract StakingRewardDistrubtion is Ownable {
 
         tokensDeposited[epoch-1][_token] += _amount;
 
-        emit Deposited(_token, _amount);
+        emit Deposited(_token, _amount,epoch-1);
     }
 
     /**
