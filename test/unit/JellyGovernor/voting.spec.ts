@@ -509,7 +509,7 @@ export function shouldVoteOnProposals(): void {
 				const votes = await this.jellyGovernor.proposalVotes(
 					proposalId
 				);
-				const deployerVotes =  1000; // mocked votingPower value on chest contract
+				const deployerVotes = this.params.quorum.sub(1);
 
 				assert(votes.againstVotes.eq(0), 'Incorrect against votes value');
 				assert(votes.abstainVotes.eq(0), 'Incorrect abstain votes value');
@@ -560,7 +560,7 @@ export function shouldVoteOnProposals(): void {
 						this.signers.bob.address,
 						proposalId,
 						support,
-						1000,
+						this.params.quorum.sub(1),
 						proposalReason,
 						proposalParams
 					);
