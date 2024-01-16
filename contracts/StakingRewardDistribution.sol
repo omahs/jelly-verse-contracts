@@ -84,9 +84,9 @@ contract StakingRewardDistrubtion is Ownable {
      */
 
     function deposit(IERC20 _token, uint256 _amount) public {
-        _token.safeTransfer(address(this), _amount);
+        _token.safeTransferFrom(msg.sender,address(this), _amount);
 
-        tokensDeposited[epoch][_token] += _amount;
+        tokensDeposited[epoch-1][_token] += _amount;
 
         emit Deposited(_token, _amount);
     }
@@ -109,6 +109,8 @@ contract StakingRewardDistrubtion is Ownable {
         bytes32[] memory _merkleProof
     ) public {
         if (_relativeVotingPower == 0) revert Claim_ZeroAmount();
+
+         if (_epochId >= epoch) revert Claim_FutureEpoch();
 
         if (
             !_verifyClaim(
@@ -213,12 +215,12 @@ contract StakingRewardDistrubtion is Ownable {
         IERC20 _token,
         uint256 _relativeVotingPower
     ) private returns (uint256 amount) {
-        if (_epochId >= epoch) revert Claim_FutureEpoch();
+       
 
         if (claimed[_epochId][_token][msg.sender])
             revert Claim_AlreadyClaimed();
 
-        amount = tokensDeposited[_epochId][_token] * _relativeVotingPower;
+        amount = tokensDeposited[_epochId][_token] * _relativeVotingPower/10**18;
 
         claimed[_epochId][_token][msg.sender] = true;
     }
