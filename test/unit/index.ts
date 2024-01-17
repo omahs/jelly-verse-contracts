@@ -1,17 +1,11 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { Mocks, Signers } from '../shared/types';
-import { shouldBehaveLikeVesting } from './Vesting.spec';
+import { Mocks, Params, Signers } from '../shared/types';
 import { getSigners } from '../shared/utils';
-import {
-	deployMockAllocator,
-	deployMockJelly,
-	deployMockMinter,
-	deployMockVestingInvestor,
-	deployMockVestingTeam,
-} from '../shared/mocks';
-// import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
+import { shouldBehaveLikeJellyTimelock } from './JellyTimelock';
+import { shouldBehaveLikeJellyGovernor } from './JellyGovernor';
+import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
 
-context(`Unit tests`, async function () {
+context(`Governance Unit tests`, async function () {
 	before(async function () {
 		this.signers = {} as Signers;
 
@@ -22,6 +16,10 @@ context(`Unit tests`, async function () {
 			beneficiary,
 			revoker,
 			alice,
+			bob,
+			timelockAdmin,
+			timelockProposer,
+			timelockExecutor
 		} = await loadFixture(getSigners);
 
 		this.signers.deployer = deployer;
@@ -30,16 +28,21 @@ context(`Unit tests`, async function () {
 		this.signers.beneficiary = beneficiary;
 		this.signers.revoker = revoker;
 		this.signers.alice = alice;
+		this.signers.bob = bob;
+		this.signers.timelockAdmin = timelockAdmin;
+		this.signers.timelockProposer = timelockProposer;
+		this.signers.timelockExecutor = timelockExecutor;
 
 		this.mocks = {} as Mocks;
 
-		// this.mocks.mockJelly = await deployMockJelly(deployer);
-		// this.mocks.mockAllocator = await deployMockAllocator(deployer);
-		// this.mocks.mockVestingTeam = await deployMockVestingTeam(deployer);
-		// this.mocks.mockVestingInvestor = await deployMockVestingInvestor(deployer);
-		// this.mocks.mockMinterContract = await deployMockMinter(deployer);
+		this.params = {} as Params;
+		this.params.allocatorAddress = timelockAdmin.address;
+		this.params.vestingTeamAddress = timelockProposer.address;
+		this.params.vestingInvestorsAddress = timelockExecutor.address;
+		this.params.minterAddress = timelockExecutor.address;
 	});
 
-	shouldBehaveLikeVesting();
-	// shouldBehaveLikeJellyToken();
+	shouldBehaveLikeJellyTimelock();
+	shouldBehaveLikeJellyGovernor();
+	shouldBehaveLikeJellyToken();
 });

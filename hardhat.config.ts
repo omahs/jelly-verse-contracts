@@ -6,6 +6,8 @@ import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomicfoundation/hardhat-foundry';
 import '@nomicfoundation/hardhat-network-helpers';
 import './deployment';
+import 'hardhat-contract-sizer';
+
 
 dotenv.config();
 
@@ -24,7 +26,21 @@ const DMC_TESTNET3_BROWSER_URL = process.env.DMC_TESTNET3_BROWSER_URL;
 const BLOCKSCOUT_DMC_API_KEY = process.env.BLOCKSCOUT_DMC_API_KEY;
 
 const config: HardhatUserConfig = {
-	solidity: '0.8.19',
+	solidity: {
+		version: '0.8.19',
+		settings: {
+			optimizer: {
+			  enabled: true,
+			  runs: 10000,
+			//   "details": {
+			// 	"yulDetails": {
+			// 	  "optimizerSteps": ""
+			// 	}
+			//   }
+			},
+			viaIR: true,
+		},
+	},
 	networks: {
 		hardhat: {
 			chainId: 31337,

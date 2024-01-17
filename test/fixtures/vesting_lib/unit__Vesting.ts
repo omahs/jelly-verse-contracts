@@ -1,6 +1,6 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { VestingLibTest, VestingLibTest__factory } from '../../typechain-types';
-import { getSigners } from '../shared/utils';
+import { VestingLibTest, VestingLibTest__factory } from '../../../typechain-types';
+import { getSigners } from '../../shared/utils';
 import { ethers } from 'hardhat';
 import { BigNumber } from 'ethers';
 
