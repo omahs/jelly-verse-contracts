@@ -83,12 +83,14 @@ contract StakingRewardDistrubtion is Ownable {
      * No return only Owner can call
      */
 
-    function deposit(IERC20 _token, uint256 _amount) public {
+    function deposit(IERC20 _token, uint256 _amount) public returns (uint256) {
         _token.safeTransfer(address(this), _amount);
 
         tokensDeposited[epoch][_token] += _amount;
 
         emit Deposited(_token, _amount);
+        
+        return epoch;
     }
 
     /**

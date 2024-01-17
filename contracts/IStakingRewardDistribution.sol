@@ -15,9 +15,11 @@ interface IStakingRewardDistribution {
      * @param _amount - amount of tokens to deposit
      * @param _token - token to deposit
      *
+     * @return epochId - epoch id of deposit
+     *
      * @dev not using this function to deposit funds will lock the tokens
      *
      * No return only Owner can call
      */
-    function deposit(IERC20 _token, uint256 _amount) external;
+    function deposit(IERC20 _token, uint256 _amount) external returns (uint256);
 }

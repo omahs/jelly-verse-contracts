@@ -39,7 +39,7 @@ export async function deployMockStakingRewardContract(deployer: Signer): Promise
 		lpRewardContractArtifact.abi
 	);
 
-	await mockLpRewardContract.mock.deposit.returns();
+	await mockLpRewardContract.mock.deposit.returns(BigNumber.from(0));
 
 	return mockLpRewardContract;
 }
