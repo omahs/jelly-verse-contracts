@@ -3,16 +3,8 @@ import { Mocks, Signers } from '../../shared/types';
 import { shouldBehaveLikeVesting } from './Vesting.spec';
 import { shouldBehaveLikeVestingChest } from './VestingChest.spec';
 import { getSigners } from '../../shared/utils';
-import {
-	deployMockAllocator,
-	deployMockJelly,
-	deployMockMinter,
-	deployMockVestingInvestor,
-	deployMockVestingTeam,
-} from '../../shared/mocks';
-// import { shouldBehaveLikeJellyToken } from './JellyToken.spec';
 
-context(`Unit tests`, async function () {
+context(`Vesting Libs Unit tests`, async function () {
 	before(async function () {
 		this.signers = {} as Signers;
 
@@ -33,15 +25,8 @@ context(`Unit tests`, async function () {
 		this.signers.alice = alice;
 
 		this.mocks = {} as Mocks;
-
-		// this.mocks.mockJelly = await deployMockJelly(deployer);
-		// this.mocks.mockAllocator = await deployMockAllocator(deployer);
-		// this.mocks.mockVestingTeam = await deployMockVestingTeam(deployer);
-		// this.mocks.mockVestingInvestor = await deployMockVestingInvestor(deployer);
-		// this.mocks.mockMinterContract = await deployMockMinter(deployer);
 	});
 
 	shouldBehaveLikeVesting();
 	shouldBehaveLikeVestingChest();
-	// shouldBehaveLikeJellyToken();
 });

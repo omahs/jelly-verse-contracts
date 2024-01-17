@@ -42,14 +42,14 @@ contract VestingLibFuzzTest is VestingLib, Test {
         vm.assume(_beneficiary != address(0));
         vm.assume(_cliffDuration > 0);
         vm.assume(_vestingDuration > 0);
-        uint32 beforeIndex = index;
+        uint256 beforeIndex = index;
         createVestingPosition(
             _amount,
             _beneficiary,
             _cliffDuration,
             _vestingDuration
         );
-        uint32 afterIndex = index;
+        uint256 afterIndex = index;
 
         assertEq(beforeIndex + 1, afterIndex);
     }
