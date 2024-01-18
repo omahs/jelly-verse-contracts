@@ -2,9 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { VestingLibTest, VestingLibTest__factory } from '../../../typechain-types';
 import { getSigners } from '../../shared/utils';
 import { ethers } from 'hardhat';
-import { BigNumber, constants } from 'ethers';
-import { MockContract } from '@ethereum-waffle/mock-contract';
-import { deployMockJelly } from '../../shared/mocks';
+import { BigNumber } from 'ethers';
 
 type UnitVestingFixtureType = {
 	vesting: VestingLibTest;

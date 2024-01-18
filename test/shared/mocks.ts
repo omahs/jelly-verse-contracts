@@ -39,7 +39,7 @@ export async function deployMockStakingRewardContract(deployer: Signer): Promise
 		lpRewardContractArtifact.abi
 	);
 
-	await mockLpRewardContract.mock.deposit.returns();
+	await mockLpRewardContract.mock.deposit.returns(BigNumber.from(0));
 
 	return mockLpRewardContract;
 }
@@ -124,7 +124,7 @@ export async function deployMockChest(deployer: Signer): Promise<MockContract> {
 		chestArtifact.abi
 	);
 
-	await chest.mock.getVotingPower.returns(BigNumber.from(1000)); 
+	await chest.mock.getVotingPower.returns(BigNumber.from('424000000000000000000000000').sub(1)); // Chest power of 8_000_000 JELLY staked for a year - 1
 	await chest.mock.totalSupply.returns(BigNumber.from(10));
 	await chest.mock.stake.returns();
 

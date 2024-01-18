@@ -96,6 +96,7 @@ describe("Minter", function () {
         describe('success', function () {
             it('should emit JellyMinted event', async function () {
                 await minter.startMinting();
+                const epochId = 0; // defined in stakingRewardsContract mock
                 const mintingPeriod = await minter._mintingPeriod();
                 const lastMintedTimestampOld = await minter._lastMintedTimestamp();
                 const lastMintedTimestampNew = lastMintedTimestampOld.add(mintingPeriod);
@@ -111,7 +112,8 @@ describe("Minter", function () {
                     currentTimePlusOne, 
                     lastMintedTimestampNew, 
                     mintingPeriod, 
-                    mintAmount
+                    mintAmount,
+                    epochId
                 );
             });
         });

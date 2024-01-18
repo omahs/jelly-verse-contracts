@@ -68,7 +68,8 @@ contract Minter is Ownable, ReentrancyGuard {
         uint256 indexed mintedTimestamp,
         uint256 newLastMintedTimestamp,
         uint256 mintingPeriod,
-        uint256 indexed mintedAmount
+        uint256 mintedAmount,
+        uint256 indexed epochId
     );
 
     error Minter_MintingNotStarted();
@@ -122,7 +123,7 @@ contract Minter is Ownable, ReentrancyGuard {
         // add other half of the amount to staking rewards contract, via deposit function
         JellyToken(_jellyToken).mint(address(this), halfOfMintAmount);
         JellyToken(_jellyToken).approve(_stakingRewardsContract, halfOfMintAmount);
-        IStakingRewardDistribution(_stakingRewardsContract).deposit(IERC20(_jellyToken), halfOfMintAmount);
+        uint256 epochId = IStakingRewardDistribution(_stakingRewardsContract).deposit(IERC20(_jellyToken), halfOfMintAmount);
 
         emit JellyMinted(
             msg.sender,
@@ -131,7 +132,8 @@ contract Minter is Ownable, ReentrancyGuard {
             currentTimestamp, 
             _lastMintedTimestamp, 
             mintingPeriod, 
-            mintAmountWithDecimals
+            mintAmountWithDecimals,
+            epochId
             );
     }
     
