@@ -7,7 +7,8 @@ import { shouldCastVotes as shouldCastVotesOfficialPoolRegister } from "./offici
 import { shouldFollowProposalLifeCycle as shouldFollowProposalLifeCycleOfficialPoolRegister } from "./officialPoolRegister/proposalLifecycle.spec";
 import { shouldCastVotes as shouldCastVotesMinter } from "./minter/castingVotes.spec";
 import { shouldFollowProposalLifeCycle as shouldFollowProposalLifeCycleMinter } from "./minter/proposalLifecycle.spec";
-
+import { shouldCastVotes as shouldCastVotesStakingRewardDistribution } from "./stakingRewardDistribution/castingVotes.spec";
+import { shouldFollowProposalLifeCycle as shouldFollowProposalLifeCycleStakingRewardDistribution } from "./stakingRewardDistribution/proposalLifecycle.spec";
 export function shouldBehaveLikeJellyGovernor() {
     describe("JellyGovernor", function () {
         const quorumAmount = BigNumber.from(utils.parseEther("8000000"));
@@ -98,5 +99,8 @@ export function shouldBehaveLikeJellyGovernor() {
         // Minter
         shouldCastVotesMinter();
         shouldFollowProposalLifeCycleMinter();
+        // Staking Reward Distribution
+        shouldCastVotesStakingRewardDistribution();
+        shouldFollowProposalLifeCycleStakingRewardDistribution();
     });
 }
