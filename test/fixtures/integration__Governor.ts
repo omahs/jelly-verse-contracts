@@ -13,8 +13,12 @@ import {
     Chest__factory,
     StakingRewardDistribution,
     StakingRewardDistribution__factory,
+    LiquidityRewardDistrubtion,
+    LiquidityRewardDistrubtion__factory,
     OfficialPoolsRegister,
     OfficialPoolsRegister__factory,
+    Minter,
+    Minter__factory
 
 } from "../../typechain";
 
@@ -24,7 +28,9 @@ type IntegrationJellyGovernorFixtureType = {
     jellyTimelock: JellyTimelock;
     chest: Chest;
     stakingRewardDistribution: StakingRewardDistribution;
+    liqiuidityRewardDistribution: LiquidityRewardDistrubtion;
     officialPoolsRegister: OfficialPoolsRegister;
+    minter: Minter;
     votingDelay: BigNumber;
     votingPeriod: BigNumber;
     proposalThreshold: BigNumber;
@@ -46,7 +52,7 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
         timelockExecutor,
         timelockAdmin,
         allocator,
-        distributor,
+        distributor
     } = await getSigners();
 
     const fee = BigNumber.from("10"); // 10 wei
@@ -100,12 +106,28 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
             .deploy(jellyTimelock.address, ADDRESS_ZERO);
     await stakingRewardDistribution.deployed();
 
+    const liqiuidityRewardDistributionFactory: LiquidityRewardDistrubtion__factory =
+        await ethers.getContractFactory("LiquidityRewardDistrubtion");
+    const liqiuidityRewardDistribution: LiquidityRewardDistrubtion =
+        await liqiuidityRewardDistributionFactory
+            .connect(deployer)
+            .deploy(jellyToken.address, jellyTimelock.address, ADDRESS_ZERO);
+    await liqiuidityRewardDistribution.deployed();
+
     const officialPoolsRegisterFactory: OfficialPoolsRegister__factory =
         await ethers.getContractFactory("OfficialPoolsRegister");
     const officialPoolsRegister: OfficialPoolsRegister = await officialPoolsRegisterFactory
         .connect(deployer)
         .deploy(jellyTimelock.address, ADDRESS_ZERO);
     await officialPoolsRegister.deployed();
+
+    const minterFactory: Minter__factory = await ethers.getContractFactory(
+        "Minter"
+    );
+    const minter: Minter = await minterFactory
+        .connect(deployer)
+        .deploy(jellyToken.address, liqiuidityRewardDistribution.address, stakingRewardDistribution.address, jellyTimelock.address, ADDRESS_ZERO);
+    await minter.deployed();
 
     const jellyGovernorFactory: JellyGovernor__factory =
         await ethers.getContractFactory("JellyGovernor");
@@ -141,7 +163,9 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
         jellyTimelock,
         chest,
         stakingRewardDistribution,
+        liqiuidityRewardDistribution,
         officialPoolsRegister,
+        minter,
         votingDelay,
         votingPeriod,
         proposalThreshold,

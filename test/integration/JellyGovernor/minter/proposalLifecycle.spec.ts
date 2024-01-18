@@ -1,39 +1,36 @@
 import { assert, expect } from 'chai';
-import { mine, time } from '@nomicfoundation/hardhat-network-helpers';
+import { mine } from '@nomicfoundation/hardhat-network-helpers';
 import { utils, BigNumber, constants } from 'ethers';
 import { ProposalState, VoteType } from '../../../shared/types';
 
 export function shouldFollowProposalLifeCycle(): void {
-  context('Official Pools Register new Official Pool Proposal Lifecycle', async function () {
-    const poolId = "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
-    const proposalDescription = 'Test Proposal #1: Register new Official Pool';
-    let registerOfficialPoolFunctionCalldata: string;
+  context('Minter Set new LP Rewards Distribution Contract Proposal Lifecycle', async function () {
+    const proposalDescription = 'Test Proposal #1: Set new LP Rewards Distribution Contract';
+    let setLpRewardsContractFunctionCalldata: string;
     let proposalId: BigNumber;
     let proposalParams: string;
     const chestIDs: number[] = [0, 1, 2];
 
     beforeEach(async function () {
-      const poolIds: string[] = [poolId];
-      registerOfficialPoolFunctionCalldata = this.officialPoolsRegister.interface.encodeFunctionData(
-        'registerOfficialPool',
-        [poolIds]
+      setLpRewardsContractFunctionCalldata = this.minter.interface.encodeFunctionData(
+        'setLpRewardsContract',
+        [this.signers.newLpRewardsContractAddress.address]
       );
-
       await this.jellyGovernor
         .connect(this.signers.alice)
         .propose(
-          [this.officialPoolsRegister.address],
+          [this.minter.address],
           [0],
-          [registerOfficialPoolFunctionCalldata],
+          [setLpRewardsContractFunctionCalldata],
           proposalDescription
         );
 
       const abiEncodedParams = utils.defaultAbiCoder.encode(
         ['address[]', 'uint256[]', 'bytes[]', 'bytes32'],
         [
-          [this.officialPoolsRegister.address],
+          [this.minter.address],
           [0],
-          [registerOfficialPoolFunctionCalldata],
+          [setLpRewardsContractFunctionCalldata],
           utils.keccak256(utils.toUtf8Bytes(proposalDescription)),
         ]
       );
@@ -124,9 +121,9 @@ export function shouldFollowProposalLifeCycle(): void {
       await this.jellyGovernor
         .connect(this.signers.alice)
         .queue(
-          [this.officialPoolsRegister.address],
+          [this.minter.address],
           [0],
-          [registerOfficialPoolFunctionCalldata],
+          [setLpRewardsContractFunctionCalldata],
           proposalDescriptionHash
         );
 
@@ -138,9 +135,6 @@ export function shouldFollowProposalLifeCycle(): void {
       );
     });
     it('should be in executed state', async function () {
-      const officialPoolsRegisteredBefore = await this.officialPoolsRegister.getAllOfficialPools();
-      const numberOfOfficialPoolsRegisteredBefore = officialPoolsRegisteredBefore.length;
-
       await mine(this.params.votingDelay.add(constants.One));
 
       proposalParams = utils.defaultAbiCoder.encode(
@@ -159,9 +153,9 @@ export function shouldFollowProposalLifeCycle(): void {
       await this.jellyGovernor
         .connect(this.signers.alice)
         .queue(
-          [this.officialPoolsRegister.address],
+          [this.minter.address],
           [0],
-          [registerOfficialPoolFunctionCalldata],
+          [setLpRewardsContractFunctionCalldata],
           proposalDescriptionHash
         );
 
@@ -170,21 +164,20 @@ export function shouldFollowProposalLifeCycle(): void {
       await this.jellyGovernor
         .connect(this.signers.alice)
         .execute(
-          [this.officialPoolsRegister.address],
+          [this.minter.address],
           [0],
-          [registerOfficialPoolFunctionCalldata],
+          [setLpRewardsContractFunctionCalldata],
           proposalDescriptionHash
         );
 
       const proposalState = await this.jellyGovernor.state(proposalId);
-      const officialPoolsRegisteredAfter = await this.officialPoolsRegister.getAllOfficialPools();
-      const numberOfOfficialPoolsRegisteredAfter = officialPoolsRegisteredAfter.length;
+      const lpRewardsContract = await this.minter._lpRewardsContract();
+
       assert(
         proposalState === ProposalState.Executed,
         'Proposal should be in executed state'
       );
-      assert(numberOfOfficialPoolsRegisteredAfter === numberOfOfficialPoolsRegisteredBefore + 1, 'Official Pool should be registered');
-      assert(JSON.stringify(officialPoolsRegisteredAfter) == JSON.stringify([...officialPoolsRegisteredBefore, poolId]), 'Official Pool value should match');
+      assert(lpRewardsContract === this.signers.newLpRewardsContractAddress.address, 'New LP Rewards Contract should be set');
     });
   });
 }

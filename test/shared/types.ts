@@ -27,6 +27,7 @@ export interface Signers {
 	allocator: SignerWithAddress;
 	distributor: SignerWithAddress;
 	investor: SignerWithAddress;
+  newLpRewardsContractAddress: SignerWithAddress;
 }
 
 export interface Mocks {

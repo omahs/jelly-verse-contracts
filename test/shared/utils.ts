@@ -15,7 +15,8 @@ export async function getSigners(): Promise<Signers> {
 		timelockExecutor,
 		allocator,
 		distributor,
-		investor
+		investor,
+    newLpRewardsContractAddress
 	] =
 		await ethers.getSigners();
 
@@ -32,6 +33,7 @@ export async function getSigners(): Promise<Signers> {
 		timelockExecutor,
 		allocator,
 		distributor,
-		investor
+		investor,
+    newLpRewardsContractAddress
 	};
 }

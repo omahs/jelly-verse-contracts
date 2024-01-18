@@ -5,13 +5,16 @@ import { utils, BigNumber } from "ethers";
 import { assert, expect } from "chai";
 import { shouldCastVotes as shouldCastVotesOfficialPoolRegister } from "./officialPoolRegister/castingVotes.spec";
 import { shouldFollowProposalLifeCycle as shouldFollowProposalLifeCycleOfficialPoolRegister } from "./officialPoolRegister/proposalLifecycle.spec";
+import { shouldCastVotes as shouldCastVotesMinter } from "./minter/castingVotes.spec";
+import { shouldFollowProposalLifeCycle as shouldFollowProposalLifeCycleMinter } from "./minter/proposalLifecycle.spec";
 
 export function shouldBehaveLikeJellyGovernor() {
     describe("JellyGovernor", function () {
-        const amountToMint = utils.parseEther("10");
-        const freezingPeriod = BigNumber.from("604800"); // 1 week
+        const quorumAmount = BigNumber.from(utils.parseEther("8000000"));
+        const amountToStake = quorumAmount;
+        let amountToMin: BigNumber;
+        const freezingPeriod = BigNumber.from("31536000"); // 1 year
         const vestingPeriod = BigNumber.from("31536000"); // 1 year
-        const amountToStake = utils.parseEther("5");
         const nerfParameter = BigNumber.from(5); // 50% nerf
         beforeEach(async function () {
             const {
@@ -20,7 +23,9 @@ export function shouldBehaveLikeJellyGovernor() {
                 jellyTimelock,
                 chest,
                 stakingRewardDistribution,
+                liqiuidityRewardDistribution,
                 officialPoolsRegister,
+                minter,
                 votingDelay,
                 votingPeriod,
                 proposalThreshold,
@@ -35,7 +40,9 @@ export function shouldBehaveLikeJellyGovernor() {
             this.jellyTimelock = jellyTimelock;
             this.chest = chest;
             this.stakingRewardDistribution = stakingRewardDistribution;
+            this.liqiuidityRewardDistribution = liqiuidityRewardDistribution;
             this.officialPoolsRegister = officialPoolsRegister;
+            this.minter = minter;
 
             this.params = {} as Params;
             this.params.votingDelay = votingDelay;
@@ -48,6 +55,7 @@ export function shouldBehaveLikeJellyGovernor() {
 
             // mint tokens to alice, bob and allocator
             const chestFee = await this.chest.fee();
+            const amountToMint = amountToStake.add(chestFee);
 
             await this.jellyToken
                 .connect(this.signers.deployer)
@@ -87,5 +95,8 @@ export function shouldBehaveLikeJellyGovernor() {
         // Official Pool Register
         shouldCastVotesOfficialPoolRegister();
         shouldFollowProposalLifeCycleOfficialPoolRegister();
+        // Minter
+        shouldCastVotesMinter();
+        shouldFollowProposalLifeCycleMinter();
     });
 }

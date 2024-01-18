@@ -5,35 +5,33 @@ import { ProposalState, VoteType } from '../../../shared/types';
 
 export function shouldCastVotes(): void {
     context(
-        'Official Pools Preparing scenario: Creating proposal & Delegating tokens',
+        'Minter Preparing scenario: Creating proposal & Delegating tokens',
         async function () {
-            const poolId = "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
-            const proposalDescription = 'Test Proposal #1: Register new Official Pool';
-            let registerOfficialPoolFunctionCalldata: string;
+            const proposalDescription = 'Test Proposal #1: Set new LP Rewards Distribution Contract';
+            let setLpRewardsContractFunctionCalldata: string;
             let proposalId: BigNumber;
             let proposalParams: string;
             const chestIDs: number[] = [0, 1, 2];
             beforeEach(async function () {
-                const poolIds: string[] = [poolId];
-                registerOfficialPoolFunctionCalldata = this.officialPoolsRegister.interface.encodeFunctionData(
-                    'registerOfficialPool',
-                    [poolIds]
+                setLpRewardsContractFunctionCalldata = this.minter.interface.encodeFunctionData(
+                    'setLpRewardsContract',
+                    [this.signers.newLpRewardsContractAddress.address]
                 );
                 await this.jellyGovernor
                     .connect(this.signers.alice)
                     .propose(
-                        [this.officialPoolsRegister.address],
+                        [this.minter.address],
                         [0],
-                        [registerOfficialPoolFunctionCalldata],
+                        [setLpRewardsContractFunctionCalldata],
                         proposalDescription
                     );
 
                 const abiEncodedParams = utils.defaultAbiCoder.encode(
                     ['address[]', 'uint256[]', 'bytes[]', 'bytes32'],
                     [
-                        [this.officialPoolsRegister.address],
+                        [this.minter.address],
                         [0],
-                        [registerOfficialPoolFunctionCalldata],
+                        [setLpRewardsContractFunctionCalldata],
                         utils.keccak256(utils.toUtf8Bytes(proposalDescription)),
                     ]
                 );
