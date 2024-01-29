@@ -24,8 +24,6 @@ contract Allocator is ReentrancyGuard, Ownable {
 
     error Allocator__CannotBuy();
     error Allocator__NoValueSent();
-    error Allocator__NothingToRelease();
-    error Allocator__InsufficientFunds();
 
     modifier canBuy() {
         if (isOver) {
