@@ -50,9 +50,6 @@ contract Allocator is ReentrancyGuard, Ownable {
 
     /**
      * @notice Buys jelly tokens with native token.
-     *
-     * @param amount - amount of native tokens deposited.
-     *
      */
     function buyWithNative() external payable nonReentrant canBuy {
         uint256 amount = msg.value;
@@ -69,8 +66,12 @@ contract Allocator is ReentrancyGuard, Ownable {
         uint256[] memory maxAmountsIn = new uint256[](length);
 
         for (uint256 i; i < length; ) {
-            maxAmountsIn[i] = amount;
-
+            if (tokens[i] == IERC20(i_jellyToken)) {
+                maxAmountsIn[i] = jellyAmount;
+            } else {
+                maxAmountsIn[i] = amount;
+            }
+            
             unchecked {
                 ++i;
             }
@@ -139,7 +140,7 @@ contract Allocator is ReentrancyGuard, Ownable {
      * @return nativeToJellyRatio - ratio of native token to jelly.
      */
     function getRatio() external view returns (uint256) {
-        return nativeToJellyRatioSet;
+        return nativeToJellyRatio;
     }
 
     function _convertERC20sToAssets(
