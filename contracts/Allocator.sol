@@ -71,7 +71,7 @@ contract Allocator is ReentrancyGuard, Ownable {
             } else {
                 maxAmountsIn[i] = amount;
             }
-            
+
             unchecked {
                 ++i;
             }
@@ -109,13 +109,16 @@ contract Allocator is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Ends buying period.
+     * @notice Ends buying period and burns remaining JellyTokens.
      * @dev Only owner can call.
      *
      * No return, reverts on error.
      */
     function endBuyingPeriod() external onlyOwner {
         isOver = true;
+        
+        uint256 remainingJelly = IJellyToken(i_jellyToken).balanceOf(address(this));
+        IJellyToken(i_jellyToken).burn(remainingJelly); // burn remaining jelly tokens
 
         emit EndBuyingPeriod();
     }
