@@ -4,7 +4,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { unitJellyTokenFixture } from '../fixtures/unit__JellyToken';
 
 export function shouldBehaveLikeJellyToken(): void {
-	describe.only('JellyToken', () => {
+	describe('JellyToken', () => {
 		const MINTER_ROLE = ethers.utils.keccak256(
 			ethers.utils.toUtf8Bytes('MINTER_ROLE')
 		);
