@@ -101,7 +101,7 @@ contract Allocator is ReentrancyGuard, Ownable {
             request
         );
 
-        IJellyToken(i_jellyToken).mint(msg.sender, jellyAmount);
+        IJellyToken(i_jellyToken).transfer(msg.sender, jellyAmount);
 
         emit BuyWithNative(amount, jellyAmount);
     }
