@@ -9,7 +9,7 @@ import {Ownable} from "./utils/Ownable.sol";
 
 /**
  * @title The Allocator contract
- * @notice Contract for swapping dusd tokens for jelly tokens
+ * @notice Contract for swapping native tokens for jelly tokens
  */
 contract Allocator is ReentrancyGuard, Ownable {
     address internal immutable i_jellyToken;
