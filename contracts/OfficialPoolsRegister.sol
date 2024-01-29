@@ -9,7 +9,14 @@ import "./utils/Ownable.sol";
  * @notice Store, delete & retrieve pools
  */
 contract OfficialPoolsRegister is Ownable {
-  bytes32[] private officialPoolsIds;
+  uint256 public totalWeightSum;
+  
+  struct Pool {
+    bytes32 poolId;
+    uint256 weight;
+  }
+
+  Pool[] private officialPools;
   mapping(bytes32 => bool) private isOfficialPoolRegistered;
   
   event OfficialPoolRegistered(address indexed sender, bytes32 indexed poolId);
@@ -25,23 +32,25 @@ contract OfficialPoolsRegister is Ownable {
   *
   * @dev Only owner can call.
   * 
-  * @param poolIds_ to store
+  * @param pools_ to store
   */
-  function registerOfficialPool(bytes32[] memory poolIds_) external onlyOwner {
-    uint256 size = poolIds_.length;
+  function registerOfficialPool(Pool[] memory pools_) external onlyOwner {
+    uint256 size = pools_.length;
     if(size > 10) {
       revert OfficialPoolsRegister_MaxPools10();
     }
 
     for(uint256 i; i < size; i++) {
-        bytes32 poolId = poolIds_[i];
-        if(isOfficialPoolRegistered[poolId]) {
-            revert OfficialPoolsRegister_InvalidPool();
+        Pool memory newPool = pools_[i];
+        bytes32 poolId = newPool.poolId;
+        uint256 weight = newPool.weight;
+        if(!isOfficialPoolRegistered[poolId]) {
+          officialPools.push(newPool);
+          totalWeightSum += weight;
+          isOfficialPoolRegistered[poolId] = true;
+
+          emit OfficialPoolRegistered(msg.sender, poolId);
         }
-        officialPoolsIds.push(poolId);
-        isOfficialPoolRegistered[poolId] = true;
-        
-        emit OfficialPoolRegistered(msg.sender, poolId);
     }
   }
 
@@ -50,29 +59,30 @@ contract OfficialPoolsRegister is Ownable {
   *
   * @dev Only owner can call.
   *
-  * @param poolIdIndex_ to delete
+  * @param poolIndex_ to delete
   */
-  function deregisterOfficialPool(uint256 poolIdIndex_) external onlyOwner {
-    uint256 officialPoolsSize = officialPoolsIds.length;
-    if(poolIdIndex_ >= officialPoolsSize) {
+  function deregisterOfficialPool(uint256 poolIndex_) external onlyOwner {
+    uint256 officialPoolsSize = officialPools.length;
+    if(poolIndex_ >= officialPoolsSize) {
         revert OfficialPoolsRegister_InvalidPool();
     }
 
-    bytes32 poolIdToDelete = officialPoolsIds[poolIdIndex_];
-    isOfficialPoolRegistered[poolIdToDelete] = false;
+    Pool memory poolIdToDelete = officialPools[poolIndex_];
+    totalWeightSum -= poolIdToDelete.weight;
+    isOfficialPoolRegistered[poolIdToDelete.poolId] = false;
+    officialPools[poolIndex_] = officialPools[officialPoolsSize - 1];
+    officialPools.pop();
     
-    officialPoolsIds[poolIdIndex_] = officialPoolsIds[officialPoolsSize - 1];
-    officialPoolsIds.pop();
-    
-    emit OfficialPoolDeregistered(msg.sender, poolIdToDelete);
+    emit OfficialPoolDeregistered(msg.sender, poolIdToDelete.poolId);
   }
 
   /**
   * @notice Return all official pools ids
   * 
-  * @return all 'officailPoolsIds'
+  * @return all 'officailPools'
   */
-  function getAllOfficialPools() public view returns(bytes32[] memory) {
-    return officialPoolsIds;
+  function getAllOfficialPools() public view returns(Pool[] memory) {
+    return officialPools;
   }
 }
+
