@@ -72,6 +72,8 @@ contract Allocator is ReentrancyGuard, Ownable {
             } else if (tokens[i] == IERC20(weth)) {
                 maxAmountsIn[i] = amount;
                 tokens[i] == IERC20(address(0));
+            } else {
+                maxAmountsIn[i] = 0;
             }
 
             unchecked {
