@@ -13,6 +13,7 @@ import {Ownable} from "./utils/Ownable.sol";
  */
 contract Allocator is ReentrancyGuard, Ownable {
     address internal immutable i_jellyToken;
+    address internal immutable weth;
     uint256 internal nativeToJellyRatio;
     bytes32 internal jellySwapPoolId;
     address internal jellySwapVault; // ───╮
@@ -34,6 +35,7 @@ contract Allocator is ReentrancyGuard, Ownable {
 
     constructor(
         address _jellyToken,
+        address _weth,
         uint256 _nativeToJellyRatio,
         address _jellySwapVault,
         bytes32 _jellySwapPoolId,
@@ -44,6 +46,7 @@ contract Allocator is ReentrancyGuard, Ownable {
         nativeToJellyRatio = _nativeToJellyRatio;
         jellySwapVault = _jellySwapVault;
         jellySwapPoolId = _jellySwapPoolId;
+        weth = _weth;
     }
 
     /**
@@ -66,8 +69,9 @@ contract Allocator is ReentrancyGuard, Ownable {
         for (uint256 i; i < length; ) {
             if (tokens[i] == IERC20(i_jellyToken)) {
                 maxAmountsIn[i] = jellyAmount;
-            } else {
+            } else if (tokens[i] == IERC20(weth)) {
                 maxAmountsIn[i] = amount;
+                tokens[i] == IERC20(address(0));
             }
 
             unchecked {
@@ -94,7 +98,7 @@ contract Allocator is ReentrancyGuard, Ownable {
         //approve jelly tokens to be spent by jellySwapVault
         IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount); 
 
-        IVault(jellySwapVault).joinPool(
+        IVault(jellySwapVault).joinPool{value: msg.value}(
             jellySwapPoolId,
             sender,
             recipient,
