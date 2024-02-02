@@ -22,9 +22,7 @@ contract OfficialPoolsRegister is Ownable {
   
   event OfficialPoolRegistered(address indexed sender, bytes32 indexed poolId, uint256 weight);
   
-  error OfficialPoolsRegister_MaxPools10(); 
-  error OfficialPoolsRegister_InvalidPool();
-  error OfficialPoolsRegister_AlreadyRegistered();
+  error OfficialPoolsRegister_MaxPools50();
 
   constructor(address newOwner_, address pendingOwner_) Ownable(newOwner_, pendingOwner_) {}
 
@@ -37,9 +35,9 @@ contract OfficialPoolsRegister is Ownable {
   */
   function registerOfficialPool(Pool[] memory pools_) external onlyOwner {
     uint256 size = pools_.length;
-    if(size > 10) {
-      revert OfficialPoolsRegister_MaxPools10();
-    }
+    if(size > 50) {
+       revert OfficialPoolsRegister_MaxPools50();
+     }
 
     for(uint256 i; i < size; i++) {
         Pool memory newPool = pools_[i];
@@ -62,7 +60,7 @@ contract OfficialPoolsRegister is Ownable {
   * 
   * @return all 'pools'
   */
-  function getllOfficialPools() public view returns(Pool[] memory) {
+  function getAllOfficialPools() public view returns(Pool[] memory) {
     Pool[] memory pools = new Pool[](totalPools);
     for (uint256 i=0; i < totalPools; i++) {
       bytes32 poolId = poolIds[i];

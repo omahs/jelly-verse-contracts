@@ -1,45 +1,29 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import { SignerWithAddress } from '@nomicfoundation/harhdat-ethers/signers';
 import { expect } from 'chai';
-import { Signer } from 'ethers';
+import { OfficialPoolsRegister } from '../../typechain-types';
+import { unitOficialPoolRegisterFixture } from '../fixtures/unit__OfficialPoolRegister';
+import { BigNumber, BytesLike } from 'ethers';
 import { ethers } from 'hardhat';
 
 // @notice -- I did not test ownable cuz it is not necessary and it is community approved
 
-describe('OfficialPoolsRegister', function () {
-  async function deployUnitFixture() {
-    const [deployer, user, ...otherSigners] = await ethers.getSigners();
+describe('OfficialPoolsRegister', function() {
+  let officialPoolsRegister: OfficialPoolsRegister;
+  let owner: SignerWithAddress;
+  let pendingOwner: SignerWithAddress;
 
-    const OfficialPoolsRegisterFactory = await ethers.getContractFactory('OfficialPoolsRegister');
-    const officialPoolsRegister = await OfficialPoolsRegisterFactory.deploy(
-        deployer.address,
-        user.address
-    );
-
-    return { officialPoolsRegister, deployer, user, otherSigners };
-  }
-
-  let officialPoolsRegister: any;
-  let owner: Signer;
-  let pendingOwner: Signer;
-  let otherSigners: Signer[];
-  const pool1Id = "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
-  const pool2Id = "0x8r23ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
-
-  beforeEach(async function () {
-    const fixture = await loadFixture(deployUnitFixture);
+  beforeEach(async function() {
+    const fixture = await loadFixture(unitOficialPoolRegisterFixture);
     officialPoolsRegister = fixture.officialPoolsRegister;
-    owner = fixture.deployer;
-    pendingOwner = fixture.user;
-    otherSigners = fixture.otherSigners;
+    owner = fixture.owner;
+    pendingOwner = fixture.pendingOwner;
   });
 
-  describe("Check for initial state after deployment", async function () {
+  describe("Check for initial state after deployment", async function() {
     it("should have correct initial owner and pending owner", async () => {
       expect(await owner.getAddress(), await officialPoolsRegister.owner());
-      expect(
-        await pendingOwner.getAddress(),
-        await officialPoolsRegister.getPendingOwner(),
-      );
+      expect(await pendingOwner.getAddress, await officialPoolsRegister.getPendingOwner());
     });
 
     it("should have the expected initial owner", async () => {
@@ -48,82 +32,87 @@ describe('OfficialPoolsRegister', function () {
     });
   });
 
-  describe("#registerOfficialPool", async function () {
+  describe("#registerOfficialPool", async function() {
+    type PoolStruct = {
+      poolId: BytesLike,
+      weight: BigNumber
+    }
+    let pools: PoolStruct[] = [];
+
+    beforeEach(async function() {
+      pools = [
+        {
+          poolId: ethers.utils.formatBytes32String("pool1"),
+          weight: BigNumber.from(20)
+        },
+        {
+          poolId: ethers.utils.formatBytes32String("pool2"),
+          weight: BigNumber.from(30)
+        }
+      ];
+    })
+
     describe("success", async () => {
       it("should register pools", async () => {
-        const pools: string[] = [pool1Id, pool2Id];
+        await officialPoolsRegister.registerOfficialPool(pools);
+        const officialPools = await officialPoolsRegister.getAllOfficialPools();
 
-        for (const poolId of pools) {
-          expect(officialPoolsRegister.registerOfficialPool(pools))
-          .to.emit(officialPoolsRegister, "OfficialPoolRegistered")
-          .withArgs(await owner.getAddress(), poolId);
-        }
-
-        const officialPoolsIds = await officialPoolsRegister.getAllOfficialPools();
-
-        for (const [i, pool] of pools.entries()) {
-          expect(officialPoolsIds[i], pool);
+        expect(await officialPoolsRegister.totalPools()).to.equal(pools.length);
+        for (let i = 0; i < pools.length; i++) {
+          expect(officialPools[i].poolId).to.equal(pools[i].poolId);
+          expect(officialPools[i].weight).to.equal(pools[i].weight);
         }
       });
-    })
+
+      it("should emit OfficialPoolRegistered event", async () => {
+        for (const pool of pools) {
+          await expect(officialPoolsRegister.registerOfficialPool(pools))
+            .to.emit(officialPoolsRegister, "OfficialPoolRegistered")
+            .withArgs(owner.address, pool.poolId, pool.weight);
+        }
+      });
+
+      it("should update weight on register the same pool", async () => {
+        await officialPoolsRegister.registerOfficialPool(pools);
+        let newPools = [
+          {
+            poolId: ethers.utils.formatBytes32String("pool3"),
+            weight: BigNumber.from(15)
+          },
+          {
+            poolId: ethers.utils.formatBytes32String("pool1"),
+            weight: BigNumber.from(18)
+          }
+        ];
+
+        await officialPoolsRegister.registerOfficialPool(newPools);
+        const officialPools = await officialPoolsRegister.getAllOfficialPools();
+
+        expect(officialPools[0].poolId).to.equal(ethers.utils.formatBytes32String("pool1"));
+        expect(officialPools[0].weight).to.equal(18);
+      });
+    });
 
     describe("failure", async () => {
-      it("should revert on register the same pool", async () => {
-        expect(
-          officialPoolsRegister.registerOfficialPool(pool1Id),
-        ).to.be.revertedWithCustomError(
-          officialPoolsRegister,
-          "OfficialPoolsRegister_InvalidPool",
-        );
-      });
-  
       it("should revert when registering a pool by a non-owner", async () => {
-        expect(
-          officialPoolsRegister
-            .connect(otherSigners[0])
-            .registerOfficialPool(pool1Id),
-        ).to.be.revertedWithCustomError(
-          officialPoolsRegister,
-          "Ownable__CallerIsNotOwner",
-        );
+        await expect(officialPoolsRegister.connect(pendingOwner).registerOfficialPool(pools))
+          .to.be.revertedWithCustomError(officialPoolsRegister, "Ownable__CallerIsNotOwner");
       });
-    })
-  });
 
-  describe("#deregisterOfficialPool", async function () {
-    describe("success", async () => {
-      it("should emit event", async () => {
-        expect(officialPoolsRegister.deregisterOfficialPool(0))
-          .to.emit(officialPoolsRegister, "OfficialPoolDeregistered")
-          .withArgs(await owner.getAddress(), pool1Id);
+      it("should revert when register more then 50 pools", async () => {
+        let newPools: PoolStruct[] = [];
+        for (let i = 0; i < 50; i++) {
+          const poolIndex = i + 3;
+          newPools.push({
+            poolId: ethers.utils.formatBytes32String(`pool${poolIndex}`),
+            weight: BigNumber.from(10)
+          })
+        }
+        const combinedPools: PoolStruct[] = [...pools, ...newPools];
 
-
-        const officialPoolsIds =
-          await officialPoolsRegister.getAllOfficialPools();
-        expect(officialPoolsIds[0], undefined);
+        await expect(officialPoolsRegister.registerOfficialPool(combinedPools))
+          .to.revertedWithCustomError(officialPoolsRegister, "OfficialPoolsRegister_MaxPools50");
       });
-    })
-
-    describe("failure", async () => {
-      it("should revert when deregistering an invalid pool", async () => {
-        expect(
-          officialPoolsRegister.deregisterOfficialPool(5),
-        ).to.be.revertedWithCustomError(
-          officialPoolsRegister,
-          "OfficialPoolsRegister_InvalidPool",
-        );
-      });
-  
-      it("should revert when deregistering a pool by a non-owner", () => {
-        expect(
-          officialPoolsRegister
-            .connect(otherSigners[0])
-            .deregisterOfficialPool(0),
-        ).to.be.revertedWithCustomError(
-          officialPoolsRegister,
-          "Ownable__CallerIsNotOwner",
-        );
-      });
-    })
+    });
   });
 });
