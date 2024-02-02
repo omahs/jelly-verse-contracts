@@ -4,6 +4,7 @@ import { Allocator__factory } from '../typechain-types';
 
 task(`deploy-allocator`, `Deploys the Allocator contract`)
     .addParam(`jellyToken`, `The Jelly token address`)
+    .addParam(`weth`, `The WETH token address`)
     .addParam(`nativeToJellyRatio`, `Ratio of native token to Jelly token`)
     .addParam(`vault`, `The Vault address`)
     .addParam(`poolId`, `Pool ID which will be joined`)
@@ -13,6 +14,7 @@ task(`deploy-allocator`, `Deploys the Allocator contract`)
         async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
             const {
                 jellyToken,
+                weth,
                 nativeToJellyRatio,
                 vault,
                 poolId,
@@ -22,7 +24,7 @@ task(`deploy-allocator`, `Deploys the Allocator contract`)
             const [deployer] = await hre.ethers.getSigners();
 
             console.log(
-                `ℹ️  Attempting to deploy the Allocator smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${nativeToJellyRatio} as the ratio of Native Tokens To Jelly, ${vault} as the vault contract address, ${poolId} as the poolID which will be joined, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
+                `ℹ️  Attempting to deploy the Allocator smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, the ${weth} as the WETH token address, ${nativeToJellyRatio} as the ratio of Native Tokens To Jelly, ${vault} as the vault contract address, ${poolId} as the poolID which will be joined, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
             );
 
             const AllocatorFactory: Allocator__factory = await hre.ethers.getContractFactory(
@@ -31,6 +33,7 @@ task(`deploy-allocator`, `Deploys the Allocator contract`)
 
             const allocator = await AllocatorFactory.deploy(
                 jellyToken,
+                weth,
                 nativeToJellyRatio,
                 vault,
                 poolId,
@@ -52,6 +55,7 @@ task(`deploy-allocator`, `Deploys the Allocator contract`)
                     address: allocator.address,
                     constructorArguments: [
                         jellyToken,
+                        weth,
                         nativeToJellyRatio,
                         vault,
                         poolId,
@@ -65,7 +69,7 @@ task(`deploy-allocator`, `Deploys the Allocator contract`)
                 );
 
                 console.log(
-                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${allocator.address} ${jellyToken} ${nativeToJellyRatio} ${vault} ${poolId} ${owner} ${pendingOwner}`
+                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${allocator.address} ${jellyToken} ${weth} ${nativeToJellyRatio} ${vault} ${poolId} ${owner} ${pendingOwner}`
                 );
             }
 
