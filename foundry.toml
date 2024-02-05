@@ -6,13 +6,16 @@ test = 'test'
 cache_path = 'cache_forge'
 solc_version = '0.8.19'
 ffi = true
+optimizer = true
+optimizer_runs = 10000
+via_ir = true
 
 [profile.default.fuzz]
 runs = 50
 
 [profile.default.invariant]
 depth = 20
-runs = 20
+runs = 500
 
 # FOUNDRY_PROFILE=testing forge test
 [profile.testing.fuzz]
@@ -21,3 +24,5 @@ runs = 1000
 [profile.testing.invariant]
 depth = 100
 runs = 1000
+
+gas_reports = ["Chest"]
