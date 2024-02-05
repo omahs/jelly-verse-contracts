@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
+import {RewardVesting} from "./RewardVesting.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
@@ -18,12 +19,14 @@ contract LiquidityRewardDistrubtion is Ownable {
 
     mapping(uint256 => bytes32) public merkleRoots;
     mapping(uint256 => mapping(address => bool)) public claimed;
+    address vestingContract;
 
     uint256 public epoch;
 
     event Claimed(address claimant, uint256 week, uint256 balance);
     event EpochAdded(uint256 Epoch, bytes32 merkleRoot, string _ipfs);
     event EpochRemoved(uint256 epoch);
+    event contractChanged(address vestingContract);
 
     error Claim_LenMissmatch();
     error Claim_ZeroAmount();
@@ -87,13 +90,20 @@ contract LiquidityRewardDistrubtion is Ownable {
     function claimWeek(
         uint256 _epochId,
         uint256 _amount,
-        bytes32[] memory _merkleProof
+        bytes32[] memory _merkleProof,
+          bool isVesting
     ) public {
         if (_amount == 0) revert Claim_ZeroAmount();
 
         _claimWeek(_epochId, _amount, _merkleProof);
 
-        token.safeTransfer(msg.sender, _amount);
+      if (isVesting) {
+                token.approve(vestingContract, _amount);
+                RewardVesting(vestingContract).vestLiqidty(
+                    _amount,
+                    msg.sender
+                );
+            } else token.safeTransfer(msg.sender, _amount / 2);
     }
 
     /**
@@ -109,7 +119,8 @@ contract LiquidityRewardDistrubtion is Ownable {
     function claimWeeks(
         uint256[] memory _epochIds,
         uint256[] memory _amounts,
-        bytes32[][] memory _merkleProofs
+        bytes32[][] memory _merkleProofs,
+        bool isVesting
     ) public {
         uint256 len = _epochIds.length;
 
@@ -125,7 +136,13 @@ contract LiquidityRewardDistrubtion is Ownable {
         }
 
         if (totalBalance > 0) {
-            token.safeTransfer(msg.sender, totalBalance);
+            if (isVesting) {
+                token.approve(vestingContract, totalBalance);
+                RewardVesting(vestingContract).vestLiqidty(
+                    totalBalance,
+                    msg.sender
+                );
+            } else token.safeTransfer(msg.sender, totalBalance / 2);
         } else {
             revert Claim_ZeroAmount();
         }
@@ -151,6 +168,19 @@ contract LiquidityRewardDistrubtion is Ownable {
         return _verifyClaim(_reciver, _epochId, _amount, _merkleProof);
     }
 
+     /**
+     * @notice Changes the vesting contract
+     *
+     * @param _vestingContract - address of vesting contract
+     *
+     * No return only Owner can call
+     */
+    function setVestingContract(address _vestingContract) public onlyOwner {
+        vestingContract = _vestingContract;
+
+        emit contractChanged(_vestingContract);
+    }
+
     function _claimWeek(
         uint256 _epochId,
         uint256 _amount,
@@ -168,6 +198,9 @@ contract LiquidityRewardDistrubtion is Ownable {
         emit Claimed(msg.sender, _epochId, _amount);
     }
 
+
+   
+
     function _verifyClaim(
         address _receiver,
         uint256 _epochId,
@@ -179,4 +212,5 @@ contract LiquidityRewardDistrubtion is Ownable {
 
         return MerkleProof.verify(_merkleProof, merkleRoots[_epochId], leaf);
     }
+
 }

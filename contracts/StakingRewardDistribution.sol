@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
+import {RewardVesting} from "./RewardVesting.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
@@ -18,24 +19,34 @@ contract StakingRewardDistrubtion is Ownable {
     mapping(uint256 => mapping(IERC20 => mapping(address => bool)))
         public claimed;
     mapping(uint256 => mapping(IERC20 => uint256)) public tokensDeposited;
+    IERC20 public jellyToken;
+    address vestingContract;
 
     uint256 public epoch;
 
-    event Claimed(address claimant, uint256 balance, IERC20 token);
+    event Claimed(
+        address claimant,
+        uint256 balance,
+        IERC20 token,
+        uint256 epoch
+    );
     event EpochAdded(uint256 Epoch, bytes32 merkleRoot, string _ipfs);
     event EpochRemoved(uint256 epoch);
     event Deposited(IERC20 token, uint256 amount, uint256 epoch);
+    event ContractChanged(address vestingContract);
 
     error Claim_LenMissmatch();
     error Claim_ZeroAmount();
     error Claim_FutureEpoch();
     error Claim_AlreadyClaimed();
     error Claim_WrongProof();
-
-    constructor(
+constructor(
+        IERC20 _jellyToken,
         address _owner,
         address _pendingOwner
-    ) Ownable(_owner, _pendingOwner) {}
+    ) Ownable(_owner, _pendingOwner) {
+        jellyToken = _jellyToken;
+    }
 
     /**
      * @notice Creates epoch for distribtuin
@@ -83,12 +94,14 @@ contract StakingRewardDistrubtion is Ownable {
      * No return only Owner can call
      */
 
-    function deposit(IERC20 _token, uint256 _amount) public {
-        _token.safeTransferFrom(msg.sender,address(this), _amount);
+    function deposit(IERC20 _token, uint256 _amount) public returns (uint256) {
+        _token.safeTransferFrom(msg.sender, address(this), _amount);
 
-        tokensDeposited[epoch-1][_token] += _amount;
+        tokensDeposited[epoch][_token] += _amount;
 
-        emit Deposited(_token, _amount,epoch-1);
+        emit Deposited(_token, _amount, epoch);
+
+        return epoch;
     }
 
     /**
@@ -106,11 +119,12 @@ contract StakingRewardDistrubtion is Ownable {
         uint256 _epochId,
         IERC20[] calldata _tokens,
         uint256 _relativeVotingPower,
-        bytes32[] memory _merkleProof
+        bytes32[] memory _merkleProof,
+        bool isVesting
     ) public {
         if (_relativeVotingPower == 0) revert Claim_ZeroAmount();
 
-         if (_epochId >= epoch) revert Claim_FutureEpoch();
+        if (_epochId >= epoch) revert Claim_FutureEpoch();
 
         if (
             !_verifyClaim(
@@ -128,9 +142,17 @@ contract StakingRewardDistrubtion is Ownable {
                 _relativeVotingPower
             );
 
-            _tokens[token].safeTransfer(msg.sender, amount);
+            if (_tokens[token] == jellyToken) {
 
-            emit Claimed(msg.sender, amount, _tokens[token]);
+                if (isVesting) {
+                    _tokens[token].approve(vestingContract, amount);
+                    RewardVesting(vestingContract).vestLiqidty(
+                        amount,
+                        msg.sender
+                    );
+                } else _tokens[token].safeTransfer(msg.sender, amount / 2);
+                
+            } else _tokens[token].safeTransfer(msg.sender, amount);
         }
     }
 
@@ -149,7 +171,8 @@ contract StakingRewardDistrubtion is Ownable {
         uint256[] memory _epochIds,
         IERC20[] calldata _tokens,
         uint256[] memory _relativeVotingPowers,
-        bytes32[][] memory _merkleProofs
+        bytes32[][] memory _merkleProofs,
+        bool isVesting
     ) public {
         uint256 lenWeeks = _epochIds.length;
 
@@ -183,9 +206,19 @@ contract StakingRewardDistrubtion is Ownable {
             }
 
             if (totalBalance > 0) {
-                _tokens[token].safeTransfer(msg.sender, totalBalance);
-                
-                emit Claimed(msg.sender, totalBalance, _tokens[token]);
+                if (_tokens[token] == jellyToken) {
+                    if (isVesting) {
+                        _tokens[token].approve(vestingContract, totalBalance);
+                        RewardVesting(vestingContract).vestLiqidty(
+                            totalBalance,
+                            msg.sender
+                        );
+                    } else
+                        _tokens[token].safeTransfer(
+                            msg.sender,
+                            totalBalance / 2
+                        );
+                } else _tokens[token].safeTransfer(msg.sender, totalBalance);
             }
         }
     }
@@ -207,7 +240,26 @@ contract StakingRewardDistrubtion is Ownable {
         uint256 _relativeVotingPower,
         bytes32[] memory _merkleProof
     ) public view returns (bool valid) {
-        return _verifyClaim(_reciver, _epochId, _relativeVotingPower, _merkleProof);
+        return
+            _verifyClaim(
+                _reciver,
+                _epochId,
+                _relativeVotingPower,
+                _merkleProof
+            );
+    }
+
+     /**
+     * @notice Changes the vesting contract
+     *
+     * @param _vestingContract - address of vesting contract
+     *
+     * No return only Owner can call
+     */
+    function setVestingContract(address _vestingContract) public onlyOwner {
+        vestingContract = _vestingContract;
+
+        emit ContractChanged(_vestingContract);
     }
 
     function _claim(
@@ -215,14 +267,16 @@ contract StakingRewardDistrubtion is Ownable {
         IERC20 _token,
         uint256 _relativeVotingPower
     ) private returns (uint256 amount) {
-       
-
         if (claimed[_epochId][_token][msg.sender])
             revert Claim_AlreadyClaimed();
 
-        amount = tokensDeposited[_epochId][_token] * _relativeVotingPower/10**18;
+        amount =
+            (tokensDeposited[_epochId][_token] * _relativeVotingPower) /
+            10 ** 18;
 
         claimed[_epochId][_token][msg.sender] = true;
+
+        emit Claimed(msg.sender, amount, _token, _epochId);
     }
 
     function _verifyClaim(

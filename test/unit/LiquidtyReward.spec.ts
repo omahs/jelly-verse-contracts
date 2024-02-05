@@ -86,12 +86,12 @@ describe("LiquidityRewardDistrubtion", function () {
         const proof = tree.getProof(0);
 
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "100000", proof)
+          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "100000", proof,false)
         )
           .to.emit(LiquidityRewardDistrubtion, "Claimed")
           .withArgs(owner.address, constants.Zero, "100000");
 
-        expect(await (await erc20).balanceOf(owner.address)).eq("100000");
+        expect(await (await erc20).balanceOf(owner.address)).eq("50000");
       });
     });
 
@@ -101,7 +101,7 @@ describe("LiquidityRewardDistrubtion", function () {
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "1000000", proof)
+          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "1000000", proof,false)
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_WrongProof"
@@ -117,6 +117,7 @@ describe("LiquidityRewardDistrubtion", function () {
             constants.Zero,
             "100000",
             proof
+            ,false
           )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
@@ -129,7 +130,7 @@ describe("LiquidityRewardDistrubtion", function () {
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "0", proof)
+          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "0", proof,false)
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_ZeroAmount"
@@ -143,10 +144,11 @@ describe("LiquidityRewardDistrubtion", function () {
         await LiquidityRewardDistrubtion.claimWeek(
           constants.Zero,
           "100000",
-          proof
+          proof,
+          false
         );
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "100000", proof)
+          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "100000", proof,false)
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_AlreadyClaimed"
@@ -158,7 +160,7 @@ describe("LiquidityRewardDistrubtion", function () {
         const proof = tree.getProof(0);
 
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.One, "100000", proof)
+          LiquidityRewardDistrubtion.claimWeek(constants.One, "100000", proof,false)
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_FutureEpoch"
@@ -185,12 +187,13 @@ describe("LiquidityRewardDistrubtion", function () {
             [constants.Zero, constants.One],
             ["50000", "50000"],
             proof
+            ,false
           )
         )
           .to.emit(LiquidityRewardDistrubtion, "Claimed")
           .withArgs(owner.address, constants.Zero, "50000");
 
-        expect(await (await erc20).balanceOf(owner.address)).eq("100000");
+        expect(await (await erc20).balanceOf(owner.address)).eq("50000");
       });
     });
 
@@ -204,7 +207,7 @@ describe("LiquidityRewardDistrubtion", function () {
           LiquidityRewardDistrubtion.claimWeeks(
             [constants.Zero, constants.One],
             ["50000", "50000"],
-            proof
+            proof,false
           )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,

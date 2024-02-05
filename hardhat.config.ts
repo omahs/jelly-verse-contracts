@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
 		// npx hardhat verify --network rinkeby {contractAddress} [{constructor arguments}]
 		apiKey: {
 			sepolia: ETHERSCAN_API_KEY !== undefined ? ETHERSCAN_API_KEY : '',
-			dmc: BLOCKSCOUT_DMC_API_KEY !== undefined ? BLOCKSCOUT_DMC_API_KEY : ''
+			
 		},
 		customChains: [
 			{

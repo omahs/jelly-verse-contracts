@@ -17,13 +17,12 @@ describe("StakingRewardDistrubtion", function () {
     );
     const StakingRewardDistrubtion =
       await StakingRewardDistrubtionFactory.deploy(
+        erc20.address,
         deployer.address,
         constants.AddressZero
       );
 
-   await erc20.approve(StakingRewardDistrubtion.address, "100000");
-  
-    
+    await erc20.approve(StakingRewardDistrubtion.address, "100000");
 
     return { StakingRewardDistrubtion, deployer, user, otherSigners, erc20 };
   }
@@ -41,25 +40,22 @@ describe("StakingRewardDistrubtion", function () {
     pendingOwner = fixture.user;
     otherSigners = fixture.otherSigners;
     erc20 = fixture.erc20;
-    
   });
 
   describe("Create Epoch", async function () {
     describe("success", async () => {
       it("should create an epoch", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         await expect(StakingRewardDistrubtion.createEpoch(tree.root, ""))
           .to.emit(StakingRewardDistrubtion, "EpochAdded")
           .withArgs(constants.Zero, tree.root, "");
-
-       
       });
     });
 
     describe("failure", async () => {
       it("should not allow other users to create epoch", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         await expect(
           StakingRewardDistrubtion.connect(otherSigners[0]).createEpoch(
@@ -73,42 +69,51 @@ describe("StakingRewardDistrubtion", function () {
       });
     });
   });
+
   describe("Claim week", async function () {
     beforeEach(async function () {
-      const values = [[owner.address,ethers.utils.parseEther("1")]];
-      const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
-      await StakingRewardDistrubtion.createEpoch(tree.root, "");
-
       await StakingRewardDistrubtion.deposit(erc20.address, "100000");
 
-      
-
-
+      const values = [[owner.address, ethers.utils.parseEther("1")]];
+      const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
+      await StakingRewardDistrubtion.createEpoch(tree.root, "");
     });
+
     describe("success", async () => {
       it("should claim the amount", async () => {
         const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
 
-      
         await expect(
-          StakingRewardDistrubtion.claimWeek(constants.Zero,[erc20.address], ethers.utils.parseEther("1"), proof)
+          StakingRewardDistrubtion.claimWeek(
+            constants.Zero,
+            [erc20.address],
+            ethers.utils.parseEther("1"),
+            proof,
+            false
+          )
         )
           .to.emit(StakingRewardDistrubtion, "Claimed")
-          .withArgs(owner.address,  "100000",erc20.address);
+          .withArgs(owner.address, "100000", erc20.address, constants.Zero);
 
-        expect(await erc20.balanceOf(owner.address)).eq("100000");
+        expect(await erc20.balanceOf(owner.address)).eq("50000");
       });
     });
 
     describe("failure", async () => {
       it("should not allow to claim with wrong amount", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
         await expect(
-          StakingRewardDistrubtion.claimWeek(constants.Zero,[erc20.address], ethers.utils.parseEther("2"), proof)
+          StakingRewardDistrubtion.claimWeek(
+            constants.Zero,
+            [erc20.address],
+            ethers.utils.parseEther("2"),
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           StakingRewardDistrubtion,
           "Claim_WrongProof"
@@ -116,11 +121,19 @@ describe("StakingRewardDistrubtion", function () {
       });
 
       it("should not allow to claim with wrong address", async () => {
-        const values = [[otherSigners[0].address, ethers.utils.parseEther("1")]];
+        const values = [
+          [otherSigners[0].address, ethers.utils.parseEther("1")],
+        ];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
         await expect(
-          StakingRewardDistrubtion.connect(otherSigners[0]).claimWeek(constants.Zero,[erc20.address], ethers.utils.parseEther("1"), proof)
+          StakingRewardDistrubtion.connect(otherSigners[0]).claimWeek(
+            constants.Zero,
+            [erc20.address],
+            ethers.utils.parseEther("1"),
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           StakingRewardDistrubtion,
           "Claim_WrongProof"
@@ -128,36 +141,63 @@ describe("StakingRewardDistrubtion", function () {
       });
 
       it("should not allow to claim zero amount", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
         await expect(
-          StakingRewardDistrubtion.claimWeek(constants.Zero,[erc20.address], ethers.utils.parseEther("0"), proof)
+          StakingRewardDistrubtion.claimWeek(
+            constants.Zero,
+            [erc20.address],
+            ethers.utils.parseEther("0"),
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           StakingRewardDistrubtion,
           "Claim_ZeroAmount"
         );
       });
+
       it("should not allow to claim twice", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
 
-        await StakingRewardDistrubtion.claimWeek(constants.Zero,[erc20.address], ethers.utils.parseEther("1"), proof)
+        await StakingRewardDistrubtion.claimWeek(
+          constants.Zero,
+          [erc20.address],
+          ethers.utils.parseEther("1"),
+          proof,
+          false
+        );
+
         await expect(
-          StakingRewardDistrubtion.claimWeek(constants.Zero,[erc20.address], ethers.utils.parseEther("1"), proof)
+          StakingRewardDistrubtion.claimWeek(
+            constants.Zero,
+            [erc20.address],
+            ethers.utils.parseEther("1"),
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           StakingRewardDistrubtion,
           "Claim_AlreadyClaimed"
         );
       });
+
       it("should not allow to claim future epoch", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
 
         await expect(
-          StakingRewardDistrubtion.claimWeek(constants.One,[erc20.address], ethers.utils.parseEther("1"), proof)
+          StakingRewardDistrubtion.claimWeek(
+            constants.One,
+            [erc20.address],
+            ethers.utils.parseEther("1"),
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           StakingRewardDistrubtion,
           "Claim_FutureEpoch"
@@ -168,16 +208,18 @@ describe("StakingRewardDistrubtion", function () {
 
   describe("Claim weeks", async function () {
     beforeEach(async function () {
-      const values = [[owner.address,ethers.utils.parseEther("1")]];
+      const values = [[owner.address, ethers.utils.parseEther("1")]];
       const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
-      await StakingRewardDistrubtion.createEpoch(tree.root, "");
       await StakingRewardDistrubtion.deposit(erc20.address, "50000");
       await StakingRewardDistrubtion.createEpoch(tree.root, "");
       await StakingRewardDistrubtion.deposit(erc20.address, "50000");
+      ``;
+      await StakingRewardDistrubtion.createEpoch(tree.root, "");
     });
+
     describe("success", async () => {
       it("should claim the amounts", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = [tree.getProof(0), tree.getProof(0)];
 
@@ -186,13 +228,14 @@ describe("StakingRewardDistrubtion", function () {
             [constants.Zero, constants.One],
             [erc20.address],
             [ethers.utils.parseEther("1"), ethers.utils.parseEther("1")],
-            proof
+            proof,
+            false
           )
         )
           .to.emit(StakingRewardDistrubtion, "Claimed")
-          .withArgs(owner.address, "100000", erc20.address);
+          .withArgs(owner.address, "50000", erc20.address, constants.Zero);
 
-        expect(await (await erc20).balanceOf(owner.address)).eq("100000");
+        expect(await (await erc20).balanceOf(owner.address)).eq("50000");
       });
     });
 
@@ -207,7 +250,8 @@ describe("StakingRewardDistrubtion", function () {
             [constants.Zero, constants.One],
             [erc20.address],
             [ethers.utils.parseEther("1"), ethers.utils.parseEther("1")],
-            proof
+            proof,
+            false
           )
         ).to.be.revertedWithCustomError(
           StakingRewardDistrubtion,
@@ -216,12 +260,14 @@ describe("StakingRewardDistrubtion", function () {
       });
     });
   });
+
   describe("Verify claim", async function () {
     beforeEach(async function () {
-      const values = [[owner.address,ethers.utils.parseEther("1")]];
+      const values = [[owner.address, ethers.utils.parseEther("1")]];
       const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
       await StakingRewardDistrubtion.createEpoch(tree.root, "");
     });
+
     describe("success", async () => {
       it("should return true", async () => {
         const values = [[owner.address, "1000000"]];
@@ -229,61 +275,62 @@ describe("StakingRewardDistrubtion", function () {
         const proof = tree.getProof(0);
 
         expect(
-          await StakingRewardDistrubtion.verifyClaim(owner.address,constants.Zero, ethers.utils.parseEther("1"), proof)
-        )
-          .eq(true)
-
-      
+          await StakingRewardDistrubtion.verifyClaim(
+            owner.address,
+            constants.Zero,
+            ethers.utils.parseEther("1"),
+            proof
+          )
+        ).eq(true);
       });
     });
+
     describe("failure", async () => {
       it("should return false with wrong amount", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
 
         expect(
-          await StakingRewardDistrubtion.verifyClaim(owner.address,constants.Zero, ethers.utils.parseEther("0.5"), proof)
-        )
-          .eq(false)
-
-      
+          await StakingRewardDistrubtion.verifyClaim(
+            owner.address,
+            constants.Zero,
+            ethers.utils.parseEther("0.5"),
+            proof
+          )
+        ).eq(false);
       });
+
       it("should return false with wrong address", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
 
         expect(
-          await StakingRewardDistrubtion.verifyClaim(otherSigners[0].address,constants.Zero, ethers.utils.parseEther("1"), proof)
-        )
-          .eq(false)
-
-      
+          await StakingRewardDistrubtion.verifyClaim(
+            otherSigners[0].address,
+            constants.Zero,
+            ethers.utils.parseEther("1"),
+            proof
+          )
+        ).eq(false);
       });
     });
   });
+
   describe("Remove epoch", async function () {
-  
-      const values = [[owner.address,ethers.utils.parseEther("1")]];
+    const values = [[owner.address, ethers.utils.parseEther("1")]];
+    const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
+    await StakingRewardDistrubtion.createEpoch(tree.root, "");
+
+    it("should emit event", async () => {
+      const values = [[owner.address, ethers.utils.parseEther("1")]];
       const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
       await StakingRewardDistrubtion.createEpoch(tree.root, "");
-  
-   
-      it("should emit event", async () => {
-        const values = [[owner.address,ethers.utils.parseEther("1")]];
-        const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
-        await StakingRewardDistrubtion.createEpoch(tree.root, "");
-       
-       await expect(
-          StakingRewardDistrubtion.removeEpoch(constants.Zero)
-        )
-          .to.emit(StakingRewardDistrubtion, "EpochRemoved")
-          .withArgs(constants.Zero);
 
-      
-      });
-   
-   
+      await expect(StakingRewardDistrubtion.removeEpoch(constants.Zero))
+        .to.emit(StakingRewardDistrubtion, "EpochRemoved")
+        .withArgs(constants.Zero);
+    });
   });
 });

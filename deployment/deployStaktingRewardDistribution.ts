@@ -5,9 +5,10 @@ import { StakingRewardDistrubtion, StakingRewardDistrubtion__factory } from '../
 task(`deploy-staking-reward-distribution`, `Deploys the StakingRewardDistrubtion contract`)
 	.addParam(`owner`, `The multisig owner address`)
 	.addParam(`pendingowner`, `The pending owner address`)
+	.addParam(`token`, `The token address`)
 	.setAction(
 		async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
-			const { owner, pendingowner} = taskArguments;
+			const { owner, pendingowner,token} = taskArguments;
 			const [deployer] = await hre.ethers.getSigners();
 
 			console.log(
@@ -16,7 +17,7 @@ task(`deploy-staking-reward-distribution`, `Deploys the StakingRewardDistrubtion
 
 			const StakingRewardDistrubtionFactory: StakingRewardDistrubtion__factory =
 				await hre.ethers.getContractFactory('StakingRewardDistrubtion');
-			const StakingRewardDistrubtion: StakingRewardDistrubtion = await StakingRewardDistrubtionFactory.deploy( owner, pendingowner);
+			const StakingRewardDistrubtion: StakingRewardDistrubtion = await StakingRewardDistrubtionFactory.deploy(token, owner, pendingowner);
 
 			await StakingRewardDistrubtion.deployed();
 
