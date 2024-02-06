@@ -12,14 +12,14 @@ import {Ownable} from "./utils/Ownable.sol";
  * @notice Contract for swapping native tokens for jelly tokens
  */
 contract Allocator is ReentrancyGuard, Ownable {
-    address internal immutable i_jellyToken;
-    address internal immutable weth;
-    uint256 internal nativeToJellyRatio;
-    bytes32 internal jellySwapPoolId;
-    address internal jellySwapVault; // ───╮
-    bool internal isOver; // ──────────────╯
+    address public immutable i_jellyToken;
+    address public immutable weth;
+    uint256 public nativeToJellyRatio;
+    bytes32 public jellySwapPoolId;
+    address public jellySwapVault; // ───╮
+    bool public isOver; // ──────────────╯
 
-    event BuyWithNative(uint256 nativeAmount, uint256 jellyAmount);
+    event BuyWithNative(uint256 nativeAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
     event NativeToJellyRatioSet(uint256 nativeToJellyRatio);
 
@@ -109,7 +109,7 @@ contract Allocator is ReentrancyGuard, Ownable {
 
         IJellyToken(i_jellyToken).transfer(msg.sender, jellyAmount);
 
-        emit BuyWithNative(amount, jellyAmount);
+        emit BuyWithNative(amount, jellyAmount, msg.sender);
     }
 
     /**
@@ -139,15 +139,6 @@ contract Allocator is ReentrancyGuard, Ownable {
         nativeToJellyRatio = _nativeToJellyRatio;
 
         emit NativeToJellyRatioSet(nativeToJellyRatio);
-    }
-
-    /**
-     * @notice Gets Native Token To Jelly Ratio.
-     *
-     * @return nativeToJellyRatio - ratio of native token to jelly.
-     */
-    function getRatio() external view returns (uint256) {
-        return nativeToJellyRatio;
     }
 
     function _convertERC20sToAssets(

@@ -1,4 +1,4 @@
-import { loadFixture, mine, time,  } from '@nomicfoundation/hardhat-network-helpers';
+import { loadFixture, mine, time, setPrevRandao } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { unitDailySnapshotFixture } from '../fixtures/unit__DailySnapshot';
@@ -94,20 +94,22 @@ describe('DailySnapshot', function () {
         const epoch = await dailySnapshot.epoch();
         const epochDaysIndex = await dailySnapshot.epochDaysIndex();
         const beginningOfTheNewDayBlocknumber = await dailySnapshot.beginningOfTheNewDayBlocknumber();
-        const randomValueBasedOnPrevrandao = 6204; // always the same in tests (block.prevrandao % 7200)
+        const prevrandao = 12340; // prevrandao is used to generate random value and it's % 7200
+        await setPrevRandao(prevrandao);
         await dailySnapshot.dailySnapshot();
-        expect(await dailySnapshot.dailySnapshotsPerEpoch(epoch, epochDaysIndex)).to.equal(beginningOfTheNewDayBlocknumber + randomValueBasedOnPrevrandao);
+        expect(await dailySnapshot.dailySnapshotsPerEpoch(epoch, epochDaysIndex)).to.equal(beginningOfTheNewDayBlocknumber + prevrandao % 7200);
       });
 
       it("should emit DailySnapshotAdded event", async () => {
         const beginningOfTheNewDayBlocknumber = await dailySnapshot.beginningOfTheNewDayBlocknumber();
-        const randomValueBasedOnPrevrandao = 6204; // always the same in tests
         const epoch = await dailySnapshot.epoch();
         const epochDaysIndex = await dailySnapshot.epochDaysIndex();
         await mine(ONE_DAY);
+        const prevrandao = 12340; // prevrandao is used to generate random value and it's % 7200
+        await setPrevRandao(prevrandao);        
         await expect(dailySnapshot.dailySnapshot())
         .to.emit(dailySnapshot, 'DailySnapshotAdded')
-        .withArgs(owner.address, epoch, beginningOfTheNewDayBlocknumber + randomValueBasedOnPrevrandao, epochDaysIndex);
+        .withArgs(owner.address, epoch, beginningOfTheNewDayBlocknumber + prevrandao % 7200, epochDaysIndex);
       });
 
       it("should set epochDaysIndex to 0 if 7 snapshoots done", async () => {
