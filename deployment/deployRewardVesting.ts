@@ -53,7 +53,7 @@ task(`deploy-reward-vesting`, `Deploys the StakingRewardDistrubtion contract`)
         );
 
         console.log(
-          `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${RewardVesting.address} ${liquidityContract} ${stakingContract} ${token} ${owner} ${pendingowner}`
+          `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${owner} ${pendingowner} ${RewardVesting.address} ${liquidityContract} ${stakingContract} ${token} `
         );
       }
     }

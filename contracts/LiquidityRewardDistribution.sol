@@ -98,12 +98,9 @@ contract LiquidityRewardDistrubtion is Ownable {
         _claimWeek(_epochId, _amount, _merkleProof);
 
         if (_isVesting) {
-                token.approve(vestingContract, _amount);
-                RewardVesting(vestingContract).vestLiquidity(
-                    _amount,
-                    msg.sender
-                );
-            } else token.safeTransfer(msg.sender, _amount / 2);
+            token.approve(vestingContract, _amount);
+            RewardVesting(vestingContract).vestLiquidity(_amount, msg.sender);
+        } else token.safeTransfer(msg.sender, _amount / 2);
     }
 
     /**
@@ -168,7 +165,7 @@ contract LiquidityRewardDistrubtion is Ownable {
         return _verifyClaim(_reciver, _epochId, _amount, _merkleProof);
     }
 
-     /**
+    /**
      * @notice Changes the vesting contract
      *
      * @param _vestingContract - address of vesting contract
@@ -198,9 +195,6 @@ contract LiquidityRewardDistrubtion is Ownable {
         emit Claimed(msg.sender, _epochId, _amount);
     }
 
-
-   
-
     function _verifyClaim(
         address _receiver,
         uint256 _epochId,
@@ -212,5 +206,4 @@ contract LiquidityRewardDistrubtion is Ownable {
 
         return MerkleProof.verify(_merkleProof, merkleRoots[_epochId], leaf);
     }
-
 }

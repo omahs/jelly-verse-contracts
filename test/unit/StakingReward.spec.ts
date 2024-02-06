@@ -341,19 +341,34 @@ describe("StakingRewardDistribution", function () {
     const values = [[owner.address, ethers.utils.parseEther("1")]];
     const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
     await StakingRewardDistribution.createEpoch(tree.root, "");
+    
+    describe("success", async () => {
+      it("should emit event", async () => {
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
+        const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
+        await StakingRewardDistribution.createEpoch(tree.root, "");
 
-    it("should emit event", async () => {
-      const values = [[owner.address, ethers.utils.parseEther("1")]];
-      const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
-      await StakingRewardDistribution.createEpoch(tree.root, "");
+        await expect(StakingRewardDistribution.removeEpoch(constants.Zero))
+          .to.emit(StakingRewardDistribution, "EpochRemoved")
+          .withArgs(constants.Zero);
 
-      await expect(StakingRewardDistribution.removeEpoch(constants.Zero))
-        .to.emit(StakingRewardDistribution, "EpochRemoved")
-        .withArgs(constants.Zero);
-
-      expect(await StakingRewardDistribution.epoch(constants.Zero)).eq(
-        constants.Zero
-      );
+        expect(await StakingRewardDistribution.epoch(constants.Zero)).eq(
+          constants.Zero
+        );
+      });
+    });
+    
+    describe("failure", async () => {
+      it("should not allow other users to remove epoch", async () => {
+        await expect(
+          StakingRewardDistribution.connect(otherSigners[0]).removeEpoch(
+            constants.Zero
+          )
+        ).to.be.revertedWithCustomError(
+          StakingRewardDistribution,
+          "Ownable__CallerIsNotOwner"
+        );
+      });
     });
   });
 });
