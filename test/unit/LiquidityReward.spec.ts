@@ -9,22 +9,20 @@ describe("LiquidityRewardDistrubtion", function () {
     const [deployer, user, ...otherSigners] = await ethers.getSigners();
 
     const ERC20Factory = await ethers.getContractFactory("ERC20Token");
-    const erc20 = ERC20Factory.deploy("test", "test");
-    (await erc20).mint("100000");
+    const erc20 = await ERC20Factory.deploy("test", "test");
+    erc20.mint("100000");
 
     const LiquidityRewardDistrubtionFactory = await ethers.getContractFactory(
       "LiquidityRewardDistrubtion"
     );
     const LiquidityRewardDistrubtion =
       await LiquidityRewardDistrubtionFactory.deploy(
-        (
-          await erc20
-        ).address,
+        erc20.address,
         deployer.address,
         "0x0000000000000000000000000000000000000000"
       );
 
-    (await erc20).transfer(LiquidityRewardDistrubtion.address, "100000");
+    await erc20.transfer(LiquidityRewardDistrubtion.address, "100000");
 
     return { LiquidityRewardDistrubtion, deployer, user, otherSigners, erc20 };
   }
@@ -53,7 +51,10 @@ describe("LiquidityRewardDistrubtion", function () {
           .to.emit(LiquidityRewardDistrubtion, "EpochAdded")
           .withArgs(constants.Zero, tree.root, "");
 
-      
+        expect(await LiquidityRewardDistrubtion.epoch()).eq(constants.One);
+        expect(await LiquidityRewardDistrubtion.merkleRoots(constants.Zero)).eq(
+          tree.root
+        );
       });
     });
 
@@ -81,17 +82,28 @@ describe("LiquidityRewardDistrubtion", function () {
     });
     describe("success", async () => {
       it("should claim the amount", async () => {
-        const values = [[otherSigners[0].address, "1000000"]];
+        const values = [[otherSigners[0].address, "100000"]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
 
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "100000", proof,false)
+          LiquidityRewardDistrubtion.claimWeek(
+            constants.Zero,
+            "100000",
+            proof,
+            false
+          )
         )
           .to.emit(LiquidityRewardDistrubtion, "Claimed")
           .withArgs(owner.address, constants.Zero, "100000");
 
-        expect(await (await erc20).balanceOf(owner.address)).eq("50000");
+        expect(await erc20.balanceOf(owner.address)).eq("50000");
+        expect(
+          await LiquidityRewardDistrubtion.claimed(
+            constants.Zero,
+            owner.address
+          )
+        ).eq(true);
       });
     });
 
@@ -101,7 +113,12 @@ describe("LiquidityRewardDistrubtion", function () {
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "1000000", proof,false)
+          LiquidityRewardDistrubtion.claimWeek(
+            constants.Zero,
+            "1000000",
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_WrongProof"
@@ -116,8 +133,8 @@ describe("LiquidityRewardDistrubtion", function () {
           LiquidityRewardDistrubtion.connect(otherSigners[0]).claimWeek(
             constants.Zero,
             "100000",
-            proof
-            ,false
+            proof,
+            false
           )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
@@ -130,7 +147,12 @@ describe("LiquidityRewardDistrubtion", function () {
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "0", proof,false)
+          LiquidityRewardDistrubtion.claimWeek(
+            constants.Zero,
+            "0",
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_ZeroAmount"
@@ -148,7 +170,12 @@ describe("LiquidityRewardDistrubtion", function () {
           false
         );
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.Zero, "100000", proof,false)
+          LiquidityRewardDistrubtion.claimWeek(
+            constants.Zero,
+            "100000",
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_AlreadyClaimed"
@@ -160,7 +187,12 @@ describe("LiquidityRewardDistrubtion", function () {
         const proof = tree.getProof(0);
 
         await expect(
-          LiquidityRewardDistrubtion.claimWeek(constants.One, "100000", proof,false)
+          LiquidityRewardDistrubtion.claimWeek(
+            constants.One,
+            "100000",
+            proof,
+            false
+          )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
           "Claim_FutureEpoch"
@@ -186,14 +218,23 @@ describe("LiquidityRewardDistrubtion", function () {
           LiquidityRewardDistrubtion.claimWeeks(
             [constants.Zero, constants.One],
             ["50000", "50000"],
-            proof
-            ,false
+            proof,
+            false
           )
         )
           .to.emit(LiquidityRewardDistrubtion, "Claimed")
           .withArgs(owner.address, constants.Zero, "50000");
 
-        expect(await (await erc20).balanceOf(owner.address)).eq("50000");
+        expect(await erc20.balanceOf(owner.address)).eq("50000");
+        expect(
+          await LiquidityRewardDistrubtion.claimed(
+            constants.Zero,
+            owner.address
+          )
+        ).eq(true);
+        expect(
+          await LiquidityRewardDistrubtion.claimed(constants.One, owner.address)
+        ).eq(true);
       });
     });
 
@@ -207,7 +248,8 @@ describe("LiquidityRewardDistrubtion", function () {
           LiquidityRewardDistrubtion.claimWeeks(
             [constants.Zero, constants.One],
             ["50000", "50000"],
-            proof,false
+            proof,
+            false
           )
         ).to.be.revertedWithCustomError(
           LiquidityRewardDistrubtion,
@@ -229,11 +271,13 @@ describe("LiquidityRewardDistrubtion", function () {
         const proof = tree.getProof(0);
 
         expect(
-          await LiquidityRewardDistrubtion.verifyClaim(owner.address,constants.Zero, "100000", proof)
-        )
-          .eq(true)
-
-      
+          await LiquidityRewardDistrubtion.verifyClaim(
+            owner.address,
+            constants.Zero,
+            "100000",
+            proof
+          )
+        ).eq(true);
       });
     });
     describe("failure", async () => {
@@ -243,11 +287,13 @@ describe("LiquidityRewardDistrubtion", function () {
         const proof = tree.getProof(0);
 
         expect(
-          await LiquidityRewardDistrubtion.verifyClaim(owner.address,constants.Zero, "1000", proof)
-        )
-          .eq(false)
-
-      
+          await LiquidityRewardDistrubtion.verifyClaim(
+            owner.address,
+            constants.Zero,
+            "1000",
+            proof
+          )
+        ).eq(false);
       });
       it("should return false with wrong address", async () => {
         const values = [[owner.address, "100000"]];
@@ -255,35 +301,33 @@ describe("LiquidityRewardDistrubtion", function () {
         const proof = tree.getProof(0);
 
         expect(
-          await LiquidityRewardDistrubtion.verifyClaim(otherSigners[0].address,constants.Zero, "100000", proof)
-        )
-          .eq(false)
-
-      
+          await LiquidityRewardDistrubtion.verifyClaim(
+            otherSigners[0].address,
+            constants.Zero,
+            "100000",
+            proof
+          )
+        ).eq(false);
       });
     });
   });
   describe("Remove epoch", async function () {
-  
+    const values = [[owner.address, "100000"]];
+    const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
+    await LiquidityRewardDistrubtion.createEpoch(tree.root, "");
+
+    it("should emit event", async () => {
       const values = [[owner.address, "100000"]];
       const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
       await LiquidityRewardDistrubtion.createEpoch(tree.root, "");
-  
-   
-      it("should emit event", async () => {
-        const values = [[owner.address, "100000"]];
-        const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
-        await LiquidityRewardDistrubtion.createEpoch(tree.root, "");
-       
-       await expect(
-          LiquidityRewardDistrubtion.removeEpoch(constants.Zero)
-        )
-          .to.emit(LiquidityRewardDistrubtion, "EpochRemoved")
-          .withArgs(constants.Zero);
 
-      
-      });
-   
-   
+      await expect(LiquidityRewardDistrubtion.removeEpoch(constants.Zero))
+        .to.emit(LiquidityRewardDistrubtion, "EpochRemoved")
+        .withArgs(constants.Zero);
+    });
+
+    expect(await LiquidityRewardDistrubtion.epoch(constants.Zero)).eq(
+      constants.Zero
+    );
   });
 });

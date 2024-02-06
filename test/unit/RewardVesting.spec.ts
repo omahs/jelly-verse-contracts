@@ -1,4 +1,4 @@
-import { loadFixture,time} from "@nomicfoundation/hardhat-network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect, assert } from "chai";
 import { Signer, constants } from "ethers";
 import { ethers } from "hardhat";
@@ -53,32 +53,38 @@ describe("RewardVesting", function () {
   describe("Vest Liquidity", async function () {
     describe("success", async () => {
       it("should vest an amount", async () => {
-        await expect(RewardVesting.vestLiqidty(amount, owner.address))
+        await expect(RewardVesting.vestLiquidity(amount, owner.address))
           .to.emit(RewardVesting, "VestedLiqidty")
           .withArgs(amount, owner.address);
+
+        const position = await RewardVesting.liquidityVestedPositions(
+          owner.address
+        );
+        const timestamp = await time.latest();
+        expect(position[0]).eq(amount);
+        expect(position[1]).eq(timestamp);
       });
-      expect(await erc20.balanceOf(RewardVesting.address)).eq(amount);
     });
 
     describe("failure", async () => {
       it("should not allow other addresses to vest", async () => {
         await expect(
-          RewardVesting.connect(otherSigners[0]).vestLiqidty(
+          RewardVesting.connect(otherSigners[0]).vestLiquidity(
             amount,
             owner.address
           )
-        ).to.be.revertedWithCustomError(RewardVesting, "Vest_InvalidCaller");
+        ).to.be.revertedWithCustomError(RewardVesting, "Vest__InvalidCaller");
       });
 
       it("should not allow benificary to ve zero address", async () => {
         await expect(
-          RewardVesting.vestLiqidty(amount, constants.AddressZero)
+          RewardVesting.vestLiquidity(amount, constants.AddressZero)
         ).to.be.revertedWithCustomError(RewardVesting, "Vest__ZeroAddress");
       });
 
       it("should not allow zero amount to vest", async () => {
         await expect(
-          RewardVesting.vestLiqidty(constants.Zero, owner.address)
+          RewardVesting.vestLiquidity(constants.Zero, owner.address)
         ).to.be.revertedWithCustomError(
           RewardVesting,
           "Vest__InvalidVestingAmount"
@@ -86,54 +92,57 @@ describe("RewardVesting", function () {
       });
 
       it("should not allow to vest if vested", async () => {
-        await RewardVesting.vestLiqidty(amount, owner.address);
+        await RewardVesting.vestLiquidity(amount, owner.address);
 
         await expect(
-          RewardVesting.vestLiqidty(amount, owner.address)
+          RewardVesting.vestLiquidity(amount, owner.address)
         ).to.be.revertedWithCustomError(RewardVesting, "Vest__AlreadyVested");
       });
     });
   });
 
   describe("Claim Liquidity", async function () {
-
     beforeEach(async function () {
-      await RewardVesting.vestLiqidty(amount, owner.address);
+      await RewardVesting.vestLiquidity(amount, owner.address);
     });
 
     describe("success", async () => {
-      it("should calim full amount", async () => {
-        ethers.provider.send('evm_increaseTime', [30 * 24 * 60 * 60]);
+      it("should claim full amount", async () => {
+        ethers.provider.send("evm_increaseTime", [30 * 24 * 60 * 60]);
 
-        await expect(RewardVesting.claimLiquidty())
-          .to.emit(RewardVesting, "VestingLiquidtyClaimed")
+        await expect(RewardVesting.claimLiquidity())
+          .to.emit(RewardVesting, "VestingLiquidityClaimed")
           .withArgs(amount, owner.address);
 
-          expect(await erc20.balanceOf(owner.address)).eq(amount);
+        expect(await erc20.balanceOf(owner.address)).eq(amount);
+        const position = await RewardVesting.liquidityVestedPositions(
+          owner.address
+        );
+        expect(position[0]).eq(constants.Zero);
       });
 
-      it("should calim half amount", async () => {
-        ethers.provider.send('evm_increaseTime', [15 * 24 * 60 * 60]);
+      it("should claim half amount", async () => {
+        ethers.provider.send("evm_increaseTime", [15 * 24 * 60 * 60]);
 
-        await expect(RewardVesting.claimLiquidty())
-          .to.emit(RewardVesting, "VestingLiquidtyClaimed")
-          .withArgs(amount *0.75, owner.address);
+        await expect(RewardVesting.claimLiquidity())
+          .to.emit(RewardVesting, "VestingLiquidityClaimed")
+          .withArgs(amount * 0.75, owner.address);
 
-
-          expect(await erc20.balanceOf(owner.address)).eq(amount*0.75);
+        expect(await erc20.balanceOf(owner.address)).eq(amount * 0.75);
+        const position = await RewardVesting.liquidityVestedPositions(
+          owner.address
+        );
+        expect(position[0]).eq(constants.Zero);
       });
-   
     });
 
     describe("failure", async () => {
       it("should not allow to claim twice", async () => {
-
-         await RewardVesting.claimLiquidty();
+        await RewardVesting.claimLiquidity();
         await expect(
-          RewardVesting.claimLiquidty()
+          RewardVesting.claimLiquidity()
         ).to.be.revertedWithCustomError(RewardVesting, "Vest__NothingToClaim");
       });
-     
     });
   });
 
@@ -145,6 +154,12 @@ describe("RewardVesting", function () {
           .withArgs(amount, owner.address);
       });
       expect(await erc20.balanceOf(RewardVesting.address)).eq(amount);
+      const position = await RewardVesting.liquidityVestedPositions(
+        owner.address
+      );
+      const timestamp = await time.latest();
+      expect(position[0]).eq(amount);
+      expect(position[1]).eq(timestamp);
     });
 
     describe("failure", async () => {
@@ -154,7 +169,7 @@ describe("RewardVesting", function () {
             amount,
             owner.address
           )
-        ).to.be.revertedWithCustomError(RewardVesting, "Vest_InvalidCaller");
+        ).to.be.revertedWithCustomError(RewardVesting, "Vest__InvalidCaller");
       });
 
       it("should not allow benificary to ve zero address", async () => {
@@ -173,54 +188,59 @@ describe("RewardVesting", function () {
       });
 
       it("should not allow to vest if vested", async () => {
-        await RewardVesting.vestLiqidty(amount, owner.address);
+        await RewardVesting.vestLiquidity(amount, owner.address);
 
         await expect(
-          RewardVesting.vestLiqidty(amount, owner.address)
+          RewardVesting.vestLiquidity(amount, owner.address)
         ).to.be.revertedWithCustomError(RewardVesting, "Vest__AlreadyVested");
       });
     });
   });
 
   describe("Claim Staking", async function () {
-
     beforeEach(async function () {
       await RewardVesting.vestStaking(amount, owner.address);
     });
 
     describe("success", async () => {
-      it("should calim full amount", async () => {
-        ethers.provider.send('evm_increaseTime', [30 * 24 * 60 * 60]);
+      it("should claim full amount", async () => {
+        ethers.provider.send("evm_increaseTime", [30 * 24 * 60 * 60]);
 
         await expect(RewardVesting.claimStaking())
           .to.emit(RewardVesting, "VestingStakingClaimed")
           .withArgs(amount, owner.address);
 
-          expect(await erc20.balanceOf(owner.address)).eq(amount);
+        expect(await erc20.balanceOf(owner.address)).eq(amount);
+   
+        const position = await RewardVesting.liquidityVestedPositions(
+          owner.address
+        );
+        expect(position[0]).eq(constants.Zero);
       });
 
-      it("should calim half amount", async () => {
-        ethers.provider.send('evm_increaseTime', [15 * 24 * 60 * 60]);
+      it("should claim half amount", async () => {
+        ethers.provider.send("evm_increaseTime", [15 * 24 * 60 * 60]);
 
         await expect(RewardVesting.claimStaking())
           .to.emit(RewardVesting, "VestingStakingClaimed")
-          .withArgs(amount *0.75, owner.address);
+          .withArgs(amount * 0.75, owner.address);
 
-
-          expect(await erc20.balanceOf(owner.address)).eq(amount*0.75);
+        expect(await erc20.balanceOf(owner.address)).eq(amount * 0.75);
+       
+        const position = await RewardVesting.liquidityVestedPositions(
+          owner.address
+        );
+        expect(position[0]).eq(constants.Zero);
       });
-   
     });
 
     describe("failure", async () => {
       it("should not allow to claim twice", async () => {
-
-         await RewardVesting.claimStaking();
+        await RewardVesting.claimStaking();
         await expect(
           RewardVesting.claimStaking()
         ).to.be.revertedWithCustomError(RewardVesting, "Vest__NothingToClaim");
       });
-     
     });
   });
 });

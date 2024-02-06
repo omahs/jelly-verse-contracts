@@ -15,7 +15,7 @@ task(`deploy-reward-vesting`, `Deploys the StakingRewardDistrubtion contract`)
       const [deployer] = await hre.ethers.getSigners();
 
       console.log(
-        `ℹ️  Attempting to deploy the RewardVesting smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${owner} as the multisig owner address, ${pendingowner} as the pending owner address if needed...`
+        `ℹ️  Attempting to deploy the RewardVesting smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${owner} as the multisig owner address, ${liquidityContract} as the liquidity contract, ${stakingContract} as the staking contract, ${token} as the token address, li ${pendingowner} as the pending owner address if needed...`
       );
 
       const RewardVestingFactory: RewardVesting__factory =
@@ -39,7 +39,13 @@ task(`deploy-reward-vesting`, `Deploys the StakingRewardDistrubtion contract`)
       try {
         await hre.run(`verify:verify`, {
           address: RewardVesting.address,
-          constructorArguments: [owner, pendingowner],
+          constructorArguments: [
+            owner,
+            pendingowner,
+            liquidityContract,
+            stakingContract,
+            token,
+          ],
         });
       } catch (error) {
         console.log(
@@ -47,7 +53,7 @@ task(`deploy-reward-vesting`, `Deploys the StakingRewardDistrubtion contract`)
         );
 
         console.log(
-          `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${RewardVesting.address} ${owner} ${pendingowner}`
+          `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${RewardVesting.address} ${liquidityContract} ${stakingContract} ${token} ${owner} ${pendingowner}`
         );
       }
     }

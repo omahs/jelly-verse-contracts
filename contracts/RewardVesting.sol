@@ -9,43 +9,43 @@ import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 contract RewardVesting is Ownable {
     using SafeERC20 for IERC20;
 
-    struct VestingPostion {
+    struct VestingPosition {
         uint256 vestedAmount;
         uint48 startTime;
     }
 
-    mapping(address => VestingPostion) public liquidtyVestedPotitions;
-    mapping(address => VestingPostion) public stakingVestedPotitions;
-    address public liquidtyContract;
+    mapping(address => VestingPosition) public liquidityVestedPositions;
+    mapping(address => VestingPosition) public stakingVestedPositions;
+    address public liquidityContract;
     address public stakingContract;
     IERC20 public jellyToken;
     uint48 public vestingPeriod = 30 days;
 
-    error Vest_InvalidCaller();
+    error Vest__InvalidCaller();
     error Vest__ZeroAddress();
     error Vest__InvalidVestingAmount();
     error Vest__AlreadyVested();
     error Vest__NothingToClaim();
 
-    event VestedLiqidty(uint256 amount, address _eneficiary);
-    event VestingLiquidtyClaimed(uint256 amount, address _eneficiary);
-    event VestedStaking(uint256 amount, address _eneficiary);
-    event VestingStakingClaimed(uint256 amount, address _eneficiary);
+    event VestedLiqidty(uint256 amount, address _beneficiary);
+    event VestingLiquidityClaimed(uint256 amount, address _beneficiary);
+    event VestedStaking(uint256 amount, address _beneficiary);
+    event VestingStakingClaimed(uint256 amount, address _beneficiary);
 
     constructor(
         address _owner,
         address _pendingOwner,
-        address _liquidtyContract,
+        address _liquidityContract,
         address _stakingContract,
         address _jellyToken
     ) Ownable(_owner, _pendingOwner) {
         stakingContract = _stakingContract;
-        liquidtyContract = _liquidtyContract;
+        liquidityContract = _liquidityContract;
         jellyToken = IERC20(_jellyToken);
     }
 
     /**
-     * @notice Vest liquidty
+     * @notice Vest liquidity
      *
      * @param _amount - amount of tokens to deposit
      * @param _beneficiary - address of beneficiary
@@ -53,15 +53,15 @@ contract RewardVesting is Ownable {
      * No return only Vesting contract can call
      */
 
-    function vestLiqidty(uint256 _amount, address _beneficiary) public {
-        if (msg.sender != liquidtyContract) revert Vest_InvalidCaller();
+    function vestLiquidity(uint256 _amount, address _beneficiary) public {
+        if (msg.sender != liquidityContract) revert Vest__InvalidCaller();
         if (_amount == 0) revert Vest__InvalidVestingAmount();
         if (_beneficiary == address(0)) revert Vest__ZeroAddress();
-        if (liquidtyVestedPotitions[_beneficiary].vestedAmount != 0)
+        if (liquidityVestedPositions[_beneficiary].vestedAmount != 0)
             revert Vest__AlreadyVested();
 
-        liquidtyVestedPotitions[_beneficiary].vestedAmount = _amount;
-        liquidtyVestedPotitions[_beneficiary].startTime = SafeCast.toUint48(
+        liquidityVestedPositions[_beneficiary].vestedAmount = _amount;
+        liquidityVestedPositions[_beneficiary].startTime = SafeCast.toUint48(
             block.timestamp
         );
 
@@ -76,16 +76,16 @@ contract RewardVesting is Ownable {
      * No return
      */
 
-    function claimLiquidty() public {
-        if (liquidtyVestedPotitions[msg.sender].vestedAmount == 0)
+    function claimLiquidity() public {
+        if (liquidityVestedPositions[msg.sender].vestedAmount == 0)
             revert Vest__NothingToClaim();
 
-        uint256 amount = vestedLiquidtyAmount(msg.sender);
+        uint256 amount = vestedLiquidityAmount(msg.sender);
 
-        liquidtyVestedPotitions[msg.sender].vestedAmount = 0;
+        liquidityVestedPositions[msg.sender].vestedAmount = 0;
         jellyToken.safeTransfer(msg.sender, amount);
 
-        emit VestingLiquidtyClaimed(amount, msg.sender);
+        emit VestingLiquidityClaimed(amount, msg.sender);
     }
 
     /**
@@ -96,10 +96,10 @@ contract RewardVesting is Ownable {
      * Return amount of tokens vested
      */
 
-    function vestedLiquidtyAmount(
+    function vestedLiquidityAmount(
         address _beneficiary
     ) public view returns (uint256 amount) {
-        VestingPostion storage vestingPosition = liquidtyVestedPotitions[
+        VestingPosition storage vestingPosition = liquidityVestedPositions[
             _beneficiary
         ];
 
@@ -125,14 +125,14 @@ contract RewardVesting is Ownable {
      */
 
     function vestStaking(uint256 _amount, address _beneficiary) public {
-        if (msg.sender != stakingContract) revert Vest_InvalidCaller();
+        if (msg.sender != stakingContract) revert Vest__InvalidCaller();
         if (_amount == 0) revert Vest__InvalidVestingAmount();
         if (_beneficiary == address(0)) revert Vest__ZeroAddress();
-        if (stakingVestedPotitions[_beneficiary].vestedAmount != 0)
+        if (stakingVestedPositions[_beneficiary].vestedAmount != 0)
             revert Vest__AlreadyVested();
 
-        stakingVestedPotitions[_beneficiary].vestedAmount = _amount;
-        stakingVestedPotitions[_beneficiary].startTime = SafeCast.toUint48(
+        stakingVestedPositions[_beneficiary].vestedAmount = _amount;
+        stakingVestedPositions[_beneficiary].startTime = SafeCast.toUint48(
             block.timestamp
         );
 
@@ -147,12 +147,12 @@ contract RewardVesting is Ownable {
      * No return
      */
     function claimStaking() public {
-        if (stakingVestedPotitions[msg.sender].vestedAmount == 0)
+        if (stakingVestedPositions[msg.sender].vestedAmount == 0)
             revert Vest__NothingToClaim();
 
         uint256 amount = vestedStakingAmount(msg.sender);
 
-        stakingVestedPotitions[msg.sender].vestedAmount = 0;
+        stakingVestedPositions[msg.sender].vestedAmount = 0;
         jellyToken.safeTransfer(msg.sender, amount);
 
         emit VestingStakingClaimed(amount, msg.sender);
@@ -169,7 +169,7 @@ contract RewardVesting is Ownable {
     function vestedStakingAmount(
         address _beneficiary
     ) public view returns (uint256 amount) {
-        VestingPostion storage vestingPosition = stakingVestedPotitions[
+        VestingPosition storage vestingPosition = stakingVestedPositions[
             _beneficiary
         ];
 

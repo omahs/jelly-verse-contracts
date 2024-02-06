@@ -5,14 +5,14 @@ import "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {RewardVesting} from "./RewardVesting.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 /**
- * @title StakingRewardDistrubtion contract
+ * @title StakingRewardDistributioncontract
  * @notice Contract for distributing staking rewards
  */
 
-contract StakingRewardDistrubtion is Ownable {
+contract StakingRewardDistribution is Ownable {
     using SafeERC20 for IERC20;
 
     mapping(uint256 => bytes32) public merkleRoots;
@@ -30,7 +30,7 @@ contract StakingRewardDistrubtion is Ownable {
         IERC20 token,
         uint256 epoch
     );
-    event EpochAdded(uint256 Epoch, bytes32 merkleRoot, string _ipfs);
+    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string _ipfs);
     event EpochRemoved(uint256 epoch);
     event Deposited(IERC20 token, uint256 amount, uint256 epoch);
     event ContractChanged(address vestingContract);
@@ -40,7 +40,8 @@ contract StakingRewardDistrubtion is Ownable {
     error Claim_FutureEpoch();
     error Claim_AlreadyClaimed();
     error Claim_WrongProof();
-constructor(
+
+    constructor(
         IERC20 _jellyToken,
         address _owner,
         address _pendingOwner
@@ -120,7 +121,7 @@ constructor(
         IERC20[] calldata _tokens,
         uint256 _relativeVotingPower,
         bytes32[] memory _merkleProof,
-        bool isVesting
+        bool _isVesting
     ) public {
         if (_relativeVotingPower == 0) revert Claim_ZeroAmount();
 
@@ -144,9 +145,9 @@ constructor(
 
             if (_tokens[token] == jellyToken) {
 
-                if (isVesting) {
+                if (_isVesting) {
                     _tokens[token].approve(vestingContract, amount);
-                    RewardVesting(vestingContract).vestLiqidty(
+                    RewardVesting(vestingContract).vestStaking(
                         amount,
                         msg.sender
                     );
@@ -172,7 +173,7 @@ constructor(
         IERC20[] calldata _tokens,
         uint256[] memory _relativeVotingPowers,
         bytes32[][] memory _merkleProofs,
-        bool isVesting
+        bool _isVesting
     ) public {
         uint256 lenWeeks = _epochIds.length;
 
@@ -207,9 +208,9 @@ constructor(
 
             if (totalBalance > 0) {
                 if (_tokens[token] == jellyToken) {
-                    if (isVesting) {
+                    if (_isVesting) {
                         _tokens[token].approve(vestingContract, totalBalance);
-                        RewardVesting(vestingContract).vestLiqidty(
+                        RewardVesting(vestingContract).vestStaking(
                             totalBalance,
                             msg.sender
                         );

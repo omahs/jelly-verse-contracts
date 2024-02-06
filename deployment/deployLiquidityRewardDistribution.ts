@@ -12,7 +12,7 @@ task(`deploy-liqidty-reward-distribution`, `Deploys the LiquidityRewardDistrubti
 			const [deployer] = await hre.ethers.getSigners();
 
 			console.log(
-				`ℹ️  Attempting to deploy the LiquidityRewardDistrubtion smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${owner} as the multisig owner address, ${pendingowner} as the pending owner address if needed...`
+				`ℹ️  Attempting to deploy the LiquidityRewardDistrubtion smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, with ${token} as the token address, by passing the ${owner} as the multisig owner address, ${pendingowner} as the pending owner address if needed...`
 			);
 
 			const LiquidityRewardDistrubtionFactory: LiquidityRewardDistrubtion__factory =
@@ -38,7 +38,7 @@ task(`deploy-liqidty-reward-distribution`, `Deploys the LiquidityRewardDistrubti
 				);
 
 				console.log(
-					`📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${LiquidityRewardDistrubtion.address} ${owner} ${pendingowner}`
+					`📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${LiquidityRewardDistrubtion.address} ${token} ${owner} ${pendingowner}`
 				);
 			}
 		}

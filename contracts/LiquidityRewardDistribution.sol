@@ -5,7 +5,7 @@ import "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {RewardVesting} from "./RewardVesting.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 /**
  * @title LiquidityRewardDistrubtion contract
@@ -24,9 +24,9 @@ contract LiquidityRewardDistrubtion is Ownable {
     uint256 public epoch;
 
     event Claimed(address claimant, uint256 week, uint256 balance);
-    event EpochAdded(uint256 Epoch, bytes32 merkleRoot, string _ipfs);
+    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string _ipfs);
     event EpochRemoved(uint256 epoch);
-    event contractChanged(address vestingContract);
+    event ContractChanged(address vestingContract);
 
     error Claim_LenMissmatch();
     error Claim_ZeroAmount();
@@ -91,15 +91,15 @@ contract LiquidityRewardDistrubtion is Ownable {
         uint256 _epochId,
         uint256 _amount,
         bytes32[] memory _merkleProof,
-          bool isVesting
+        bool _isVesting
     ) public {
         if (_amount == 0) revert Claim_ZeroAmount();
 
         _claimWeek(_epochId, _amount, _merkleProof);
 
-      if (isVesting) {
+        if (_isVesting) {
                 token.approve(vestingContract, _amount);
-                RewardVesting(vestingContract).vestLiqidty(
+                RewardVesting(vestingContract).vestLiquidity(
                     _amount,
                     msg.sender
                 );
@@ -120,7 +120,7 @@ contract LiquidityRewardDistrubtion is Ownable {
         uint256[] memory _epochIds,
         uint256[] memory _amounts,
         bytes32[][] memory _merkleProofs,
-        bool isVesting
+        bool _isVesting
     ) public {
         uint256 len = _epochIds.length;
 
@@ -136,9 +136,9 @@ contract LiquidityRewardDistrubtion is Ownable {
         }
 
         if (totalBalance > 0) {
-            if (isVesting) {
+            if (_isVesting) {
                 token.approve(vestingContract, totalBalance);
-                RewardVesting(vestingContract).vestLiqidty(
+                RewardVesting(vestingContract).vestLiquidity(
                     totalBalance,
                     msg.sender
                 );
@@ -178,7 +178,7 @@ contract LiquidityRewardDistrubtion is Ownable {
     function setVestingContract(address _vestingContract) public onlyOwner {
         vestingContract = _vestingContract;
 
-        emit contractChanged(_vestingContract);
+        emit ContractChanged(_vestingContract);
     }
 
     function _claimWeek(

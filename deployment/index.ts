@@ -5,4 +5,5 @@ import './deployMinter';
 import './deployChest';
 import './deployLiquidityRewardDistribution';
 import './deployStaktingRewardDistribution';
+import './deployRewardVesting';
 
