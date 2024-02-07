@@ -147,6 +147,15 @@ describe('Allocator', function () {
           "Allocator__CannotBuy",
         );
       });
+
+      it("should revert if called with zero amount", async () => {
+        await expect(
+          allocator.buyWithNative(),
+        ).to.be.revertedWithCustomError(
+          allocator,
+          "Allocator__NoValueSent",
+        );
+      });
     })
   });
 });
