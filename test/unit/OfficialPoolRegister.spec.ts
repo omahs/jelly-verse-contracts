@@ -57,10 +57,8 @@ describe('OfficialPoolsRegister', function() {
         await officialPoolsRegister.registerOfficialPool(pools);
         const officialPools = await officialPoolsRegister.getAllOfficialPools();
 
-        expect(await officialPoolsRegister.totalPools()).to.equal(pools.length);
         for (let i = 0; i < pools.length; i++) {
-          expect(officialPools[i].poolId).to.equal(pools[i].poolId);
-          expect(officialPools[i].weight).to.equal(pools[i].weight);
+          expect(officialPools[i]).to.equal(pools[i].poolId);
         }
       });
 
@@ -68,11 +66,11 @@ describe('OfficialPoolsRegister', function() {
         for (const pool of pools) {
           await expect(officialPoolsRegister.registerOfficialPool(pools))
             .to.emit(officialPoolsRegister, "OfficialPoolRegistered")
-            .withArgs(owner.address, pool.poolId, pool.weight);
+            .withArgs(pool.poolId, pool.weight);
         }
       });
 
-      it("should update weight on register the same pool", async () => {
+      it("should deregister old pools and register all again", async () => {
         await officialPoolsRegister.registerOfficialPool(pools);
         let newPools = [
           {
@@ -85,11 +83,15 @@ describe('OfficialPoolsRegister', function() {
           }
         ];
 
-        await officialPoolsRegister.registerOfficialPool(newPools);
+        for (let i = 0; i < newPools.length; i++) {
+          await expect(officialPoolsRegister.registerOfficialPool(newPools))
+            .to.emit(officialPoolsRegister, "OfficialPoolRegistered")
+            .withArgs(newPools[i].poolId, newPools[i].weight);
+        }
         const officialPools = await officialPoolsRegister.getAllOfficialPools();
-
-        expect(officialPools[0].poolId).to.equal(ethers.utils.formatBytes32String("pool1"));
-        expect(officialPools[0].weight).to.equal(18);
+        for (let i = 0; i < officialPools.length; i++) {
+          expect(officialPools[i]).to.equal(newPools[i].poolId);
+        }
       });
     });
 

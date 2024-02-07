@@ -6,21 +6,18 @@ import "./utils/Ownable.sol";
 /**
  * @title Official Pool Register
  *
- * @notice Store, delete & retrieve pools
+ * @notice Store & sretrieve pools
  */
 contract OfficialPoolsRegister is Ownable {
-  uint256 public totalPools;
-
   struct Pool {
     bytes32 poolId;
-    uint256 weight;
+    uint32 weight;
   }
 
   bytes32[] private poolIds;
-  mapping(bytes32 => uint256) private officialPools;
-  mapping(bytes32 => bool) private isOfficialPoolRegistered;
   
-  event OfficialPoolRegistered(address indexed sender, bytes32 indexed poolId, uint256 weight);
+  event OfficialPoolRegistered(bytes32 indexed poolId, uint32 weight);
+  event OfficialPoolDeregistered(bytes32 indexed  poolId);
   
   error OfficialPoolsRegister_MaxPools50();
 
@@ -34,23 +31,21 @@ contract OfficialPoolsRegister is Ownable {
   * @param pools_ to store
   */
   function registerOfficialPool(Pool[] memory pools_) external onlyOwner {
+    for(uint256 i;i<poolIds.length;++i) {
+      emit OfficialPoolDeregistered(poolIds[i]);
+    }
+    delete poolIds;
+
     uint256 size = pools_.length;
     if(size > 50) {
-       revert OfficialPoolsRegister_MaxPools50();
-     }
+      revert OfficialPoolsRegister_MaxPools50();
+    }
 
-    for(uint256 i; i < size; i++) {
-        Pool memory newPool = pools_[i];
-        bytes32 poolId = newPool.poolId;
-        uint256 weight = newPool.weight;
-        if(!isOfficialPoolRegistered[poolId]) {
-          poolIds.push(poolId);
-          isOfficialPoolRegistered[poolId] = true;
-          ++totalPools;
-        }
-        officialPools[poolId] = weight;
-
-        emit OfficialPoolRegistered(msg.sender, poolId, weight);
+    for(uint256 i=0;i<size;++i) {
+      Pool memory pool = pools_[i];
+      bytes32 poolId = pool.poolId;  
+      poolIds.push(poolId);
+      emit OfficialPoolRegistered(poolId, pool.weight);
     }
   }
 
@@ -58,16 +53,9 @@ contract OfficialPoolsRegister is Ownable {
   /**
   * @notice Return all official pools ids
   * 
-  * @return all 'pools'
+  * @return all 'poolIds'
   */
-  function getAllOfficialPools() public view returns(Pool[] memory) {
-    Pool[] memory pools = new Pool[](totalPools);
-    for (uint256 i=0; i < totalPools; i++) {
-      bytes32 poolId = poolIds[i];
-      uint256 weight = officialPools[poolId];
-      Pool memory pool = Pool(poolId, weight);
-      pools[i] = pool;
-    }
-    return pools;
+  function getAllOfficialPools() public view returns(bytes32[] memory) {
+    return poolIds;
   }
 }
