@@ -31,7 +31,7 @@ export async function deployMockJelly(deployer: Signer): Promise<MockContract> {
 
 export async function deployMockStakingRewardContract(deployer: Signer): Promise<MockContract> {
 	const lpRewardContractArtifact: Artifact = await artifacts.readArtifact(
-		`StakingRewardDistrubtion`
+		`StakingRewardDistribution`
 	);
 
 	const mockLpRewardContract: MockContract = await deployMockContract(
