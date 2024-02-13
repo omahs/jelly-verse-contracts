@@ -20,12 +20,14 @@ contract InvestorDistribution is Ownable {
     uint256 index;
     Investor[NUMBER_OF_INVESTORS] internal investors;
     IChest public i_chest;
+    
+    event ChestSet(address chest);
+    event BatchDistributed(uint256 indexed startIndex, uint256 batchLength);
 
     error InvestorDistribution__InvalidBatchLength();
     error InvestorDistribution__DistributionIndexOutOfBounds();
     error InvestorDistribution__ZeroAddress();
     error InvestorDistribution__ChestAlreadySet();
-    
 
     constructor(address jellyToken, address owner, address pendingOwner) Ownable(owner, pendingOwner) {
         i_jellyToken = IJellyToken(jellyToken);
@@ -41,13 +43,15 @@ contract InvestorDistribution is Ownable {
         if (endIndex > NUMBER_OF_INVESTORS) {
             revert InvestorDistribution__DistributionIndexOutOfBounds();
         }
-        
+
         for (uint256 i = index; i < endIndex; i++) {
             i_chest.stakeSpecial(
                 investors[i].amount, investors[i].beneficiary, FREEZING_PERIOD, VESTING_DURATION, NERF_PARAMETER
             );
         }
 
+        emit BatchDistributed(index, batchLength);
+        
         index = endIndex;
     }
 
@@ -58,7 +62,9 @@ contract InvestorDistribution is Ownable {
         if (address(i_chest) != address(0)) {
             revert InvestorDistribution__ChestAlreadySet();
         }
+
         i_chest = IChest(chest);
+        emit ChestSet(chest);
         // Approve the total amount once for the all investors
         uint256 totalFees = NUMBER_OF_INVESTORS * i_chest.fee();
         i_jellyToken.approve(address(i_chest), JELLY_AMOUNT + totalFees);
