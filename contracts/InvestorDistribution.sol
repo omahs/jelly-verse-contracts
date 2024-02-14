@@ -9,7 +9,7 @@ contract InvestorDistribution is Ownable {
         uint96 amount;
     }
 
-    uint256 constant NUMBER_OF_INVESTORS = 90;
+    uint256 constant NUMBER_OF_INVESTORS = 87;
     uint256 constant JELLY_AMOUNT = 122_211_142;
     uint32 constant FREEZING_PERIOD = 18 * 30 days;
     uint32 constant VESTING_DURATION = 6 * 30 days;
@@ -20,13 +20,12 @@ contract InvestorDistribution is Ownable {
     uint256 index;
     Investor[NUMBER_OF_INVESTORS] internal investors;
     IChest public i_chest;
-    
+
     event ChestSet(address chest);
     event BatchDistributed(uint256 indexed startIndex, uint256 batchLength);
 
     error InvestorDistribution__InvalidBatchLength();
     error InvestorDistribution__DistributionIndexOutOfBounds();
-    error InvestorDistribution__ZeroAddress();
     error InvestorDistribution__ChestAlreadySet();
 
     constructor(address jellyToken, address owner, address pendingOwner) Ownable(owner, pendingOwner) {
@@ -34,7 +33,8 @@ contract InvestorDistribution is Ownable {
         _initialize();
     }
 
-    function distribute(uint256 batchLength) external onlyOwner {
+    // not sure if we need onlyOwner here
+    function distribute(uint256 batchLength) external {
         if (batchLength == 0) {
             revert InvestorDistribution__InvalidBatchLength();
         }
@@ -51,14 +51,11 @@ contract InvestorDistribution is Ownable {
         }
 
         emit BatchDistributed(index, batchLength);
-        
+
         index = endIndex;
     }
 
     function setChest(address chest) external onlyOwner {
-        if (chest == address(0)) {
-            revert InvestorDistribution__ZeroAddress();
-        }
         if (address(i_chest) != address(0)) {
             revert InvestorDistribution__ChestAlreadySet();
         }
@@ -71,96 +68,93 @@ contract InvestorDistribution is Ownable {
     }
 
     function _initialize() private {
-        investors[0] = Investor({beneficiary: 0x11aFD7d87a91652603d20369d93bDf8c37396641, amount: 2_000_000});
-        investors[1] = Investor({beneficiary: 0x57bDD74926d44a362f925ba83c3E7310B8855c2B, amount: 2_000_000});
-        investors[2] = Investor({beneficiary: 0x2A52286C4C48f1923953103fbffD5f5cb6a6B067, amount: 2_000_000});
-        investors[3] = Investor({beneficiary: 0x29427AAe1DF925B2D139B46ebF4ECF453275d492, amount: 2_000_000});
-        investors[4] = Investor({beneficiary: 0x4aCB6135A877Ca7714E320e60283CB633afd8E60, amount: 2_000_000});
-        investors[5] = Investor({beneficiary: 0xb7ee3144832Bd9A8312E9BFc2B351c00b984e03E, amount: 2_000_000});
-        investors[6] = Investor({beneficiary: 0x96E8FEe0b9dFc0BBf9BFf0b1682A0c5299f6FFeF, amount: 2_000_000});
-        investors[7] = Investor({beneficiary: 0xA72b13c0431E49676cEC8E76cafC2d94649DBd5E, amount: 2_000_000});
-        investors[8] = Investor({beneficiary: 0x92E14B96DD25024c57F6641500D39e9D10321Fc1, amount: 2_000_000});
-        investors[9] = Investor({beneficiary: 0x2A65Ae60A014126B3089B5802835601080Fcf8A4, amount: 2_000_000});
-        investors[10] = Investor({beneficiary: 0x3A054785B75Eb7A9fDc0430A789208869c94718f, amount: 2_000_000});
-        investors[11] = Investor({beneficiary: 0xAd73c78a336d21afa98F6fB5AC05998d176361b3, amount: 2_000_000});
-        investors[12] = Investor({beneficiary: 0xE8E0E9d8E1d621861A7F2E725694fC39bd0d2Eb4, amount: 2_000_000});
-        investors[13] = Investor({beneficiary: 0x3E88F94bb5C83cAA2C1c6d7bcCD27DEfc9E01738, amount: 2_000_000});
-        investors[14] = Investor({beneficiary: 0xF22Aed5c92eA9fD443fCeDA610b22bA4F1640862, amount: 2_000_000});
-        investors[15] = Investor({beneficiary: 0x100F0e43324981b34D2e0e560d2cecEe992e9876, amount: 2_000_000});
-        investors[16] = Investor({beneficiary: 0xc0307940D56D22F909183DC7e3abb11C6213761E, amount: 2_000_000});
-        investors[17] = Investor({beneficiary: 0x79Db5792C5a84C0932EE87A41573866aBc93B320, amount: 2_000_000});
-        investors[18] = Investor({beneficiary: 0xb341406e30F4f7B50987Ab8Dd6B9b13d123D6055, amount: 2_000_000});
-        investors[19] = Investor({beneficiary: 0x070791aBc2cd4C9883CFd698AA5d74F78594E6AB, amount: 2_000_000});
-        investors[20] = Investor({beneficiary: 0xFa676217E233AdAe28eCF45829c51c39aC0904a1, amount: 2_000_000});
-        investors[21] = Investor({beneficiary: 0x26F083097A73e4Ea8Dc76D3bA21E4450A3cE4af2, amount: 2_000_000});
-        investors[22] = Investor({beneficiary: 0xDBfdB48956a2BF329Ddf237E5a5297BeC3290A6A, amount: 2_000_000});
-        investors[23] = Investor({beneficiary: 0x1564181dE218E614a938FBa2A3f9530509e18F79, amount: 2_000_000});
-        investors[24] = Investor({beneficiary: 0x823f7ee923C1cA7DdaB1D0139a8994589597e1E2, amount: 2_000_000});
-        investors[25] = Investor({beneficiary: 0x178524971fE87af7f652706021c1DAd92C5500DE, amount: 2_000_000});
-        investors[26] = Investor({beneficiary: 0xE223b3dD2E2FAc7171d4b21Ff1284e2ffA3b19C7, amount: 2_000_000});
-        investors[27] = Investor({beneficiary: 0x2D7610524BA318f90421134DdB678B8E64b1CD9A, amount: 2_000_000});
-        investors[28] = Investor({beneficiary: 0x152297e0977154805Ddcda8e1f5F81754727E2b5, amount: 2_000_000});
-        investors[29] = Investor({beneficiary: 0x0F3612a27B24EE23C4097e60653D1b02F970bD6F, amount: 2_000_000});
-        investors[30] = Investor({beneficiary: 0x8Ce02Eb1A3C3e176D3bC0cBdaAAcE64715D018b5, amount: 2_000_000});
-        investors[31] = Investor({beneficiary: 0xdDDe1253921669c26EfeC452e2fe172d74531fe4, amount: 2_000_000});
-        investors[32] = Investor({beneficiary: 0x394763F58E7ac74fa0582c72154c80f37e76a232, amount: 2_000_000});
-        investors[33] = Investor({beneficiary: 0x044F78BB51CdF3F069dF5B0430029B87987a8aA6, amount: 2_000_000});
-        investors[34] = Investor({beneficiary: 0x289B39f605d6e582A116E90d4De7EEdD5A6C9ceD, amount: 2_000_000});
-        investors[35] = Investor({beneficiary: 0x59faBa446741920487D7108BFE7C45d3f99d6983, amount: 2_000_000});
-        investors[36] = Investor({beneficiary: 0xefd7EB4FdB72D6B504A817D9bED914eE17D8c3bf, amount: 2_000_000});
-        investors[37] = Investor({beneficiary: 0xc659Bb6727de88D159409539eb2feDE4E953faB5, amount: 2_000_000});
-        investors[38] = Investor({beneficiary: 0xd1556cc3116D3e1b792aDbAC529d583c603D6AE4, amount: 2_000_000});
-        investors[39] = Investor({beneficiary: 0x8fA71fA2Ecbd927045000d11aeF86e2F9cf8fb1E, amount: 2_000_000});
-        investors[40] = Investor({beneficiary: 0x5d4b8d5d460eC03bdF213Ff9fF715888a49D4604, amount: 2_000_000});
-        investors[41] = Investor({beneficiary: 0x308c3c988EFD71E6E67A93661Ce1AAE9D659eEc3, amount: 2_000_000});
-        investors[42] = Investor({beneficiary: 0x9aBff7De3B7db3Cd2008D3319fDd28d1e5874074, amount: 2_000_000});
-        investors[43] = Investor({beneficiary: 0xf73C93cfE8407c8D3B1ecDaf88B2591aF2243CFb, amount: 2_000_000});
-        investors[44] = Investor({beneficiary: 0x51276c786dc9f2d72Ee81DE847AF98514954523E, amount: 2_000_000});
-        investors[45] = Investor({beneficiary: 0x93c407468a882FfAEF2F6D2e7226aCaECd977Ab2, amount: 2_000_000});
-        investors[46] = Investor({beneficiary: 0xcC18097A21c461F919E0e95f53E4a09E543754d6, amount: 2_000_000});
-        investors[47] = Investor({beneficiary: 0x2a354A92669b4FDf1a5F6aB8A75875f07EBDe61D, amount: 2_000_000});
-        investors[48] = Investor({beneficiary: 0x7395867e1FF19fA40b5262bd5a1c64Cf332EEB42, amount: 2_000_000});
-        investors[49] = Investor({beneficiary: 0xEf3F40B0577dE01B286C6bf75DdaE6a81E3587b3, amount: 2_000_000});
-        investors[50] = Investor({beneficiary: 0x0e5ae814409CCF6E36E16cA63D439CEd24210f75, amount: 2_000_000});
-        investors[51] = Investor({beneficiary: 0x454520E796B3Ce4E7a28E0E30784012F0b5A7C04, amount: 2_000_000});
-        investors[52] = Investor({beneficiary: 0xf7E8B975EbdffB14fAC35CB901ff74De51F558a9, amount: 2_000_000});
-        investors[53] = Investor({beneficiary: 0xe1bd5DdCb3Fdb24560F8b225b8ae7b1f7AAACE5A, amount: 2_000_000});
-        investors[54] = Investor({beneficiary: 0x73B58e29146593D3646C733ea4DB2b2122B4A725, amount: 2_000_000});
-        investors[55] = Investor({beneficiary: 0x653946E0DD9617E99D3E569d763fc853dC417464, amount: 2_000_000});
-        investors[56] = Investor({beneficiary: 0x7eb7b74422fe5CDCA2fE7F9eA67B7AF31BD793Cb, amount: 2_000_000});
-        investors[57] = Investor({beneficiary: 0xb5d0C86ba635b10f80fd36364D8e194e4c659f5D, amount: 2_000_000});
-        investors[58] = Investor({beneficiary: 0xe32DAaF097118A3482983129279eEC9e755D5993, amount: 2_000_000});
-        investors[59] = Investor({beneficiary: 0x92B85b62d2b5EBD28C94c1e4e673c8b0f90D7C1F, amount: 2_000_000});
-        investors[60] = Investor({beneficiary: 0x7C4E324030868C01Aa02fD5B35d2cf590437413D, amount: 2_000_000});
-        investors[61] = Investor({beneficiary: 0x26Aa13748AD7255a3100483d4832a66493B1205e, amount: 2_000_000});
-        investors[62] = Investor({beneficiary: 0xd3daB30FAAb8beb2de9894aAa10E49038c8802E4, amount: 2_000_000});
-        investors[63] = Investor({beneficiary: 0x6447B5477Fca32240BCBC2f76ED2517BFdC24E04, amount: 2_000_000});
-        investors[64] = Investor({beneficiary: 0x1619BFADE3b222A1464F694Db6B961AEA39F0cc4, amount: 2_000_000});
-        investors[65] = Investor({beneficiary: 0xdeb8F229E95c963A468ed050f73002bA5C5657D3, amount: 2_000_000});
-        investors[66] = Investor({beneficiary: 0xFd296cf16daE71eb21Bd245613F7B236Dff1C098, amount: 2_000_000});
-        investors[67] = Investor({beneficiary: 0xcA44cA3e461Aa2429b9F14e87dC8e435ee90F931, amount: 2_000_000});
-        investors[68] = Investor({beneficiary: 0x61055C5E5c960984dfAE6E0dCBCcB76C80598658, amount: 2_000_000});
-        investors[69] = Investor({beneficiary: 0x46B129a03C88039CE844ab0a53D06E2c6f8aebF8, amount: 2_000_000});
-        investors[70] = Investor({beneficiary: 0xF30615A216f2B37959550321695Ca1575579b5EB, amount: 2_000_000});
-        investors[71] = Investor({beneficiary: 0xE036b5961cacC46CE4e3B5DA716Dd91E461e0833, amount: 2_000_000});
-        investors[72] = Investor({beneficiary: 0x0bCC4427020739685471Db312b943f8a1c041a18, amount: 2_000_000});
-        investors[73] = Investor({beneficiary: 0x2Aa1FC532d6De950FfB21Bdc45dfF5777b4d7657, amount: 2_000_000});
-        investors[74] = Investor({beneficiary: 0x5036Dd5264C72d4074134Ffa1Bc789F4D94a9a43, amount: 2_000_000});
-        investors[75] = Investor({beneficiary: 0x41C24faD612D08B36aCc3B231bD2de2830921e6F, amount: 2_000_000});
-        investors[76] = Investor({beneficiary: 0x17780f91e1F22562b2b74cC4EF4C6869BadD7D7a, amount: 2_000_000});
-        investors[77] = Investor({beneficiary: 0xFCD4214061548880c09e51c3C31D937b4A46600B, amount: 2_000_000});
-        investors[78] = Investor({beneficiary: 0x808d5cc513c1E2B2B4babE398207772AfA822430, amount: 2_000_000});
-        investors[79] = Investor({beneficiary: 0xAAc0FC18468e2076F4E2e8053b447707F9d177be, amount: 2_000_000});
-        investors[80] = Investor({beneficiary: 0x5d8916f63b0c3FCB97EAf4c373f79DFf3ef2d051, amount: 2_000_000});
-        investors[81] = Investor({beneficiary: 0x255d7B9AA14Ff9a6a48af280972d9594c1858b8C, amount: 2_000_000});
-        investors[82] = Investor({beneficiary: 0x8c746aD706C4B2B688cD4d02055cdF7241BD5621, amount: 2_000_000});
-        investors[83] = Investor({beneficiary: 0x1AE8a50108230Ce7CA865003A85fbF6b52e72982, amount: 2_000_000});
-        investors[84] = Investor({beneficiary: 0x016F8C20C48f027da515B907814D84d720b2654C, amount: 2_000_000});
-        investors[85] = Investor({beneficiary: 0xa014d79FeA4bC2b7Ea30a099f5408c60261b1349, amount: 2_000_000});
-        investors[86] = Investor({beneficiary: 0x623d61239c7d4309aE61951De4f4FE42ECf2Df77, amount: 2_000_000});
-        investors[87] = Investor({beneficiary: 0x76F630c25F2Ec1ccA02c7790F46216F0430829bF, amount: 2_000_000});
-        investors[88] = Investor({beneficiary: 0x5ecB6fD02dC43C021Cbca740bA7a045AC6e0a74b, amount: 2_000_000});
-        investors[89] = Investor({beneficiary: 0xa4f2c4D0DdB17aebd9e5FDDBC9b83489ae44e197, amount: 2_000_000});
+        investors[0] = Investor({beneficiary: 0x0928a4Debc0297A643ECA744b41b09512A32c0e1, amount: 2_000_000});
+        investors[1] = Investor({beneficiary: 0x0e5E44D03996f14E469DEb2c0bE5b833bAC139a9, amount: 2_000_000});
+        investors[2] = Investor({beneficiary: 0x09520EB2382f9Fd25f6bE7B1b20A693a8f8b493d, amount: 2_000_000});
+        investors[3] = Investor({beneficiary: 0xB8c75DB43E891Da43E6B314D5F9949C9388cceE9, amount: 2_000_000});
+        investors[4] = Investor({beneficiary: 0xeBcC1Bf83EE1764a87f968CedD71b477Cab5e81d, amount: 2_000_000});
+        investors[5] = Investor({beneficiary: 0xc1ee290ab4586a75A95ef8CD3988431907Ddf058, amount: 2_000_000});
+        investors[6] = Investor({beneficiary: 0xf02B1cfc65662DC6Fec8a339bCDb12a65f43c609, amount: 2_000_000});
+        investors[7] = Investor({beneficiary: 0x72F3ee9Dc226578B88bd93276b8700B861aA4209, amount: 2_000_000});
+        investors[8] = Investor({beneficiary: 0x20D1c442367FFe623ed331F5945fDDeF594bc920, amount: 2_000_000});
+        investors[9] = Investor({beneficiary: 0xd8336c8Bc3Fa686c0b757294Bcc9038E79Cd6cE1, amount: 2_000_000});
+        investors[10] = Investor({beneficiary: 0x32479b83c4e58a5d523a61E19309759ead3d0DDa, amount: 2_000_000});
+        investors[11] = Investor({beneficiary: 0x23C538E1a4a88eE88Ef3A61844b046bF5f70238F, amount: 2_000_000});
+        investors[12] = Investor({beneficiary: 0x075f3cD4C6eB50a425bfCF42B6A3F3d1A40cC68f, amount: 2_000_000});
+        investors[13] = Investor({beneficiary: 0xb728aA268D3Cb7a62ecc03e4DBF307AE7FB841Ae, amount: 2_000_000});
+        investors[14] = Investor({beneficiary: 0x3b096530De8D29F9003A01846aA03612Ab91B805, amount: 2_000_000});
+        investors[15] = Investor({beneficiary: 0x7f8A9fAF5CF0796B856879242C879125fc9857EF, amount: 1_933_500});
+        investors[16] = Investor({beneficiary: 0x3DBAf3F4a434228546f0c08902b592995Bd0e6D2, amount: 2_000_000});
+        investors[17] = Investor({beneficiary: 0x1c20279F6A23ebc87D1b4556c67158B5FC2Fc714, amount: 2_000_000});
+        investors[18] = Investor({beneficiary: 0xB5fA168678A04C7EB090BF868982222AeF0C3f31, amount: 2_000_000});
+        investors[19] = Investor({beneficiary: 0x0898727C7812EcfaF1346117F45986D137b27769, amount: 2_000_000});
+        investors[20] = Investor({beneficiary: 0x47FDB6C12533c71AE30609F5dd8A05A98E481E29, amount: 2_000_000});
+        investors[21] = Investor({beneficiary: 0xDcC876EEB1189F9b4843a3E07d87e307C0ef4dC3, amount: 2_000_000});
+        investors[22] = Investor({beneficiary: 0x0C5F37618A73dD14EbD0CAD44d13797f06b30E2F, amount: 2_000_000});
+        investors[23] = Investor({beneficiary: 0x6a6c29d189C40E64D3Bc3eE5892006072EF047fD, amount: 2_000_000});
+        investors[24] = Investor({beneficiary: 0x8Eff44b2D312bd66e568D41048DCBE23FF1EbcF0, amount: 2_000_000});
+        investors[25] = Investor({beneficiary: 0xd8Ced559178ea66B23E2C0AD02E23aB20fe5785F, amount: 2_000_000});
+        investors[26] = Investor({beneficiary: 0xd8Ced559178ea66B23E2C0AD02E23aB20fe5785F, amount: 2_000_000});
+        investors[27] = Investor({beneficiary: 0xA2879Be7E5B699496d6a41BF41D9505fF9Ba1804, amount: 2_000_000});
+        investors[28] = Investor({beneficiary: 0xA2879Be7E5B699496d6a41BF41D9505fF9Ba1804, amount: 2_000_000});
+        investors[29] = Investor({beneficiary: 0x5fD704cDC9b5485A8ec4458681C59A863CCA09aA, amount: 1_750_000});
+        investors[30] = Investor({beneficiary: 0xF7f0AC2557c8De0eC97c7c6fe3dc8F66c3Db20A4, amount: 2_000_000});
+        investors[31] = Investor({beneficiary: 0xED124CAbc5D2f1dA6446D8a0F5f3e0FA506E84A4, amount: 2_000_000});
+        investors[32] = Investor({beneficiary: 0x39f495892d9213bdC7eC6FA89F4BaE635D89135d, amount: 2_000_000});
+        investors[33] = Investor({beneficiary: 0xF9148EB4fc1F4A5C9ba062EF7e9dF2fa6dba7191, amount: 2_000_000});
+        investors[34] = Investor({beneficiary: 0xF1aD8C648D48d42967a5652c2A629f2f825fab59, amount: 2_000_000});
+        investors[35] = Investor({beneficiary: 0x00092f4e819E7F304bc947e89aC585740AfC5688, amount: 2_000_000});
+        investors[36] = Investor({beneficiary: 0x6Cbb4f6d1D34E4cd106397dFd8826000AAa46Fc7, amount: 2_000_000});
+        investors[37] = Investor({beneficiary: 0x90Af6b2Ad02dbEba74236a23d45386e126c49b42, amount: 2_000_000});
+        investors[38] = Investor({beneficiary: 0x18cA3b02f2CE2eBF97bA83dBf081e3Db9c7d1180, amount: 2_000_000});
+        investors[39] = Investor({beneficiary: 0xf8c6110C1b1c03bD7BFBE267Cc9395b72D7d1d5A, amount: 2_000_000});
+        investors[40] = Investor({beneficiary: 0xB284929c0C79C24AdfC607DE921f49187Bc2B0be, amount: 2_000_000});
+        investors[41] = Investor({beneficiary: 0xFDAe0e73bE9D4Bb5439ed1724aF6435fE91C1c69, amount: 1_600_000});
+        investors[42] = Investor({beneficiary: 0xfc33f5E0c2229c4693c17f10A2A7164f76Ed073b, amount: 2_000_000});
+        investors[43] = Investor({beneficiary: 0x90f8939Ad48fa2798d31dDb5602B967660f7c2E2, amount: 1_600_000});
+        investors[44] = Investor({beneficiary: 0xB1600ac28dc130f7186b546a0cbDA15Bde57F7e9, amount: 2_000_000});
+        investors[45] = Investor({beneficiary: 0xf763daA4Da2ee73529A0cf1F533F81e0860F6aFC, amount: 700_000});
+        investors[46] = Investor({beneficiary: 0xE1D86E65eB9F25ACdAA8Ff03aE55220d3e2e2d67, amount: 1_125_000});
+        investors[47] = Investor({beneficiary: 0x82b290ae80cfC0365d0C4e4058Fe334b1E517659, amount: 1_125_000});
+        investors[48] = Investor({beneficiary: 0x6A3b06129d5593768f85b0ec227031d169CbC0be, amount: 1_375_000});
+        investors[49] = Investor({beneficiary: 0x0eFda0A73D01356e0863319E7610928BF63B989c, amount: 11_000});
+        investors[50] = Investor({beneficiary: 0x2FE3f533D3734546b82A598A84e8A07573145C5E, amount: 96_250});
+        investors[51] = Investor({beneficiary: 0x42D8a772Bf01A095e68FBeda4597567AE61d0376, amount: 412_500});
+        investors[52] = Investor({beneficiary: 0x8197C0b1f12391B60a9DFc60e2dfF0E3D61b2903, amount: 440_000});
+        investors[53] = Investor({beneficiary: 0x3793A90a843570bDd229ceF5d0bF9566b20a048E, amount: 220_000});
+        investors[54] = Investor({beneficiary: 0x4e3E8e414F7Ebe03B4557db78c1CE825831E2Db0, amount: 8_800});
+        investors[55] = Investor({beneficiary: 0x7efF613Bc9688B77b1104Ac2eF685E12C9D60D3A, amount: 66_000});
+        investors[56] = Investor({beneficiary: 0x53cE98e433aA81e919A1579D88Fa0A3365B8bfF7, amount: 660_000});
+        investors[57] = Investor({beneficiary: 0x58671E2FA2066D8AB323d6D1ED587f06B3078B2B, amount: 220_000});
+        investors[58] = Investor({beneficiary: 0x9EA66c6ed59e118Ea7144341448Be58283c1B302, amount: 220_000});
+        investors[59] = Investor({beneficiary: 0xc54DDEb4e7feBfB580942993f466C91FA37C0f11, amount: 687_500});
+        investors[60] = Investor({beneficiary: 0xd92e7dF42919862231E39cA87bCFbcb6f76B7eA2, amount: 1_250_000});
+        investors[61] = Investor({beneficiary: 0x90530B87D55EAC8C5f73Fc92187643Bec0DD2103, amount: 800_000});
+        investors[62] = Investor({beneficiary: 0x06C55609EA7178409688774C816f3Ee59FBf0433, amount: 137_500});
+        investors[63] = Investor({beneficiary: 0x9E74A32B297Ca54fe95fA7f2c58e7e3565231bA1, amount: 55_000});
+        investors[64] = Investor({beneficiary: 0xBdea0cb47663ede5BBdb0b44Feb375Ea71993D3a, amount: 400_000});
+        investors[65] = Investor({beneficiary: 0x47F48b1fA11b05a64F7Ac42Ff4ef285e555eb610, amount: 175_000});
+        investors[66] = Investor({beneficiary: 0x86dFc56c83cFCF4Fb0781a81d361ca74431E56D3, amount: 100_000});
+        investors[67] = Investor({beneficiary: 0x6582108c774B9394C6220c6C78a6B4bCdB7bd62E, amount: 100_000});
+        investors[68] = Investor({beneficiary: 0xe7a0b59817D12cD44DaA3dcE874BF598BeC3feD5, amount: 412_500});
+        investors[69] = Investor({beneficiary: 0x1e978C357169FA1A8ada7925dbd2D60dE4aE4b10, amount: 62_500});
+        investors[70] = Investor({beneficiary: 0xB2027993c9dE9cAaD715c6Db9BFb083B62EC2746, amount: 675_000});
+        investors[71] = Investor({beneficiary: 0x058Bb43f5828DD848b2d003C4745Cc65631b4635, amount: 27_500});
+        investors[72] = Investor({beneficiary: 0x05256BD1225eC00E4340ff5714ce9b259B9DAecD, amount: 68_750});
+        investors[73] = Investor({beneficiary: 0x6C1856AC12fa8bF9932270a06f87913d1498DE83, amount: 1_000_000});
+        investors[74] = Investor({beneficiary: 0xb0185100D77dB21dD5FebBCf724147D025B33A61, amount: 250_000});
+        investors[75] = Investor({beneficiary: 0xfFDf5cB1Bf43Fe82192cfD9d30a03D7A27ECda15, amount: 27_500});
+        investors[76] = Investor({beneficiary: 0x4D9e3464F4ACf1b37eD42253f27F6b5FAF58dCE0, amount: 708_675});
+        investors[77] = Investor({beneficiary: 0x0fBF8bC1B40640150293DDb75CCeFcF69D2Ab2b3, amount: 125_000});
+        investors[78] = Investor({beneficiary: 0x1cfdEE1a0b420098167Bb315EA90BE9c4533452e, amount: 75_000});
+        investors[79] = Investor({beneficiary: 0x049a239D809A7BD4D5C236d82456501115A15D2e, amount: 27_500});
+        investors[80] = Investor({beneficiary: 0x5ece4Ec300191Baa794fF8F87c80Ac898b17fc97, amount: 275_000});
+        investors[81] = Investor({beneficiary: 0xe7CaA11f4d4EDC9275f7741B3487C12149F8F286, amount: 300_000});
+        investors[82] = Investor({beneficiary: 0x7Da77A3b8485B7472Fc2A23C594B3406EFc563aC, amount: 25_000});
+        investors[83] = Investor({beneficiary: 0x44E04071b8eB38f1E8a177E98e2022DB6AAC93B5, amount: 25_000});
+        investors[84] = Investor({beneficiary: 0x73C87dB70B06DAA7BA1f93B12f13601c815C4F97, amount: 125_000});
+        investors[85] = Investor({beneficiary: 0xa014d79FeA4bC2b7Ea30a099f5408c60261b1349, amount: 2_000_000}); // change to real values
+        investors[86] = Investor({beneficiary: 0x623d61239c7d4309aE61951De4f4FE42ECf2Df77, amount: 2_000_000}); // change to real values
     }
 }
 
