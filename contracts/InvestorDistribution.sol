@@ -39,20 +39,22 @@ contract InvestorDistribution is Ownable {
             revert InvestorDistribution__InvalidBatchLength();
         }
 
-        uint256 endIndex = index + batchLength;
+        uint256 currentIndex = index;
+
+        uint256 endIndex = currentIndex + batchLength;
         if (endIndex > NUMBER_OF_INVESTORS) {
             revert InvestorDistribution__DistributionIndexOutOfBounds();
         }
 
-        for (uint256 i = index; i < endIndex; i++) {
+        index = endIndex;
+
+        for (uint256 i = currentIndex; i < endIndex; i++) {
             i_chest.stakeSpecial(
                 investors[i].amount, investors[i].beneficiary, FREEZING_PERIOD, VESTING_DURATION, NERF_PARAMETER
             );
         }
 
-        emit BatchDistributed(index, batchLength);
-
-        index = endIndex;
+        emit BatchDistributed(currentIndex, batchLength);
     }
 
     function setChest(address chest) external onlyOwner {
