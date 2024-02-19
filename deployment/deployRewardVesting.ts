@@ -52,8 +52,8 @@ task(`deploy-reward-vesting`, `Deploys the StakingRewardDistrubtion contract`)
           `❌ Failed to verify the RewardVesting smart contract on Etherscan: ${error}`
         );
 
-        console.log(
-          `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${owner} ${pendingowner} ${RewardVesting.address} ${liquidityContract} ${stakingContract} ${token} `
+        console.log( 
+          `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${RewardVesting.address} ${owner} ${pendingowner} ${liquidityContract} ${stakingContract} ${token} `
         );
       }
     }
