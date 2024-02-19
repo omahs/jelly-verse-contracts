@@ -5,6 +5,7 @@ import {
 import { BigNumber, Signer, constants, utils } from 'ethers';
 import { artifacts, ethers } from 'hardhat';
 import { Artifact } from 'hardhat/types';
+import vaultContactAbi from '../abis/vaultContractAbi.json'
 
 export async function deployMockJelly(deployer: Signer): Promise<MockContract> {
 	const jellyTokenArtifact: Artifact = await artifacts.readArtifact(
@@ -63,6 +64,8 @@ export async function deployMockJellyNoReverts(deployer: Signer): Promise<MockCo
 	await mockJelly.mock.transferFrom.returns(true);
 	await mockJelly.mock.mint.returns();
 	await mockJelly.mock.approve.returns(true);
+	await mockJelly.mock.balanceOf.returns(1);
+	await mockJelly.mock.burn.returns();
 
 	return mockJelly;
 }
@@ -185,4 +188,23 @@ export async function deployMockMinter(
 	);
 
 	return mockMinter;
+}
+
+export async function deployMockJellyVault(
+	deployer: Signer,
+	jellyToken: string,
+	wethToken: string
+): Promise<MockContract> {
+	const mockVault: MockContract = await deployMockContract(
+		deployer,
+		vaultContactAbi
+	);
+	await mockVault.mock.joinPool.returns();
+	await mockVault.mock.getPoolTokens.returns(
+		[jellyToken, wethToken],
+		[0, 0],
+		0
+	);
+
+	return mockVault;
 }
