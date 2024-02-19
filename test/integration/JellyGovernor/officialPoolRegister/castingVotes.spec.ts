@@ -7,17 +7,17 @@ export function shouldCastVotes(): void {
     context(
         'Official Pools Preparing scenario: Creating proposal & Delegating tokens',
         async function () {
-            const poolId = "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
+            const pool = {poolId: "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000", weight: 1};
             const proposalDescription = 'Test Proposal #1: Register new Official Pool';
             let registerOfficialPoolFunctionCalldata: string;
             let proposalId: BigNumber;
             let proposalParams: string;
             const chestIDs: number[] = [0, 1, 2];
             beforeEach(async function () {
-                const poolIds: string[] = [poolId];
+              const pools: {poolId: string, weight: number}[] = [pool];
                 registerOfficialPoolFunctionCalldata = this.officialPoolsRegister.interface.encodeFunctionData(
                     'registerOfficialPool',
-                    [poolIds]
+                    [pools]
                 );
                 await this.jellyGovernor
                     .connect(this.signers.alice)

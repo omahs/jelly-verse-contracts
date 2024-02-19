@@ -78,4 +78,13 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
+    
+    /**
+     * @dev Destroys a `value` amount of tokens from the caller.
+     *
+     * See {ERC20-_burn}.
+     */
+    function burn(uint256 value) public {
+        _burn(_msgSender(), value);
+    }
 }

@@ -13,7 +13,7 @@ type UnitMinterFixtureType = {
     stakingRewardsContract: MockContract;
 };
 
-export async function deployMinterFixture(): Promise<UnitMinterFixtureType> {
+export async function unitMinterFixture(): Promise<UnitMinterFixtureType> {
     const [deployer, otherAccount, lpRewardsContract] = await ethers.getSigners();
     const jellyToken = await deployMockJellyNoReverts(deployer);
     const stakingRewardsContract = await deployMockStakingRewardContract(deployer);

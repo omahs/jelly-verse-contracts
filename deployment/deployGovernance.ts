@@ -42,7 +42,7 @@ task(`deploy-jelly-governance`, `Deploys the Jelly Governance contracts`)
 			console.log(`✅ JellyTimelock deployed to: ${jellyTimelock.address}`);
 
 			const jellyGovernorFactory: JellyGovernor__factory =
-				await hre.ethers.getContractFactory('JellyGovernance') as JellyGovernor__factory;
+				await hre.ethers.getContractFactory('JellyGovernor') as JellyGovernor__factory;
 
 			const jellyGovernance: JellyGovernor = await jellyGovernorFactory.deploy(
 				chestAddress,

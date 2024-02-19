@@ -103,7 +103,7 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
     const stakingRewardDistribution: StakingRewardDistribution =
         await stakingRewardDistributionFactory
             .connect(deployer)
-            .deploy(jellyTimelock.address, ADDRESS_ZERO);
+            .deploy(jellyToken.address, jellyTimelock.address, ADDRESS_ZERO);
     await stakingRewardDistribution.deployed();
 
     const liqiuidityRewardDistributionFactory: LiquidityRewardDistrubtion__factory =

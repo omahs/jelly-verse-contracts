@@ -5,18 +5,17 @@ import { ProposalState, VoteType } from '../../../shared/types';
 
 export function shouldFollowProposalLifeCycle(): void {
   context('Official Pools Register new Official Pool Proposal Lifecycle', async function () {
-    const poolId = "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000";
-    const proposalDescription = 'Test Proposal #1: Register new Official Pool';
+    const pool = { poolId: "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000", weight: 1 };    const proposalDescription = 'Test Proposal #1: Register new Official Pool';
     let registerOfficialPoolFunctionCalldata: string;
     let proposalId: BigNumber;
     let proposalParams: string;
     const chestIDs: number[] = [0, 1, 2];
 
     beforeEach(async function () {
-      const poolIds: string[] = [poolId];
+      const pools: { poolId: string, weight: number }[] = [pool];
       registerOfficialPoolFunctionCalldata = this.officialPoolsRegister.interface.encodeFunctionData(
         'registerOfficialPool',
-        [poolIds]
+        [pools]
       );
 
       await this.jellyGovernor
@@ -184,7 +183,7 @@ export function shouldFollowProposalLifeCycle(): void {
         'Proposal should be in executed state'
       );
       assert(numberOfOfficialPoolsRegisteredAfter === numberOfOfficialPoolsRegisteredBefore + 1, 'Official Pool should be registered');
-      assert(JSON.stringify(officialPoolsRegisteredAfter) == JSON.stringify([...officialPoolsRegisteredBefore, poolId]), 'Official Pool value should match');
+      assert(JSON.stringify(officialPoolsRegisteredAfter) == JSON.stringify([...officialPoolsRegisteredBefore, pool.poolId]), 'Official Pool value should match');
     });
   });
 }
