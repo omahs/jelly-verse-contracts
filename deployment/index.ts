@@ -6,4 +6,6 @@ import './deployChest';
 import './deployLiquidityRewardDistribution';
 import './deployStaktingRewardDistribution';
 import './deployRewardVesting';
+import './deployDailySnapshot';
+import './deployAllocator';
 
