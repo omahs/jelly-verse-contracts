@@ -13,8 +13,8 @@ import {
     Chest__factory,
     StakingRewardDistribution,
     StakingRewardDistribution__factory,
-    LiquidityRewardDistrubtion,
-    LiquidityRewardDistrubtion__factory,
+    LiquidityRewardDistribution,
+    LiquidityRewardDistribution__factory,
     OfficialPoolsRegister,
     OfficialPoolsRegister__factory,
     Minter,
@@ -28,7 +28,7 @@ type IntegrationJellyGovernorFixtureType = {
     jellyTimelock: JellyTimelock;
     chest: Chest;
     stakingRewardDistribution: StakingRewardDistribution;
-    liqiuidityRewardDistribution: LiquidityRewardDistrubtion;
+    liqiuidityRewardDistribution: LiquidityRewardDistribution;
     officialPoolsRegister: OfficialPoolsRegister;
     minter: Minter;
     votingDelay: BigNumber;
@@ -106,9 +106,9 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
             .deploy(jellyToken.address, jellyTimelock.address, ADDRESS_ZERO);
     await stakingRewardDistribution.deployed();
 
-    const liqiuidityRewardDistributionFactory: LiquidityRewardDistrubtion__factory =
-        await ethers.getContractFactory("LiquidityRewardDistrubtion");
-    const liqiuidityRewardDistribution: LiquidityRewardDistrubtion =
+    const liqiuidityRewardDistributionFactory: LiquidityRewardDistribution__factory =
+        await ethers.getContractFactory("LiquidityRewardDistribution");
+    const liqiuidityRewardDistribution: LiquidityRewardDistribution =
         await liqiuidityRewardDistributionFactory
             .connect(deployer)
             .deploy(jellyToken.address, jellyTimelock.address, ADDRESS_ZERO);
