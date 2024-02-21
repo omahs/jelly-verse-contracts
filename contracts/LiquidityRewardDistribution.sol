@@ -8,11 +8,11 @@ import {RewardVesting} from "./RewardVesting.sol";
 import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 /**
- * @title LiquidityRewardDistrubtion contract
+ * @title LiquidityRewardDistribution contract
  * @notice Contract for distributing liqidty mining rewards
  */
 
-contract LiquidityRewardDistrubtion is Ownable {
+contract LiquidityRewardDistribution is Ownable {
     using SafeERC20 for IERC20;
 
     IERC20 public token;
