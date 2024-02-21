@@ -24,7 +24,7 @@ contract LiquidityRewardDistribution is Ownable {
     uint256 public epoch;
 
     event Claimed(address claimant, uint256 week, uint256 balance);
-    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string _ipfs);
+    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string ipfs);
     event EpochRemoved(uint256 epoch);
     event ContractChanged(address vestingContract);
 

@@ -43,7 +43,7 @@ task(
       try {
         await hre.run(`verify:verify`, {
           address: StakingRewardDistribution.address,
-          constructorArguments: [token,owner, pendingowner],
+          constructorArguments: [token, owner, pendingowner],
         });
       } catch (error) {
         console.log(
