@@ -53,4 +53,18 @@ interface IChest {
      * @dev Delegates votes from signer to `delegatee`.
      */
     function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) external;
+
+
+/**
+     * @dev Mints special chest.
+     */
+     function stakeSpecial(
+        uint256 amount,
+        address beneficiary,
+        uint32 freezingPeriod,
+        uint32 vestingDuration,
+        uint8 nerfParameter
+    ) external;
+
+     function fee() external view returns (uint256);
 }
