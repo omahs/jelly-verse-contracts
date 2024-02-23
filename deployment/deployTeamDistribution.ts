@@ -2,7 +2,7 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment, TaskArguments } from 'hardhat/types';
 import { TeamDistribution, TeamDistribution__factory } from '../typechain-types';
 
-task(`deploy-liqidty-reward-distribution`, `Deploys the TeamDistribution contract`)
+task(`deploy-team-distribution`, `Deploys the TeamDistribution contract`)
 	.addParam(`owner`, `The multisig owner address`)
 	.addParam(`pendingowner`, `The pending owner address`)
 	.addParam(`token`, `The token address`)

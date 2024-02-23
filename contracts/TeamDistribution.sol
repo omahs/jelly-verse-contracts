@@ -8,7 +8,7 @@ import "./IChest.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 
 contract TeamDistribution is Ownable {
-    uint32 constant BATCH_LEN = 10;
+  
     uint32 constant LIST_LEN = 15;
     uint256 constant JELLY_AMOUNT = 110000000;
 
@@ -87,105 +87,105 @@ contract TeamDistribution is Ownable {
             beneficiary: 0x886dD9472c88f09b94bfF3333FfFe2EB2234e821,
             freezingPeriod: 180 days,
             vestingDuration: 0 days,
-            nerfParameter: 0
+            nerfParameter: 10
         });
         teamList[1] = Team({
             amount: 55000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 0
+            nerfParameter: 10
         });
         teamList[2] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[3] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[4] = Team({
             amount: 1000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[5] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[6] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[7] = Team({
             amount: 1000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[8] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[9] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[10] = Team({
             amount: 1000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[11] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[12] = Team({
             amount: 2000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[13] = Team({
             amount: 1000000,
             beneficiary: 0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D,
             freezingPeriod: 180 days,
             vestingDuration: 540 days,
-            nerfParameter: 10
+            nerfParameter: 0
         });
         teamList[14] = Team({
             amount: 15000000,
             beneficiary: 0xb28fB8D317d0973F14710921E2215C6AbCcAC139,
             freezingPeriod: 180 days,
             vestingDuration: 180 days,
-            nerfParameter: 0
+            nerfParameter: 10
         });
     }
 }
