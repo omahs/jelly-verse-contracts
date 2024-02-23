@@ -30,7 +30,7 @@ contract StakingRewardDistribution is Ownable {
         IERC20 token,
         uint256 epoch
     );
-    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string _ipfs);
+    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string ipfs);
     event EpochRemoved(uint256 epoch);
     event Deposited(IERC20 token, uint256 amount, uint256 epoch);
     event ContractChanged(address vestingContract);

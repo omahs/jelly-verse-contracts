@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.0) (governance/utils/IVotes.sol)
 pragma solidity ^0.8.0;
-import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
+import {IERC20} from "../vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 
 /**
  * @dev Common interface for {ERC20Votes}, {ERC721Votes}, and other {Votes}-enabled contracts.

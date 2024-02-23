@@ -230,6 +230,20 @@ export function shouldBehaveLikeJellyToken(): void {
 						'Total supply is not correct'
 					);
 				});
+
+				it(`should emit a Transfer event`, async function () {
+					await expect(
+						this.jellyToken
+							.connect(this.signers.deployer)
+							.mint(this.signers.alice.address, amountToMint)
+					)
+						.to.emit(this.jellyToken, 'Transfer')
+						.withArgs(
+							ethers.constants.AddressZero,
+							this.signers.alice.address,
+							amountToMint,
+						);
+				});
 			});
 
 			describe(`on failure`, async function () {
@@ -240,6 +254,62 @@ export function shouldBehaveLikeJellyToken(): void {
 							.mint(this.signers.alice.address, amountToMint)
 					).to.be.revertedWith(
 						`AccessControl: account ${this.signers.alice.address.toLocaleLowerCase()} is missing role ${MINTER_ROLE}`
+					);
+				});
+			});
+		});
+
+		describe(`#burn`, async function () {
+			const amountToBurn = ethers.utils.parseEther('100');
+			describe(`on success`, async function () {
+				beforeEach(async function () {
+					await this.jellyToken
+						.connect(this.signers.deployer)
+						.mint(this.signers.alice.address, amountToBurn);
+				});
+
+				it(`should burn tokens`, async function () {
+					assert(
+						(await this.jellyToken.balanceOf(this.signers.alice.address)).eq(
+							amountToBurn
+						),
+						'Pre burn balance is not correct'
+					);
+					await this.jellyToken
+						.connect(this.signers.alice)
+						.burn(amountToBurn);
+
+					assert(
+						(await this.jellyToken.balanceOf(this.signers.alice.address)).eq(
+							0
+						),
+						'Balance is not correct'
+					);
+				});
+
+				it(`should emit a Transfer event`, async function () {
+					await expect(
+						this.jellyToken
+							.connect(this.signers.alice)
+							.burn(amountToBurn)
+					)
+						.to.emit(this.jellyToken, 'Transfer')
+						.withArgs(
+							this.signers.alice.address,
+							ethers.constants.AddressZero,
+							amountToBurn,
+						);
+				});
+			});
+
+			describe(`on failure`, async function () {
+				it(`should revert if the caller does not have specified amount to burn`, async function () {
+					await expect(
+						this.jellyToken
+							.connect(this.signers.alice)
+							.burn(amountToBurn.add(1))
+					).to.be.revertedWith(
+						`ERC20: burn amount exceeds balance`
 					);
 				});
 			});

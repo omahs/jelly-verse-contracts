@@ -4,7 +4,7 @@
 pragma solidity ^0.8.0;
 
 import "./Governor.sol";
-import "./IChest.sol";
+import "./interfaces/IChest.sol";
 
 /**
  * @dev Extension of {Governor} for voting weight extraction from an {ERC20Votes} token, or since v4.5 an {ERC721Votes} token.

@@ -4,7 +4,7 @@ import { MockContract } from "@ethereum-waffle/mock-contract";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Minter } from '../../typechain-types';
 import { BigNumber } from "ethers";
-import { deployMinterFixture } from "../fixtures/unit__Minter";
+import { unitMinterFixture } from "../fixtures/unit__Minter";
 
 describe("Minter", function () {
     let minter: Minter;
@@ -15,7 +15,7 @@ describe("Minter", function () {
     let stakingRewardsContract: MockContract;
 
     beforeEach(async function () {
-        const fixture = await loadFixture(deployMinterFixture);
+        const fixture = await loadFixture(unitMinterFixture);
         minter = fixture.minter;
         jellyToken = fixture.jellyToken;
         deployer = fixture.deployer;

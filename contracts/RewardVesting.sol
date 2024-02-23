@@ -27,10 +27,10 @@ contract RewardVesting is Ownable {
     error Vest__AlreadyVested();
     error Vest__NothingToClaim();
 
-    event VestedLiqidty(uint256 amount, address _beneficiary);
-    event VestingLiquidityClaimed(uint256 amount, address _beneficiary);
-    event VestedStaking(uint256 amount, address _beneficiary);
-    event VestingStakingClaimed(uint256 amount, address _beneficiary);
+    event VestedLiqidty(uint256 amount, address beneficiary);
+    event VestingLiquidityClaimed(uint256 amount, address beneficiary);
+    event VestedStaking(uint256 amount, address beneficiary);
+    event VestingStakingClaimed(uint256 amount, address beneficiary);
 
     constructor(
         address _owner,
