@@ -129,6 +129,8 @@ describe("InvestorDistribution", function () {
       it("should distribute jelly to investors in batches of 10", async function () {
         const FREEZING_PERIOD = 46_656_000; // 18 months
         const VESTING_DURATION = 15_552_000; // 6 months
+        const INITIAL_BOOSTER = ethers.utils.parseEther("1");
+        const NERF_PARAMETER = BigNumber.from("10");
         let batchLen = 10;
         let timestamps: number[] = [];
         let investorDistributionBalanceBefore: BigNumber =
@@ -143,8 +145,9 @@ describe("InvestorDistribution", function () {
         let indexBefore = parseInt(indexBytes.slice(2, 26), 16);
 
         // First batch
-        timestamps.push(await time.latest());
+
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         let amountDistributed: number = investors
           .slice(0, 10)
@@ -171,8 +174,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(10, 20)
@@ -199,8 +202,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(20, 30)
@@ -227,8 +230,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(30, 40)
@@ -255,8 +258,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(40, 50)
@@ -283,8 +286,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(50, 60)
@@ -311,8 +314,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(60, 70)
@@ -339,8 +342,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(70, 80)
@@ -368,8 +371,8 @@ describe("InvestorDistribution", function () {
         investorDistributionBalanceBefore = investorDistributionBalanceAfter;
         indexBefore = indexAfter;
 
-        timestamps.push(await time.latest());
         await investorDistribution.distribute(batchLen);
+        timestamps.push(await time.latest());
 
         amountDistributed = investors
           .slice(80, 87)
@@ -382,29 +385,29 @@ describe("InvestorDistribution", function () {
         indexAfter = parseInt(indexBytes.slice(2, 26), 16);
 
         // check all chest positions values
-        investors.map(async (investor, i) => {
+        for (let i = 0; i < investors.length; i++) {
           const totalVestedAmount = ethers.utils.parseEther(
-            investor.amount.toString()
+            investors[i].amount.toString()
           );
-          const releasedAmount = BigNumber.from(0);
+          const releasedAmount = BigNumber.from("0");
           const cliffTimestamp = BigNumber.from(
-            timestamps[i] + FREEZING_PERIOD
+            timestamps[Math.floor(i / 10)] + FREEZING_PERIOD
           );
-          const booster = BigNumber.from(0);
-          const nerfParameter = BigNumber.from(0);
 
           const vestingPosition = await chest.getVestingPosition(i);
           expect(vestingPosition[0]).to.equal(totalVestedAmount);
           expect(vestingPosition[1]).to.equal(releasedAmount);
           expect(vestingPosition[2]).to.equal(cliffTimestamp);
           expect(vestingPosition[3]).to.equal(VESTING_DURATION);
-          expect(vestingPosition[4]).to.equal(booster);
-          expect(vestingPosition[5]).to.equal(booster);
-          expect(vestingPosition[6]).to.equal(nerfParameter);
-        });
+          expect(vestingPosition[4]).to.equal(FREEZING_PERIOD);
+          expect(vestingPosition[5]).to.equal(INITIAL_BOOSTER);
+          expect(vestingPosition[6]).to.equal(NERF_PARAMETER);
+        }
 
         // should have 0 balance after all distributions
-        expect(await jellyToken.balanceOf(investorDistribution.address)).to.equal(0);
+        expect(
+          await jellyToken.balanceOf(investorDistribution.address)
+        ).to.equal(0);
       });
       it("should emit BatchDistributed event", async function () {
         const indexBytes = await ethers.provider.getStorageAt(
