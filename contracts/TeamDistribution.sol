@@ -4,7 +4,7 @@
 pragma solidity ^0.8.0;
 
 import "./utils/Ownable.sol";
-import "./IChest.sol";
+import "./interfaces/IChest.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 
 contract TeamDistribution is Ownable {
