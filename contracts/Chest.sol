@@ -37,8 +37,6 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         "]]></tspan><tspan x='0' y='64' font-weight='400' stroke-width='0'><![CDATA[}]]></tspan></text></svg>";
 
     address internal immutable i_jellyToken;
-    address internal immutable i_allocator;
-    address internal immutable i_distributor;
     uint32 internal immutable i_timeFactor;
 
     uint256 public fee;
@@ -72,7 +70,6 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
     error Chest__ZeroAddress();
     error Chest__InvalidStakingAmount();
-    error Chest__NotAuthorizedForSpecial();
     error Chest__NonExistentToken();
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
@@ -92,17 +89,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         _;
     }
 
-    modifier onlyAuthorizedForSpecialChest() {
-        if (msg.sender != i_allocator && msg.sender != i_distributor) {
-            revert Chest__NotAuthorizedForSpecial();
-        }
-        _;
-    }
-
     constructor(
         address jellyToken,
-        address allocator,
-        address distributor,
         uint256 fee_,
         uint128 maxBooster_,
         uint32 timeFactor,
@@ -110,16 +98,12 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         address pendingOwner
     ) ERC721("Chest", "CHEST") Ownable(owner, pendingOwner) {
         if (
-            jellyToken == address(0) ||
-            allocator == address(0) ||
-            distributor == (address(0))
+            jellyToken == address(0)
         ) {
             revert Chest__ZeroAddress();
         }
 
         i_jellyToken = jellyToken;
-        i_allocator = allocator;
-        i_distributor = distributor;
         fee = fee_;
         maxBooster = maxBooster_;
         i_timeFactor = timeFactor;
@@ -183,7 +167,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     /**
      * @notice Stakes tokens and freezes them for a period of time in special chest.
      *
-     * @dev Only allocator and distributor can call this method.
+     * @dev Anyone can call this function, it's meant to be used by 
+     *      partners and investors because of vestingPeriod.
      *
      * @param amount - amount of tokens to freeze.
      * @param beneficiary - address of the beneficiary.
@@ -198,7 +183,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint32 freezingPeriod,
         uint32 vestingDuration,
         uint8 nerfParameter
-    ) external onlyAuthorizedForSpecialChest nonReentrant {
+    ) external nonReentrant {
         if (amount == 0 || amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
         if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST) {

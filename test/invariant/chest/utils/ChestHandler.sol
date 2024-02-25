@@ -14,23 +14,17 @@ contract ChestHandler is Test {
     
     address immutable i_beneficiary;
 
-    address[] private actors;
-
     Chest private immutable i_chest;
     ERC20Token private immutable i_jellyToken;
 
     constructor(
         address beneficiary,
         Chest chest,
-        ERC20Token jellyToken,
-        address allocator,
-        address distributor
+        ERC20Token jellyToken
     ) {
         i_beneficiary = beneficiary;
         i_chest = chest;
         i_jellyToken = jellyToken;
-        actors.push(allocator);
-        actors.push(distributor);
     }
 
     // ERC721 functionalities
@@ -124,7 +118,7 @@ contract ChestHandler is Test {
         ); // 1,5 years
         nerfParameter = uint8(bound(nerfParameter, 1, 10));
 
-        address sender = actors[bound(actorIndexSeed, 0, actors.length - 1)];
+        address sender = makeAddr("specialChestCreator");
 
         vm.startPrank(sender);
         i_jellyToken.mint(amount + i_chest.fee());

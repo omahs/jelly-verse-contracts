@@ -9,8 +9,6 @@ import {ERC20Token} from "../../../contracts/test/ERC20Token.sol";
 contract ChestHarness is Chest {
     constructor(
         address jellyToken,
-        address allocator,
-        address distributor,
         uint256 fee_,
         uint128 maxBooster_,
         uint32 timeFactor_,
@@ -19,8 +17,6 @@ contract ChestHarness is Chest {
     )
         Chest(
             jellyToken,
-            allocator,
-            distributor,
             fee_,
             maxBooster_,
             timeFactor_,
@@ -72,9 +68,8 @@ contract ChestTest is Test {
 
     address immutable i_deployerAddress;
 
-    address allocator = makeAddr("allocator");
-    address distributor = makeAddr("distributor");
     address testAddress = makeAddr("testAddress");
+    address specialChestCreator = makeAddr("specialChestCreator");
     address approvedAddress = makeAddr("approvedAddress");
     address nonApprovedAddress = makeAddr("nonApprovedAddress");
     address transferRecipientAddress = makeAddr("transferRecipientAddress");
@@ -112,7 +107,6 @@ contract ChestTest is Test {
 
     error Chest__ZeroAddress();
     error Chest__InvalidStakingAmount();
-    error Chest__NotAuthorizedForSpecial();
     error Chest__NonExistentToken();
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
@@ -146,7 +140,7 @@ contract ChestTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stakeSpecial(
@@ -175,8 +169,6 @@ contract ChestTest is Test {
         jellyToken = new ERC20Token("Jelly", "JELLY");
         chest = new Chest(
             address(jellyToken),
-            allocator,
-            distributor,
             fee,
             maxBooster,
             timeFactor,
@@ -185,21 +177,17 @@ contract ChestTest is Test {
         );
         chestHarness = new ChestHarness(
             address(jellyToken),
-            allocator,
-            distributor,
             fee,
             maxBooster,
             timeFactor,
             owner,
             pendingOwner
         );
-        vm.prank(allocator);
-        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
-
-        vm.prank(distributor);
-        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
 
         vm.prank(testAddress);
+        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
+
+        vm.prank(specialChestCreator);
         jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
 
         vm.prank(approvedAddress);
@@ -375,10 +363,10 @@ contract ChestTest is Test {
         uint8 nerfParameter = 5; // 5/10 = 1/2
 
         uint256 totalFeesBefore = chest.totalFees();
-        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(allocator);
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(specialChestCreator);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stakeSpecial(
@@ -399,7 +387,7 @@ contract ChestTest is Test {
             0
         );
         uint256 totalFeesAfter = chest.totalFees();
-        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(allocator);
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(specialChestCreator);
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(vestingPosition.totalVestedAmount, amount);
@@ -435,10 +423,10 @@ contract ChestTest is Test {
         uint8 nerfParameter = 5;
 
         uint256 totalFeesBefore = chest.totalFees();
-        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(distributor);
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(specialChestCreator);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
-        vm.startPrank(distributor);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stakeSpecial(
@@ -459,7 +447,7 @@ contract ChestTest is Test {
             0
         );
         uint256 totalFeesAfter = chest.totalFees();
-        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(distributor);
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(specialChestCreator);
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(vestingPosition.totalVestedAmount, amount);
@@ -498,7 +486,7 @@ contract ChestTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
 
         vm.expectEmit(true, true, false, true, address(chest));
@@ -529,7 +517,7 @@ contract ChestTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount);
 
         vm.expectRevert(Chest__InvalidStakingAmount.selector);
@@ -550,7 +538,7 @@ contract ChestTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount);
 
         vm.expectRevert(Chest__InvalidStakingAmount.selector);
@@ -571,7 +559,7 @@ contract ChestTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount);
 
         vm.expectRevert(Chest__ZeroAddress.selector);
@@ -592,7 +580,7 @@ contract ChestTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount);
 
         vm.expectRevert(Chest__InvalidFreezingPeriod.selector);

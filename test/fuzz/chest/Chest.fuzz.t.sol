@@ -8,8 +8,6 @@ import {ERC20Token} from "../../../contracts/test/ERC20Token.sol";
 contract ChestHarness is Chest {
     constructor(
         address jellyToken,
-        address allocator,
-        address distributor,
         uint256 fee_,
         uint128 maxBooster_,
         uint8 timeFactor_,
@@ -18,8 +16,6 @@ contract ChestHarness is Chest {
     )
         Chest(
             jellyToken,
-            allocator,
-            distributor,
             fee_,
             maxBooster_,
             timeFactor_,
@@ -72,9 +68,8 @@ contract ChestFuzzTest is Test {
 
     address immutable i_deployerAddress;
 
-    address allocator = makeAddr("allocator");
-    address distributor = makeAddr("distributor");
     address testAddress = makeAddr("testAddress");
+    address specialChestCreator = makeAddr("specialChestCreator");
     address approvedAddress = makeAddr("approvedAddress");
     address nonApprovedAddress = makeAddr("nonApprovedAddress");
     address transferRecipientAddress = makeAddr("transferRecipientAddress");
@@ -137,7 +132,7 @@ contract ChestFuzzTest is Test {
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
 
         chest.stakeSpecial(
@@ -166,8 +161,6 @@ contract ChestFuzzTest is Test {
         jellyToken = new ERC20Token("Jelly", "JELLY");
         chest = new Chest(
             address(jellyToken),
-            allocator,
-            distributor,
             fee,
             maxBooster,
             timeFactor,
@@ -176,8 +169,6 @@ contract ChestFuzzTest is Test {
         );
         chestHarness = new ChestHarness(
             address(jellyToken),
-            allocator,
-            distributor,
             fee,
             maxBooster,
             timeFactor,
@@ -185,13 +176,10 @@ contract ChestFuzzTest is Test {
             pendingOwner
         );
 
-        vm.prank(allocator);
-        jellyToken.mint(JELLY_MAX_SUPPLY + fee);
-
-        vm.prank(distributor);
-        jellyToken.mint(JELLY_MAX_SUPPLY + fee);
-
         vm.prank(testAddress);
+        jellyToken.mint(JELLY_MAX_SUPPLY + fee);
+
+        vm.prank(specialChestCreator);
         jellyToken.mint(JELLY_MAX_SUPPLY + fee);
 
         vm.prank(approvedAddress);
@@ -408,12 +396,12 @@ contract ChestFuzzTest is Test {
         nerfParameter = uint8(bound(nerfParameter, 1, 10));
 
         uint256 totalFeesBefore = chest.totalFees();
-        uint256 allocatorJellyBalanceBefore = jellyToken.balanceOf(allocator);
+        uint256 specialChestCreatorJellyBalanceBefore = jellyToken.balanceOf(specialChestCreator);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
         uint256 beneficiaryChestBalanceBefore = chest.balanceOf(beneficiary);
         uint256 chestTotalSupplyBefore = chest.totalSupply();
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
         chest.stakeSpecial(
             amount,
@@ -444,8 +432,8 @@ contract ChestFuzzTest is Test {
         assertEq(chest.totalFees(), totalFeesBefore + chest.fee());
 
         assertEq(
-            jellyToken.balanceOf(allocator),
-            allocatorJellyBalanceBefore - amount - chest.fee()
+            jellyToken.balanceOf(specialChestCreator),
+            specialChestCreatorJellyBalanceBefore - amount - chest.fee()
         );
         assertEq(
             jellyToken.balanceOf(address(chest)),
@@ -485,7 +473,7 @@ contract ChestFuzzTest is Test {
         );
         nerfParameter = uint8(bound(nerfParameter, 1, 10));
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
         vm.expectRevert(Chest__InvalidStakingAmount.selector);
         chest.stakeSpecial(
@@ -515,7 +503,7 @@ contract ChestFuzzTest is Test {
         );
         nerfParameter = uint8(bound(nerfParameter, 1, 10));
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
         vm.expectRevert(Chest__ZeroAddress.selector);
         chest.stakeSpecial(
@@ -549,7 +537,7 @@ contract ChestFuzzTest is Test {
         );
         nerfParameter = uint8(bound(nerfParameter, 1, 10));
 
-        vm.startPrank(allocator);
+        vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
         vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
         chest.stakeSpecial(

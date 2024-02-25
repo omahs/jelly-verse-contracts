@@ -21,9 +21,8 @@ contract BaseSetup is Test {
     uint256 positionIndex;
     address ownerOfChest;
 
-    address allocator = makeAddr("allocator");
-    address distributor = makeAddr("distributor");
     address testAddress = makeAddr("testAddress");
+    address specialChestCreator = makeAddr("specialChestCreator");
     address approvedAddress = makeAddr("approvedAddress");
     address nonApprovedAddress = makeAddr("nonApprovedAddress");
     address transferRecipientAddress = makeAddr("transferRecipientAddress");
@@ -43,8 +42,6 @@ contract BaseSetup is Test {
         jellyToken = new ERC20Token("Jelly", "JELLY");
         chest = new Chest(
             address(jellyToken),
-            allocator,
-            distributor,
             fee,
             maxBooster,
             timeFactor,
@@ -54,21 +51,16 @@ contract BaseSetup is Test {
         chestHandler = new ChestHandler(
             beneficiary,
             chest,
-            jellyToken,
-            allocator,
-            distributor
+            jellyToken
         );
 
         excludeContract(address(jellyToken));
         excludeContract(address(chest));
 
-        vm.prank(allocator);
-        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
-
-        vm.prank(distributor);
-        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
-
         vm.prank(testAddress);
+        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
+
+        vm.prank(specialChestCreator);
         jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
 
         vm.prank(approvedAddress);

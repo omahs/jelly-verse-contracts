@@ -88,8 +88,6 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
         .connect(deployer)
         .deploy(
             jellyToken.address,
-            allocator.address,
-            distributor.address,
             fee,
             maxBooster,
             timeFactor,

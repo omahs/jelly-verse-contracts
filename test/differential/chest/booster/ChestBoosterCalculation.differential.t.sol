@@ -9,8 +9,6 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 contract ChestHarness is Chest {
     constructor(
         address jellyToken,
-        address allocator,
-        address distributor,
         uint256 fee_,
         uint128 maxBooster_,
         uint8 timeFactor_,
@@ -19,8 +17,6 @@ contract ChestHarness is Chest {
     )
         Chest(
             jellyToken,
-            allocator,
-            distributor,
             fee_,
             maxBooster_,
             timeFactor_,
@@ -62,8 +58,6 @@ contract ChestBoosterCalculationDifferentialTest is Test {
     uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
     address jellyToken = makeAddr("jellyToken");
-    address allocator = makeAddr("allocator");
-    address distributor = makeAddr("distributor");
 
     ChestHarness public chestHarness;
     Chest.VestingPosition vestingPosition;
@@ -72,13 +66,11 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         uint256 fee = 10;
         uint128 maxBooster = 2e18;
         address owner = msg.sender;
-        address pendingOwner = allocator;
+        address pendingOwner = makeAddr("pendingOwner");
         uint8 timeFactor = 2;
 
         chestHarness = new ChestHarness(
             jellyToken,
-            allocator,
-            distributor,
             fee,
             maxBooster,
             timeFactor,
