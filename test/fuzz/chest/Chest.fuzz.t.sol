@@ -64,10 +64,11 @@ contract ChestFuzzTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
 
-    uint64 private constant DECIMALS = 1e18;
-    uint64 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint128 private constant DECIMALS = 1e18;
+    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
-    uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
+    uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 * DECIMALS;
+    uint256 constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
 
     address immutable i_deployerAddress;
 
@@ -118,7 +119,7 @@ contract ChestFuzzTest is Test {
     error Ownable__CallerIsNotOwner();
 
     modifier openPosition() {
-        uint256 amount = 100;
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
 
         vm.startPrank(testAddress);
@@ -131,7 +132,7 @@ contract ChestFuzzTest is Test {
     }
 
     modifier openSpecialPosition() {
-        uint256 amount = 100;
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = 1000;
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
@@ -223,7 +224,7 @@ contract ChestFuzzTest is Test {
         address beneficiary,
         uint32 freezingPeriod
     ) external {
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY);
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
         vm.assume(
             beneficiary != address(0) &&
                 beneficiary != address(this) &&
@@ -291,7 +292,7 @@ contract ChestFuzzTest is Test {
         address beneficiary,
         uint32 freezingPeriod
     ) external {
-        amount = 0;
+        amount = bound(amount, 0, MIN_STAKING_AMOUNT - 1);
         vm.assume(
             beneficiary != address(0) &&
                 beneficiary != address(this) &&
@@ -320,7 +321,7 @@ contract ChestFuzzTest is Test {
         uint32 freezingPeriod
     ) external {
         beneficiary = address(0);
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY);
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
         freezingPeriod = uint32(
             bound(
                 freezingPeriod,
@@ -342,7 +343,7 @@ contract ChestFuzzTest is Test {
         uint32 freezingPeriod
     ) external {
         vm.assume(freezingPeriod < MIN_FREEZING_PERIOD_REGULAR_CHEST);
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY);
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
         vm.assume(
             beneficiary != address(0) &&
                 beneficiary != address(this) &&
@@ -364,7 +365,7 @@ contract ChestFuzzTest is Test {
         uint32 freezingPeriod
     ) external {
         vm.assume(freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST);
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY);
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
         vm.assume(
             beneficiary != address(0) &&
                 beneficiary != address(this) &&
@@ -390,7 +391,7 @@ contract ChestFuzzTest is Test {
         uint32 vestingDuration,
         uint8 nerfParameter
     ) external {
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY);
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
         vm.assume(
             beneficiary != address(0) &&
                 beneficiary != address(this) &&
@@ -468,7 +469,7 @@ contract ChestFuzzTest is Test {
         uint32 vestingDuration,
         uint8 nerfParameter
     ) external {
-        amount = 0;
+        amount = bound(amount, 0, MIN_STAKING_AMOUNT - 1);
         vm.assume(
             beneficiary != address(0) &&
                 beneficiary != address(this) &&
@@ -505,7 +506,7 @@ contract ChestFuzzTest is Test {
         uint8 nerfParameter
     ) external {
         beneficiary = address(0);
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY);
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
         freezingPeriod = uint32(
             bound(freezingPeriod, 0, MAX_FREEZING_PERIOD_SPECIAL_CHEST)
         );
@@ -535,7 +536,7 @@ contract ChestFuzzTest is Test {
         uint8 nerfParameter
     ) external {
         vm.assume(freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST);
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY);
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
         vm.assume(
             beneficiary != address(0) &&
                 beneficiary != address(this) &&
@@ -1125,6 +1126,9 @@ contract ChestFuzzTest is Test {
         uint32 increaseFreezingPeriodFor
     ) external openPosition {
         vm.assume(caller != testAddress);
+        vm.assume(caller != address(0) && caller != address(this));
+        assumePayable(caller);
+
         increaseAmountFor = bound(
             increaseAmountFor,
             1,
@@ -1140,7 +1144,9 @@ contract ChestFuzzTest is Test {
 
         uint positionIndex = 0;
 
-        vm.prank(caller);
+        vm.startPrank(caller);
+
+        jellyToken.approve(address(chest), increaseAmountFor);
 
         vm.expectRevert(Chest__NotAuthorizedForToken.selector);
         chest.increaseStake(
@@ -1765,7 +1771,7 @@ contract ChestFuzzTest is Test {
         numberOfChests = bound(numberOfChests, 1, 100);
         amount = bound(
             amount,
-            1,
+            MIN_STAKING_AMOUNT,
             ((JELLY_MAX_SUPPLY / numberOfChests) - chest.fee() * numberOfChests)
         );
 
@@ -1793,7 +1799,7 @@ contract ChestFuzzTest is Test {
         address account
     ) external {
         // create positions
-        uint256 amount = 100;
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
         uint256 numberOfChests = 100;
 

@@ -58,8 +58,8 @@ contract ChestBoosterCalculationDifferentialTest is Test {
 
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
-    uint64 private constant DECIMALS = 1e18;
-    uint64 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint128 private constant DECIMALS = 1e18;
+    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
     address jellyToken = makeAddr("jellyToken");
     address allocator = makeAddr("allocator");

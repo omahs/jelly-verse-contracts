@@ -6,11 +6,12 @@ import {ERC20Token} from "../../../../contracts/test/ERC20Token.sol";
 
 contract ChestHandler is Test {
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
+    uint256 constant MIN_STAKING_AMOUNT = 1_000 ether;
 
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
-
+    
     address immutable i_beneficiary;
 
     address[] private actors;
@@ -83,7 +84,7 @@ contract ChestHandler is Test {
         uint32 freezingPeriod,
         address caller
     ) external {
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
         vm.assume(beneficiary != address(0) && beneficiary != address(this));
         assumePayable(beneficiary);
         freezingPeriod = uint32(
@@ -112,7 +113,7 @@ contract ChestHandler is Test {
         uint8 nerfParameter,
         uint256 actorIndexSeed
     ) external {
-        amount = bound(amount, 1, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
         vm.assume(beneficiary != address(0) && beneficiary != address(this));
         assumePayable(beneficiary);
         freezingPeriod = uint32(

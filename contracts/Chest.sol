@@ -19,8 +19,10 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
 
-    uint64 private constant DECIMALS = 1e18;
-    uint64 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint128 private constant DECIMALS = 1e18;
+    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+
+    uint256 public constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
 
     string constant BASE_SVG =
         "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 21.500672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
@@ -137,7 +139,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         address beneficiary,
         uint32 freezingPeriod
     ) external nonReentrant {
-        if (amount == 0) revert Chest__InvalidStakingAmount();
+        if (amount == 0 || amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
         if (
             freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST ||
@@ -197,7 +199,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint32 vestingDuration,
         uint8 nerfParameter
     ) external onlyAuthorizedForSpecialChest nonReentrant {
-        if (amount == 0) revert Chest__InvalidStakingAmount();
+        if (amount == 0 || amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
         if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST) {
             revert Chest__InvalidFreezingPeriod();
@@ -286,6 +288,11 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
                         .cliffTimestamp = newCliffTimestamp;
                 } else {
                     // chest is open
+                    if (
+                      vestingPosition.totalVestedAmount - vestingPosition.releasedAmount + amount <
+                      MIN_STAKING_AMOUNT
+                    ) revert Chest__InvalidStakingAmount();
+                    
                     newBooster = calculateBooster(vestingPosition);
 
                     newCliffTimestamp = uint48(

@@ -13,8 +13,10 @@ contract BaseSetup is Test {
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
 
-    uint64 private constant DECIMALS = 1e18;
-    uint64 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint128 private constant DECIMALS = 1e18;
+    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+
+    uint256 constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
 
     uint256 positionIndex;
     address ownerOfChest;
@@ -61,19 +63,19 @@ contract BaseSetup is Test {
         excludeContract(address(chest));
 
         vm.prank(allocator);
-        jellyToken.mint(1000);
+        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
 
         vm.prank(distributor);
-        jellyToken.mint(1000);
+        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
 
         vm.prank(testAddress);
-        jellyToken.mint(1000);
+        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
 
         vm.prank(approvedAddress);
-        jellyToken.mint(1000);
+        jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
 
         // @dev open regular positions so handler has always position to work with
-        uint256 amount = 100;
+        uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
 
         vm.startPrank(testAddress);

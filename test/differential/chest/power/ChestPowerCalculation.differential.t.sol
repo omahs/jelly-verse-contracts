@@ -60,8 +60,8 @@ contract ChestPowerCalculationDifferentialTest is Test {
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
     uint32 constant MIN_FREEZING_PERIOD_CHEST = 0 days;
     uint32 constant MAX_FREEZING_PERIOD_CHEST = 5 * 365 days;
-    uint64 private constant DECIMALS = 1e18;
-    uint64 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint128 private constant DECIMALS = 1e18;
+    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
     uint128 private constant MAX_BOOSTER = 2 * DECIMALS;
 
