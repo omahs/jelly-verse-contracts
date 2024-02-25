@@ -114,6 +114,7 @@ contract ChestTest is Test {
     error Chest__NonTransferrableToken();
     error Chest__NotAuthorizedForToken();
     error Chest__FreezingPeriodNotOver();
+    error Chest__InvalidVestingDuration();
     error Chest__CannotUnstakeMoreThanReleasable();
     error Chest__NothingToUnstake();
     error Chest__InvalidBoosterValue();
@@ -584,6 +585,27 @@ contract ChestTest is Test {
         jellyToken.approve(address(chest), amount);
 
         vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.stakeSpecial(
+            amount,
+            testAddress,
+            freezingPeriod,
+            vestingDuration,
+            nerfParameter
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_stakeSpecialInvalidVestingDuration() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
+        uint32 freezingPeriod = MAX_FREEZING_PERIOD_SPECIAL_CHEST;
+        uint32 vestingDuration = 0;
+        uint8 nerfParameter = 5;
+
+        vm.startPrank(specialChestCreator);
+        jellyToken.approve(address(chest), amount);
+
+        vm.expectRevert(Chest__InvalidVestingDuration.selector);
         chest.stakeSpecial(
             amount,
             testAddress,

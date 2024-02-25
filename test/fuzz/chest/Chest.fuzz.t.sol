@@ -103,6 +103,7 @@ contract ChestFuzzTest is Test {
     error Chest__NonExistentToken();
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
+    error Chest__InvalidVestingDuration();
     error Chest__CannotModifySpecial();
     error Chest__NonTransferrableToken();
     error Chest__NotAuthorizedForToken();
@@ -549,6 +550,39 @@ contract ChestFuzzTest is Test {
         );
         vm.stopPrank();
     }
+
+    function testFuzz_stakeSpecialInvalidVestingDuration(
+      uint256 amount,
+      address beneficiary,
+      uint32 freezingPeriod,
+      uint32 vestingDuration,
+      uint8 nerfParameter
+    ) external {
+      freezingPeriod = uint32(bound(freezingPeriod, MIN_FREEZING_PERIOD_REGULAR_CHEST, MAX_FREEZING_PERIOD_SPECIAL_CHEST));
+      amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
+      vm.assume(
+        beneficiary != address(0) &&
+        beneficiary != address(this) &&
+        beneficiary != address(jellyToken) &&
+        beneficiary != address(chestHarness)
+      );
+      assumePayable(beneficiary);
+      vestingDuration = 0;
+      nerfParameter = uint8(bound(nerfParameter, 1, 10));
+
+      vm.startPrank(specialChestCreator);
+      jellyToken.approve(address(chest), amount + chest.fee());
+      vm.expectRevert(Chest__InvalidVestingDuration.selector);
+      chest.stakeSpecial(
+        amount,
+        beneficiary,
+        freezingPeriod,
+        vestingDuration,
+        nerfParameter
+      );
+      vm.stopPrank();
+    }
+  
 
     // Regular chest increaseStake fuzz tests
     function testFuzz_increaseStakeIncreaseStakingAmount(
