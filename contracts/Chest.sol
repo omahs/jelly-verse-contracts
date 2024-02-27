@@ -20,8 +20,9 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
     uint32 constant MIN_VESTING_DURATION = 1; // @dev need this to make difference between special and regular chest
 
-    uint128 private constant DECIMALS = 1e18;
-    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint120 private constant DECIMALS = 1e18;
+    uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint120 private constant WEEKLY_BOOSTER_INCREMENT = 6_410_256_410_256_410; // @dev 1 / 156 weeks
 
     uint256 public constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
 
@@ -42,7 +43,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
     uint256 public fee;
     uint256 public totalFees;
-    uint128 public maxBooster;
+    uint120 public maxBooster;
 
     event Staked(
         address indexed user,
@@ -50,23 +51,23 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint256 amount,
         uint256 freezedUntil,
         uint32 vestingDuration,
-        uint128 booster,
+        uint120 booster,
         uint8 nerfParameter
     );
     event IncreaseStake(
         uint256 indexed tokenId,
         uint256 totalStaked,
         uint256 freezedUntil,
-        uint128 booster
+        uint120 booster
     );
     event Unstake(
         uint256 indexed tokenId,
         uint256 amount,
         uint256 totalStaked,
-        uint128 booster
+        uint120 booster
     );
     event SetFee(uint256 fee);
-    event SetMaxBooster(uint128 maxBooster);
+    event SetMaxBooster(uint120 maxBooster);
     event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
@@ -94,7 +95,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     constructor(
         address jellyToken,
         uint256 fee_,
-        uint128 maxBooster_,
+        uint120 maxBooster_,
         uint32 timeFactor,
         address owner,
         address pendingOwner
@@ -125,7 +126,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         address beneficiary,
         uint32 freezingPeriod
     ) external nonReentrant {
-        if (amount == 0 || amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
+        if (amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
         if (
             freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST ||
@@ -186,7 +187,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint32 vestingDuration,
         uint8 nerfParameter
     ) external nonReentrant {
-        if (amount == 0 || amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
+        if (amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
         if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST) {
             revert Chest__InvalidFreezingPeriod();
@@ -231,51 +232,45 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * @param tokenId - id of the chest.
      * @param amount - amount of tokens to stake.
-     * @param freezingPeriod - duration of freezing period in seconds.
+     * @param extendFreezingPeriod - duration of freezing period extension in seconds.
      *
      * No return, reverts on error.
      */
     function increaseStake(
         uint256 tokenId,
         uint256 amount,
-        uint32 freezingPeriod
+        uint32 extendFreezingPeriod
     ) external onlyAuthorizedForToken(tokenId) nonReentrant {
-        if (amount == 0 && freezingPeriod == 0) {
+        if (amount == 0 && extendFreezingPeriod == 0) {
             revert Chest__NothingToIncrease();
         }
 
-        if (freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST) {
+        if (extendFreezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST) {
             revert Chest__InvalidFreezingPeriod();
         }
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId];
         uint48 newCliffTimestamp = vestingPosition.cliffTimestamp;
-        uint128 newBooster = vestingPosition.booster;
+        uint120 newAccumulatedBooster = vestingPosition.accumulatedBooster; // I think I will need this one :)
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
-            if (freezingPeriod == 0) {
+            if (extendFreezingPeriod == 0) {
                 if (block.timestamp > vestingPosition.cliffTimestamp) {
                     // chest is open, freezing period must be set to non-zero value
                     revert Chest__InvalidFreezingPeriod();
                 }
             } else {
                 if (block.timestamp < vestingPosition.cliffTimestamp) {
-                    // chest is frozen
-                    uint32 currentFreezingPeriod = vestingPosition
-                        .freezingPeriod;
+                  // chest is frozen
+                  newCliffTimestamp =
+                    vestingPosition.cliffTimestamp +
+                    extendFreezingPeriod;
 
-                    freezingPeriod =
-                        MAX_FREEZING_PERIOD_REGULAR_CHEST -
-                        currentFreezingPeriod;
-
-                    newCliffTimestamp =
-                        vestingPosition.cliffTimestamp +
-                        freezingPeriod;
-
-                    vestingPositions[tokenId]
-                        .freezingPeriod = MAX_FREEZING_PERIOD_REGULAR_CHEST;
-                    vestingPositions[tokenId]
-                        .cliffTimestamp = newCliffTimestamp;
+                  if(newCliffTimestamp > block.timestamp + MAX_FREEZING_PERIOD_REGULAR_CHEST) {
+                    revert Chest__InvalidFreezingPeriod();
+                  }
+                  vestingPositions[tokenId].cliffTimestamp = newCliffTimestamp;
+                  
                 } else {
                     // chest is open
                     if (
@@ -283,16 +278,16 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
                       MIN_STAKING_AMOUNT
                     ) revert Chest__InvalidStakingAmount();
                     
-                    newBooster = calculateBooster(vestingPosition);
+                    newAccumulatedBooster = calculateBooster(vestingPosition, block.timestamp);
 
                     newCliffTimestamp = uint48(
-                        block.timestamp + freezingPeriod
+                        block.timestamp + extendFreezingPeriod
                     );
-                    vestingPositions[tokenId].freezingPeriod = freezingPeriod;
 
-                    vestingPositions[tokenId].booster = newBooster;
+                    vestingPositions[tokenId].accumulatedBooster = newAccumulatedBooster;
                     vestingPositions[tokenId]
                         .cliffTimestamp = newCliffTimestamp;
+                    vestingPositions[tokenId].creationTimestamp = uint48(block.timestamp);
                 }
             }
         } else {
@@ -308,7 +303,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             tokenId,
             newTotalStaked,
             newCliffTimestamp,
-            newBooster
+            newAccumulatedBooster
         );
 
         IERC20(i_jellyToken).safeTransferFrom(
@@ -342,8 +337,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         }
 
         vestingPosition.releasedAmount += amount;
-        vestingPosition.freezingPeriod = 0; // check this
-        vestingPosition.booster = INITIAL_BOOSTER;
+        vestingPosition.accumulatedBooster = INITIAL_BOOSTER;
+        // maybe see if creationTimestamp should be updated here as well
 
         uint256 newTotalStaked = vestingPosition.totalVestedAmount -
             vestingPosition.releasedAmount;
@@ -374,7 +369,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
-    function setMaxBooster(uint128 maxBooster_) external onlyOwner {
+    function setMaxBooster(uint120 maxBooster_) external onlyOwner {
         if (maxBooster_ < INITIAL_BOOSTER) revert Chest__InvalidBoosterValue();
         maxBooster = maxBooster_;
         emit SetMaxBooster(maxBooster_);
@@ -543,21 +538,27 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      * @return - booster of the chest.
      */
     function calculateBooster(
-        VestingPosition memory vestingPosition
-    ) internal view returns (uint128) {
-        uint128 booster;
+        VestingPosition memory vestingPosition,
+        uint256 timestamp
+    ) internal view returns (uint120) {
+        uint120 booster;
         if (vestingPosition.vestingDuration > 0) {
             // special chest
             return INITIAL_BOOSTER;
         }
+        timestamp = vestingPosition.cliffTimestamp > timestamp
+            ? timestamp
+            : vestingPosition.cliffTimestamp;
 
-        uint128 currentBooster = vestingPosition.booster;
-        uint32 freezingPeriod = vestingPosition.freezingPeriod;
+        uint120 accumulatedBooster = vestingPosition.accumulatedBooster;
+        
+        uint120 weeksPassed = uint120(Math.ceilDiv(
+            timestamp - vestingPosition.creationTimestamp,
+            i_timeFactor
+        )); // maybe use safeCast here, this is low number we can use uint32 probably
 
         booster =
-            currentBooster +
-            ((freezingPeriod * (maxBooster - INITIAL_BOOSTER)) /
-                MAX_FREEZING_PERIOD_REGULAR_CHEST);
+            accumulatedBooster + (weeksPassed * WEEKLY_BOOSTER_INCREMENT);
 
         if (booster > maxBooster) {
             booster = maxBooster;
@@ -596,7 +597,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         // calculate power based on vesting type
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
-            uint128 booster = vestingPosition.booster;
+            uint120 booster = calculateBooster(vestingPosition, timestamp);
             power =
                 (booster *
                     vestingPosition.totalVestedAmount *

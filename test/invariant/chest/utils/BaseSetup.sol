@@ -6,6 +6,33 @@ import {ChestHandler} from "./ChestHandler.sol";
 import {Chest} from "../../../../contracts/Chest.sol";
 import {ERC20Token} from "../../../../contracts/test/ERC20Token.sol";
 
+contract ChestHarness is Chest {
+    constructor(
+        address jellyToken,
+        uint256 fee_,
+        uint120 maxBooster_,
+        uint32 timeFactor_,
+        address owner,
+        address pendingOwner
+    )
+        Chest(
+            jellyToken,
+            fee_,
+            maxBooster_,
+            timeFactor_,
+            owner,
+            pendingOwner
+        )
+    {}
+
+    function exposed_calculateBooster(
+        ChestHarness.VestingPosition memory vestingPosition,
+        uint256 timestamp
+    ) external view returns (uint120) {
+        return calculateBooster(vestingPosition, timestamp);
+    }
+}
+
 contract BaseSetup is Test {
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
 
@@ -13,8 +40,8 @@ contract BaseSetup is Test {
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
 
-    uint128 private constant DECIMALS = 1e18;
-    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint120 private constant DECIMALS = 1e18;
+    uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
     uint256 constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
 
@@ -31,16 +58,25 @@ contract BaseSetup is Test {
     Chest public chest;
     ERC20Token public jellyToken;
     ChestHandler public chestHandler;
+    ChestHarness public chestHarness;
 
     function setUp() public virtual {
         uint256 fee = 10;
-        uint128 maxBooster = 2e18;
+        uint120 maxBooster = 2e18;
         address owner = msg.sender;
         address pendingOwner = testAddress;
         uint32 timeFactor = 7 days;
 
         jellyToken = new ERC20Token("Jelly", "JELLY");
         chest = new Chest(
+            address(jellyToken),
+            fee,
+            maxBooster,
+            timeFactor,
+            owner,
+            pendingOwner
+        );
+        chestHarness = new ChestHarness(
             address(jellyToken),
             fee,
             maxBooster,
@@ -56,6 +92,7 @@ contract BaseSetup is Test {
 
         excludeContract(address(jellyToken));
         excludeContract(address(chest));
+        excludeContract(address(chestHarness));
 
         vm.prank(testAddress);
         jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);

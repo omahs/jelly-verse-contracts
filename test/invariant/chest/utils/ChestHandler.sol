@@ -104,8 +104,7 @@ contract ChestHandler is Test {
         address beneficiary,
         uint32 freezingPeriod,
         uint32 vestingDuration,
-        uint8 nerfParameter,
-        uint256 actorIndexSeed
+        uint8 nerfParameter
     ) external {
         amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
         vm.assume(beneficiary != address(0) && beneficiary != address(this));

@@ -9,13 +9,21 @@ import {ERC20Token} from "../../../contracts/test/ERC20Token.sol";
 // Booster Cap: Ensures that the booster value for any chest does not surpass the defined maximum booster limit.
 
 contract InvariantChestMaxBooster is BaseSetup {
+    uint120 maxBooster;
+
     function setUp() public virtual override {
         super.setUp();
         targetContract(address(chestHandler));
+        maxBooster = chest.maxBooster();
     }
 
     function invariant_maxBooster() external {
-        uint256 booster = chest.getVestingPosition(positionIndex).booster;
-        assertLe(booster, chest.maxBooster());
+      Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
+            positionIndex
+        );
+
+      uint256 booster = chestHarness.exposed_calculateBooster(vestingPosition, block.timestamp);
+
+      assertLe(booster, maxBooster);
     }
 }

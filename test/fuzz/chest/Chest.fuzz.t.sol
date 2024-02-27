@@ -9,7 +9,7 @@ contract ChestHarness is Chest {
     constructor(
         address jellyToken,
         uint256 fee_,
-        uint128 maxBooster_,
+        uint120 maxBooster_,
         uint8 timeFactor_,
         address owner,
         address pendingOwner
@@ -25,9 +25,10 @@ contract ChestHarness is Chest {
     {}
 
     function exposed_calculateBooster(
-        ChestHarness.VestingPosition memory vestingPosition
-    ) external view returns (uint128) {
-        return calculateBooster(vestingPosition);
+        ChestHarness.VestingPosition memory vestingPosition,
+        uint256 timestamp
+    ) external view returns (uint120) {
+        return calculateBooster(vestingPosition, timestamp);
     }
 
     function exposed_calculatePower(
@@ -41,7 +42,7 @@ contract ChestHarness is Chest {
         uint256 amount,
         uint32 freezingPeriod,
         uint32 vestingDuration,
-        uint128 booster,
+        uint120 booster,
         uint8 nerfParameter
     ) external returns (VestingPosition memory) {
         return
@@ -60,8 +61,8 @@ contract ChestFuzzTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
 
-    uint128 private constant DECIMALS = 1e18;
-    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint120 private constant DECIMALS = 1e18;
+    uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 * DECIMALS;
     uint256 constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
@@ -154,7 +155,7 @@ contract ChestFuzzTest is Test {
 
     function setUp() public {
         uint256 fee = 10;
-        uint128 maxBooster = 2e18;
+        uint120 maxBooster = 2e18;
         address owner = msg.sender;
         address pendingOwner = testAddress;
         uint8 timeFactor = 2;
@@ -251,9 +252,9 @@ contract ChestFuzzTest is Test {
             vestingPosition.cliffTimestamp,
             block.timestamp + freezingPeriod
         );
+        assertEq(vestingPosition.creationTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 0);
-        assertEq(vestingPosition.freezingPeriod, freezingPeriod);
-        assertEq(vestingPosition.booster, INITIAL_BOOSTER);
+        assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, 10);
 
         // using direct calls for balances to avoid stack too deep error
@@ -424,9 +425,9 @@ contract ChestFuzzTest is Test {
             vestingPosition.cliffTimestamp,
             block.timestamp + freezingPeriod
         );
+        assertEq(vestingPosition.creationTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, vestingDuration);
-        assertEq(vestingPosition.freezingPeriod, freezingPeriod);
-        assertEq(vestingPosition.booster, INITIAL_BOOSTER);
+        assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, nerfParameter);
 
         // using direct calls for balances to avoid stack too deep error
@@ -631,14 +632,14 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
-        assertEq(
-            vestingPositionAfter.freezingPeriod,
-            vestingPositionBefore.freezingPeriod
-        );
-        assertEq(vestingPositionAfter.booster, vestingPositionBefore.booster);
+        assertEq(vestingPositionAfter.accumulatedBooster, vestingPositionBefore.accumulatedBooster);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -708,14 +709,14 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
-        assertEq(
-            vestingPositionAfter.freezingPeriod,
-            vestingPositionBefore.freezingPeriod
-        );
-        assertEq(vestingPositionAfter.booster, vestingPositionBefore.booster);
+        assertEq(vestingPositionAfter.accumulatedBooster, vestingPositionBefore.accumulatedBooster);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -751,8 +752,7 @@ contract ChestFuzzTest is Test {
 
         uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
-        uint256 boosterBefore = vestingPositionBefore.booster;
-        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
+        uint256 accumulatedaccumulatedBoosterBefore = vestingPositionBefore.accumulatedBooster;
 
         vm.prank(testAddress);
         chest.increaseStake(
@@ -766,8 +766,7 @@ contract ChestFuzzTest is Test {
 
         uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
-        uint256 boosterAfter = vestingPositionAfter.booster;
-        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+        uint256 accumulatedBoosterAfter = vestingPositionAfter.accumulatedBooster;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -776,8 +775,11 @@ contract ChestFuzzTest is Test {
         assertEq(vestingPositionAfter.releasedAmount, 0);
         assertEq(
             vestingPositionAfter.cliffTimestamp,
-            (vestingPositionBefore.cliffTimestamp - freezingPeriodBefore) +
-                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
+        );
+        assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -785,8 +787,7 @@ contract ChestFuzzTest is Test {
         );
         assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
         assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
-        assertEq(boosterAfter, boosterBefore);
-        assertEq(freezingPeriodAfter, MAX_FREEZING_PERIOD_REGULAR_CHEST);
+        assertEq(accumulatedBoosterAfter, accumulatedaccumulatedBoosterBefore);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -813,7 +814,7 @@ contract ChestFuzzTest is Test {
 
         uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
-        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 accumulatedaccumulatedBoosterBefore = vestingPositionBefore.accumulatedBooster;
 
         vm.warp(vestingPositionBefore.cliffTimestamp + 1);
 
@@ -829,8 +830,7 @@ contract ChestFuzzTest is Test {
 
         uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
-        uint256 boosterAfter = vestingPositionAfter.booster;
-        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+        uint256 accumulatedBoosterAfter = vestingPositionAfter.accumulatedBooster;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -842,13 +842,16 @@ contract ChestFuzzTest is Test {
             (block.timestamp + increaseFreezingPeriodFor)
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            block.timestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
         assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
         assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
-        assertGt(boosterAfter, boosterBefore);
-        assertEq(freezingPeriodAfter, increaseFreezingPeriodFor);
+        assertGt(accumulatedBoosterAfter, accumulatedaccumulatedBoosterBefore);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -876,8 +879,7 @@ contract ChestFuzzTest is Test {
             approvedAddress
         );
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
-        uint256 boosterBefore = vestingPositionBefore.booster;
-        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
+        uint256 accumulatedaccumulatedBoosterBefore = vestingPositionBefore.accumulatedBooster;
 
         vm.prank(testAddress);
         chest.approve(approvedAddress, positionIndex);
@@ -896,8 +898,7 @@ contract ChestFuzzTest is Test {
             approvedAddress
         );
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
-        uint256 boosterAfter = vestingPositionAfter.booster;
-        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+        uint256 accumulatedBoosterAfter = vestingPositionAfter.accumulatedBooster;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -906,8 +907,11 @@ contract ChestFuzzTest is Test {
         assertEq(vestingPositionAfter.releasedAmount, 0);
         assertEq(
             vestingPositionAfter.cliffTimestamp,
-            (vestingPositionBefore.cliffTimestamp - freezingPeriodBefore) +
-                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
+        );
+        assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -915,8 +919,7 @@ contract ChestFuzzTest is Test {
         );
         assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
         assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
-        assertEq(boosterAfter, boosterBefore);
-        assertEq(freezingPeriodAfter, MAX_FREEZING_PERIOD_REGULAR_CHEST);
+        assertEq(accumulatedBoosterAfter, accumulatedaccumulatedBoosterBefore);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -943,7 +946,7 @@ contract ChestFuzzTest is Test {
             approvedAddress
         );
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
-        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 accumulatedaccumulatedBoosterBefore = vestingPositionBefore.accumulatedBooster;
 
         vm.prank(testAddress);
         chest.approve(approvedAddress, positionIndex);
@@ -964,8 +967,7 @@ contract ChestFuzzTest is Test {
             approvedAddress
         );
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
-        uint256 boosterAfter = vestingPositionAfter.booster;
-        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+        uint256 accumulatedBoosterAfter = vestingPositionAfter.accumulatedBooster;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -977,13 +979,16 @@ contract ChestFuzzTest is Test {
             (block.timestamp + increaseFreezingPeriodFor)
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            block.timestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
         assertEq(accountJellyBalanceAfter, accountJellyBalanceBefore);
         assertEq(chestJellyBalanceAfter, chestJellyBalanceBefore);
-        assertGt(boosterAfter, boosterBefore);
-        assertEq(freezingPeriodAfter, increaseFreezingPeriodFor);
+        assertGt(accumulatedBoosterAfter, accumulatedaccumulatedBoosterBefore);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -1013,8 +1018,7 @@ contract ChestFuzzTest is Test {
 
         uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
-        uint256 boosterBefore = vestingPositionBefore.booster;
-        uint256 freezingPeriodBefore = vestingPositionBefore.freezingPeriod;
+        uint256 accumulatedaccumulatedBoosterBefore = vestingPositionBefore.accumulatedBooster;
 
         uint256 totalVestedAmountBefore = vestingPositionBefore
             .totalVestedAmount;
@@ -1032,8 +1036,7 @@ contract ChestFuzzTest is Test {
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
 
-        uint256 boosterAfter = vestingPositionAfter.booster;
-        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+        uint256 accumulatedBoosterAfter = vestingPositionAfter.accumulatedBooster;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -1042,8 +1045,7 @@ contract ChestFuzzTest is Test {
         assertEq(vestingPositionAfter.releasedAmount, 0);
         assertEq(
             vestingPositionAfter.cliffTimestamp,
-            (vestingPositionBefore.cliffTimestamp - freezingPeriodBefore) +
-                MAX_FREEZING_PERIOD_REGULAR_CHEST
+            vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1058,8 +1060,7 @@ contract ChestFuzzTest is Test {
             jellyToken.balanceOf(address(chest)),
             chestJellyBalanceBefore + increaseAmountFor
         );
-        assertEq(boosterAfter, boosterBefore);
-        assertEq(freezingPeriodAfter, MAX_FREEZING_PERIOD_REGULAR_CHEST);
+        assertEq(accumulatedBoosterAfter, accumulatedaccumulatedBoosterBefore);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -1092,7 +1093,7 @@ contract ChestFuzzTest is Test {
         uint256 totalVestedAmountBefore = vestingPositionBefore
             .totalVestedAmount;
 
-        uint256 boosterBefore = vestingPositionBefore.booster;
+        uint256 accumulatedaccumulatedBoosterBefore = vestingPositionBefore.accumulatedBooster;
 
         vm.warp(vestingPositionBefore.cliffTimestamp + 1);
 
@@ -1109,8 +1110,7 @@ contract ChestFuzzTest is Test {
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
 
-        uint256 boosterAfter = vestingPositionAfter.booster;
-        uint256 freezingPeriodAfter = vestingPositionAfter.freezingPeriod;
+        uint256 accumulatedBoosterAfter = vestingPositionAfter.accumulatedBooster;
 
         assertEq(
             vestingPositionAfter.totalVestedAmount,
@@ -1120,6 +1120,10 @@ contract ChestFuzzTest is Test {
         assertEq(
             vestingPositionAfter.cliffTimestamp,
             block.timestamp + increaseFreezingPeriodFor
+        );
+        assertEq(
+            vestingPositionAfter.creationTimestamp,
+            block.timestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1134,8 +1138,7 @@ contract ChestFuzzTest is Test {
             jellyToken.balanceOf(address(chest)),
             chestJellyBalanceBefore + increaseAmountFor
         );
-        assertGt(boosterAfter, boosterBefore);
-        assertEq(freezingPeriodAfter, increaseFreezingPeriodFor);
+        assertGt(accumulatedBoosterAfter, accumulatedaccumulatedBoosterBefore);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -1305,11 +1308,14 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
-        assertEq(vestingPositionAfter.freezingPeriod, 0);
-        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(vestingPositionAfter.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -1370,12 +1376,15 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
 
-        assertEq(vestingPositionAfter.freezingPeriod, 0);
-        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(vestingPositionAfter.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -1502,12 +1511,15 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
 
-        assertEq(vestingPositionAfter.freezingPeriod, 0);
-        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(vestingPositionAfter.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -1570,12 +1582,15 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
+            vestingPositionAfter.creationTimestamp,
+            vestingPositionBefore.creationTimestamp
+        );
+        assertEq(
             vestingPositionAfter.vestingDuration,
             vestingPositionBefore.vestingDuration
         );
 
-        assertEq(vestingPositionAfter.freezingPeriod, 0);
-        assertEq(vestingPositionAfter.booster, INITIAL_BOOSTER);
+        assertEq(vestingPositionAfter.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(
             vestingPositionAfter.nerfParameter,
             vestingPositionBefore.nerfParameter
@@ -1684,7 +1699,7 @@ contract ChestFuzzTest is Test {
     }
 
     // setMaxBooster fuzz tests
-    function testFuzz_setMaxBooster(uint128 newMaxBooster) external {
+    function testFuzz_setMaxBooster(uint120 newMaxBooster) external {
         vm.assume(newMaxBooster > INITIAL_BOOSTER);
 
         vm.prank(i_deployerAddress);
@@ -1694,7 +1709,7 @@ contract ChestFuzzTest is Test {
     }
 
     function testFuzz_setMaxBoosterCallerIsNotOwner(
-        uint128 newMaxBooster,
+        uint120 newMaxBooster,
         address caller
     ) external {
         vm.assume(caller != i_deployerAddress);
@@ -1705,7 +1720,7 @@ contract ChestFuzzTest is Test {
     }
 
     function testFuzz_setMaxBoosterInvalidBoosterValue(
-        uint128 newMaxBooster
+        uint120 newMaxBooster
     ) external {
         vm.assume(newMaxBooster < INITIAL_BOOSTER);
 
