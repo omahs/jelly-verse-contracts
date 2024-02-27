@@ -729,19 +729,21 @@ contract ChestFuzzTest is Test {
         uint256 increaseAmountFor,
         uint32 increaseFreezingPeriodFor
     ) external openPosition {
-        increaseAmountFor = 0;
-        increaseFreezingPeriodFor = uint32(
-            bound(
-                increaseFreezingPeriodFor,
-                1,
-                MAX_FREEZING_PERIOD_REGULAR_CHEST
-            )
-        );
-
         uint256 positionIndex = 0; // @dev assigning to zero for clarity & better code readability
 
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
+
+        increaseAmountFor = 0;
+
+        uint32 maxFreezingPeriod = uint32(MAX_FREEZING_PERIOD_REGULAR_CHEST - (vestingPositionBefore.cliffTimestamp - block.timestamp));
+        increaseFreezingPeriodFor = uint32(
+            bound(
+                increaseFreezingPeriodFor,
+                1,
+                maxFreezingPeriod
+            )
+        );
 
         uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
@@ -855,18 +857,20 @@ contract ChestFuzzTest is Test {
         uint256 increaseAmountFor,
         uint32 increaseFreezingPeriodFor
     ) external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
         increaseAmountFor = 0;
+
+        uint32 maxFreezingPeriod = uint32(MAX_FREEZING_PERIOD_REGULAR_CHEST - (vestingPositionBefore.cliffTimestamp - block.timestamp));
         increaseFreezingPeriodFor = uint32(
             bound(
                 increaseFreezingPeriodFor,
                 1,
-                MAX_FREEZING_PERIOD_REGULAR_CHEST
+                maxFreezingPeriod
             )
         );
-
-        uint256 positionIndex = 0;
-        Chest.VestingPosition memory vestingPositionBefore = chest
-            .getVestingPosition(positionIndex);
 
         uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
             approvedAddress
@@ -992,22 +996,24 @@ contract ChestFuzzTest is Test {
         uint256 increaseAmountFor,
         uint32 increaseFreezingPeriodFor
     ) external openPosition {
+        uint256 positionIndex = 0;
+        Chest.VestingPosition memory vestingPositionBefore = chest
+            .getVestingPosition(positionIndex);
+
         increaseAmountFor = bound(
             increaseAmountFor,
             1,
             JELLY_MAX_SUPPLY - chest.getVestingPosition(0).totalVestedAmount
         ); // @dev substracting already staked amount
+
+        uint32 maxFreezingPeriod = uint32(MAX_FREEZING_PERIOD_REGULAR_CHEST - (vestingPositionBefore.cliffTimestamp - block.timestamp));
         increaseFreezingPeriodFor = uint32(
             bound(
                 increaseFreezingPeriodFor,
                 1,
-                MAX_FREEZING_PERIOD_REGULAR_CHEST
+                maxFreezingPeriod
             )
         );
-
-        uint256 positionIndex = 0;
-        Chest.VestingPosition memory vestingPositionBefore = chest
-            .getVestingPosition(positionIndex);
 
         uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));

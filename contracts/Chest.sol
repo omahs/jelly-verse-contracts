@@ -538,7 +538,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint120 weeksPassed = uint120(Math.ceilDiv(
             timestamp - vestingPosition.creationTimestamp,
             i_timeFactor
-        )); // maybe use safeCast here, this is low number we can use uint32 probably
+        )); // maybe use safeCast here, this is low number we can use uint32 probably  
 
         booster =
             accumulatedBooster + (weeksPassed * WEEKLY_BOOSTER_INCREMENT);
@@ -585,7 +585,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
                 (booster *
                     vestingPosition.totalVestedAmount *
                     regularFreezingTime) /
-                DECIMALS;
+                (MIN_STAKING_AMOUNT * DECIMALS); // @dev scaling because of minimum staking amount and booster
         } else {
             // special chest
             uint256 linearFreezingTime;
@@ -611,7 +611,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
                 (vestingPosition.totalVestedAmount *
                     totalFreezingTimeInWeeks *
                     nerfParameter) /
-                10;
+                (10 * MIN_STAKING_AMOUNT); // @dev scaling because of minimum staking amount
         }
         return power;
     }

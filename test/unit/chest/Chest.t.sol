@@ -2118,7 +2118,7 @@ contract ChestTest is Test {
 
         uint256 regularFreezingTime = 1; // @dev expected value for minimum freezing period is 1
 
-        assertEq(power, booster * amount * regularFreezingTime / DECIMALS);
+        assertEq(power, booster * amount * regularFreezingTime / (MIN_STAKING_AMOUNT * DECIMALS));
 
         // Chest is frozen, day by day check in minimum freezing period range
         for (uint256 i = 1; i < 7; i++) {
@@ -2136,7 +2136,7 @@ contract ChestTest is Test {
 
             regularFreezingTime = 1;
 
-            assertEq(power, booster * amount * regularFreezingTime / DECIMALS);
+            assertEq(power, booster * amount * regularFreezingTime / (MIN_STAKING_AMOUNT * DECIMALS));
         }
 
         // Chest is frozen, end of freezing period check
@@ -2194,8 +2194,7 @@ contract ChestTest is Test {
 
         uint256 regularFreezingTime = 157; // @dev expected value for maximum freezing period is 157
 
-        assertEq(power, booster * amount * regularFreezingTime / DECIMALS);
-
+        assertEq(power, booster * amount * regularFreezingTime / (MIN_STAKING_AMOUNT * DECIMALS));
         // Chest is frozen, week by week check in maximum freezing period range
         for (uint256 i = 1; i < 157; i++) {
             timestamp = block.timestamp + (i * 1 weeks);
@@ -2212,7 +2211,7 @@ contract ChestTest is Test {
 
             regularFreezingTime = 157 - i;
 
-            assertEq(power, booster * amount * regularFreezingTime / DECIMALS);
+            assertEq(power, booster * amount * regularFreezingTime / (MIN_STAKING_AMOUNT * DECIMALS));
         }
         // Chest is frozen, end of freezing period check
         timestamp = block.timestamp + freezingPeriodMaximum;
@@ -2270,7 +2269,7 @@ contract ChestTest is Test {
             power,
             (amount *
                 (regularFreezingTime + linearFreezingTime) *
-                nerfParameter) / 10
+                nerfParameter) / (10 * MIN_STAKING_AMOUNT)
         );
 
         // Chest is frozen, week by week check in maximum freezing period range
@@ -2288,7 +2287,7 @@ contract ChestTest is Test {
                 power,
                 (amount *
                     (regularFreezingTime + linearFreezingTime) *
-                    nerfParameter) / 10
+                    nerfParameter) / (10 * MIN_STAKING_AMOUNT)
             );
         }
 
@@ -2308,7 +2307,7 @@ contract ChestTest is Test {
             power,
             (amount *
                 (regularFreezingTime + linearFreezingTime) *
-                nerfParameter) / 10
+                nerfParameter) / (10 * MIN_STAKING_AMOUNT)
         );
 
         // Chest is frozen, day by day check in vesting duration range
@@ -2327,7 +2326,7 @@ contract ChestTest is Test {
                 power,
                 (amount *
                     (regularFreezingTime + linearFreezingTime) *
-                    nerfParameter) / 10
+                    nerfParameter) / (10 * MIN_STAKING_AMOUNT)
             );
         }
         // Second week
@@ -2345,7 +2344,7 @@ contract ChestTest is Test {
                 power,
                 (amount *
                     (regularFreezingTime + linearFreezingTime) *
-                    nerfParameter) / 10
+                    nerfParameter) / (10 * MIN_STAKING_AMOUNT)
             );
         }
         // Chest is open, vesting ended
