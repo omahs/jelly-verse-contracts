@@ -10,7 +10,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 contract ChestHarness is Chest {
     constructor(
         address jellyToken,
-        uint256 fee_,
+        uint128 fee_,
         uint128 maxBooster_,
         uint32 timeFactor_,
         address owner,
@@ -68,7 +68,7 @@ contract ChestPowerCalculationDifferentialTest is Test {
     Chest.VestingPosition vestingPosition;
 
     function setUp() public {
-        uint256 fee = 10;
+        uint128 fee = 10;
         uint128 maxBooster = MAX_BOOSTER;
         address owner = msg.sender;
         address pendingOwner = makeAddr("pendingOwner");

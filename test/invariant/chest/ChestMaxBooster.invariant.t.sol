@@ -14,7 +14,7 @@ contract InvariantChestMaxBooster is BaseSetup {
     function setUp() public virtual override {
         super.setUp();
         targetContract(address(chestHandler));
-        maxBooster = chest.maxBooster();
+        maxBooster = chest.MAX_BOOSTER();
     }
 
     function invariant_maxBooster() external {

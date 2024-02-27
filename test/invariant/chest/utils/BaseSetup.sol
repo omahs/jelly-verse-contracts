@@ -9,8 +9,7 @@ import {ERC20Token} from "../../../../contracts/test/ERC20Token.sol";
 contract ChestHarness is Chest {
     constructor(
         address jellyToken,
-        uint256 fee_,
-        uint120 maxBooster_,
+        uint128 fee_,
         uint32 timeFactor_,
         address owner,
         address pendingOwner
@@ -18,7 +17,6 @@ contract ChestHarness is Chest {
         Chest(
             jellyToken,
             fee_,
-            maxBooster_,
             timeFactor_,
             owner,
             pendingOwner
@@ -61,8 +59,7 @@ contract BaseSetup is Test {
     ChestHarness public chestHarness;
 
     function setUp() public virtual {
-        uint256 fee = 10;
-        uint120 maxBooster = 2e18;
+        uint128 fee = 10;
         address owner = msg.sender;
         address pendingOwner = testAddress;
         uint32 timeFactor = 7 days;
@@ -71,7 +68,6 @@ contract BaseSetup is Test {
         chest = new Chest(
             address(jellyToken),
             fee,
-            maxBooster,
             timeFactor,
             owner,
             pendingOwner
@@ -79,7 +75,6 @@ contract BaseSetup is Test {
         chestHarness = new ChestHarness(
             address(jellyToken),
             fee,
-            maxBooster,
             timeFactor,
             owner,
             pendingOwner

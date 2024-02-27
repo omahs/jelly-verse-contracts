@@ -25,6 +25,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     uint120 private constant WEEKLY_BOOSTER_INCREMENT = 6_410_256_410_256_410; // @dev 1 / 156 weeks
 
     uint256 public constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
+    uint120 public constant MAX_BOOSTER = 2 * DECIMALS;
 
     string constant BASE_SVG =
         "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 21.500672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
@@ -41,9 +42,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     address internal immutable i_jellyToken;
     uint32 internal immutable i_timeFactor;
 
-    uint256 public fee;
-    uint256 public totalFees;
-    uint120 public maxBooster;
+    uint128 public fee;
+    uint128 public totalFees;
 
     event Staked(
         address indexed user,
@@ -66,8 +66,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint256 totalStaked,
         uint120 booster
     );
-    event SetFee(uint256 fee);
-    event SetMaxBooster(uint120 maxBooster);
+    event SetFee(uint128 fee);
     event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
@@ -94,8 +93,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
     constructor(
         address jellyToken,
-        uint256 fee_,
-        uint120 maxBooster_,
+        uint128 fee_,
         uint32 timeFactor,
         address owner,
         address pendingOwner
@@ -108,7 +106,6 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
         i_jellyToken = jellyToken;
         fee = fee_;
-        maxBooster = maxBooster_;
         i_timeFactor = timeFactor;
     }
 
@@ -356,23 +353,9 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
-    function setFee(uint256 fee_) external onlyOwner {
+    function setFee(uint128 fee_) external onlyOwner {
         fee = fee_;
         emit SetFee(fee_);
-    }
-
-    /**
-     * @notice Sets maximal booster.
-     * @dev Only owner can call.
-     *
-     * @param maxBooster_ - new maximal booster.
-     *
-     * No return, reverts on error.
-     */
-    function setMaxBooster(uint120 maxBooster_) external onlyOwner {
-        if (maxBooster_ < INITIAL_BOOSTER) revert Chest__InvalidBoosterValue();
-        maxBooster = maxBooster_;
-        emit SetMaxBooster(maxBooster_);
     }
 
     /**
@@ -560,8 +543,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         booster =
             accumulatedBooster + (weeksPassed * WEEKLY_BOOSTER_INCREMENT);
 
-        if (booster > maxBooster) {
-            booster = maxBooster;
+        if (booster > MAX_BOOSTER) {
+            booster = MAX_BOOSTER;
         }
         return booster;
     }

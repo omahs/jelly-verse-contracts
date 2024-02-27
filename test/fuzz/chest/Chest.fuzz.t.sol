@@ -8,8 +8,7 @@ import {ERC20Token} from "../../../contracts/test/ERC20Token.sol";
 contract ChestHarness is Chest {
     constructor(
         address jellyToken,
-        uint256 fee_,
-        uint120 maxBooster_,
+        uint128 fee_,
         uint8 timeFactor_,
         address owner,
         address pendingOwner
@@ -17,7 +16,6 @@ contract ChestHarness is Chest {
         Chest(
             jellyToken,
             fee_,
-            maxBooster_,
             timeFactor_,
             owner,
             pendingOwner
@@ -63,6 +61,7 @@ contract ChestFuzzTest is Test {
 
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint120 private constant MAX_BOOSTER = 2 * DECIMALS;
 
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 * DECIMALS;
     uint256 constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
@@ -92,10 +91,9 @@ contract ChestFuzzTest is Test {
         uint256 freezedUntil
     );
     event Unstake(uint256 indexed tokenId, uint256 amount, uint256 totalStaked);
-    event SetFee(uint256 fee);
+    event SetFee(uint128 fee);
     event SetBoosterThreshold(uint256 boosterThreshold);
     event SetMinimalStakingPower(uint256 minimalStakingPower);
-    event SetMaxBooster(uint256 maxBooster);
     event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
@@ -154,8 +152,7 @@ contract ChestFuzzTest is Test {
     }
 
     function setUp() public {
-        uint256 fee = 10;
-        uint120 maxBooster = 2e18;
+        uint128 fee = 10;
         address owner = msg.sender;
         address pendingOwner = testAddress;
         uint8 timeFactor = 2;
@@ -164,7 +161,6 @@ contract ChestFuzzTest is Test {
         chest = new Chest(
             address(jellyToken),
             fee,
-            maxBooster,
             timeFactor,
             owner,
             pendingOwner
@@ -172,7 +168,6 @@ contract ChestFuzzTest is Test {
         chestHarness = new ChestHarness(
             address(jellyToken),
             fee,
-            maxBooster,
             timeFactor,
             owner,
             pendingOwner
@@ -198,14 +193,12 @@ contract ChestFuzzTest is Test {
         assertEq(chest.owner(), msg.sender);
         assertEq(chest.getPendingOwner(), testAddress);
         assertEq(chest.totalSupply(), 0);
-        assertEq(chest.maxBooster(), 2e18);
 
         assertEq(chestHarness.fee(), 10);
         assertEq(chestHarness.totalFees(), 0);
         assertEq(chestHarness.owner(), msg.sender);
         assertEq(chestHarness.getPendingOwner(), testAddress);
         assertEq(chestHarness.totalSupply(), 0);
-        assertEq(chestHarness.maxBooster(), 2e18);
     }
 
     // Regular chest stake fuzz tests
@@ -1679,7 +1672,7 @@ contract ChestFuzzTest is Test {
     }
 
     // setFee fuzz tests
-    function testFuzz_setFee(uint256 newFee) external {
+    function testFuzz_setFee(uint128 newFee) external {
         vm.prank(i_deployerAddress);
         chest.setFee(newFee);
 
@@ -1687,7 +1680,7 @@ contract ChestFuzzTest is Test {
     }
 
     function testFuzz_setFeeCallerIsNotOwner(
-        uint256 newFee,
+        uint128 newFee,
         address caller
     ) external {
         vm.assume(caller != i_deployerAddress);
@@ -1696,38 +1689,6 @@ contract ChestFuzzTest is Test {
         vm.expectRevert(Ownable__CallerIsNotOwner.selector);
 
         chest.setFee(newFee);
-    }
-
-    // setMaxBooster fuzz tests
-    function testFuzz_setMaxBooster(uint120 newMaxBooster) external {
-        vm.assume(newMaxBooster > INITIAL_BOOSTER);
-
-        vm.prank(i_deployerAddress);
-        chest.setMaxBooster(newMaxBooster);
-
-        assertEq(chest.maxBooster(), newMaxBooster);
-    }
-
-    function testFuzz_setMaxBoosterCallerIsNotOwner(
-        uint120 newMaxBooster,
-        address caller
-    ) external {
-        vm.assume(caller != i_deployerAddress);
-        vm.prank(caller);
-
-        vm.expectRevert(Ownable__CallerIsNotOwner.selector);
-        chest.setMaxBooster(newMaxBooster);
-    }
-
-    function testFuzz_setMaxBoosterInvalidBoosterValue(
-        uint120 newMaxBooster
-    ) external {
-        vm.assume(newMaxBooster < INITIAL_BOOSTER);
-
-        vm.prank(i_deployerAddress);
-
-        vm.expectRevert(Chest__InvalidBoosterValue.selector);
-        chest.setMaxBooster(newMaxBooster);
     }
 
     // withdrawFees fuzz tests

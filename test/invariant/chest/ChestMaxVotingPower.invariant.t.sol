@@ -22,7 +22,7 @@ contract InvariantChestMaxVotingPower is BaseSetup {
         maxVotingPower =
             maxStakingAmount *
             maxFreezingPeriod *
-            chest.maxBooster();
+            chest.MAX_BOOSTER();
     }
 
     function invariant_maxVotingPower() external {

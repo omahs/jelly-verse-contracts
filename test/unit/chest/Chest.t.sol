@@ -10,8 +10,7 @@ import {Math} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/math/Mat
 contract ChestHarness is Chest {
     constructor(
         address jellyToken,
-        uint256 fee_,
-        uint120 maxBooster_,
+        uint128 fee_,
         uint32 timeFactor_,
         address owner,
         address pendingOwner
@@ -19,7 +18,6 @@ contract ChestHarness is Chest {
         Chest(
             jellyToken,
             fee_,
-            maxBooster_,
             timeFactor_,
             owner,
             pendingOwner
@@ -103,7 +101,7 @@ contract ChestTest is Test {
         uint256 totalStaked,
         uint120 booster
     );
-    event SetFee(uint256 fee);
+    event SetFee(uint128 fee);
     event SetBoosterThreshold(uint256 boosterThreshold);
     event SetMinimalStakingPower(uint256 minimalStakingPower);
     event SetMaxBooster(uint120 maxBooster);
@@ -166,8 +164,7 @@ contract ChestTest is Test {
     }
 
     function setUp() public {
-        uint256 fee = 10;
-        uint120 maxBooster = 2e18;
+        uint128 fee = 10;
         address owner = msg.sender;
         address pendingOwner = testAddress;
         uint32 timeFactor = 7 days;
@@ -176,7 +173,6 @@ contract ChestTest is Test {
         chest = new Chest(
             address(jellyToken),
             fee,
-            maxBooster,
             timeFactor,
             owner,
             pendingOwner
@@ -184,7 +180,6 @@ contract ChestTest is Test {
         chestHarness = new ChestHarness(
             address(jellyToken),
             fee,
-            maxBooster,
             timeFactor,
             owner,
             pendingOwner
@@ -210,14 +205,12 @@ contract ChestTest is Test {
         assertEq(chest.owner(), msg.sender);
         assertEq(chest.getPendingOwner(), testAddress);
         assertEq(chest.totalSupply(), 0);
-        assertEq(chest.maxBooster(), 2e18);
 
         assertEq(chestHarness.fee(), 10);
         assertEq(chestHarness.totalFees(), 0);
         assertEq(chestHarness.owner(), msg.sender);
         assertEq(chestHarness.getPendingOwner(), testAddress);
         assertEq(chestHarness.totalSupply(), 0);
-        assertEq(chestHarness.maxBooster(), 2e18);
     }
 
     // Regular chest stake tests
@@ -1911,7 +1904,7 @@ contract ChestTest is Test {
     }
 
     function test_setFee() external {
-        uint256 newFee = 100;
+        uint128 newFee = 100;
 
         vm.prank(i_deployerAddress);
         chest.setFee(newFee);
@@ -1920,7 +1913,7 @@ contract ChestTest is Test {
     }
 
     function test_setFeeEmitsSetFeeEvent() external {
-        uint256 newFee = 100;
+        uint128 newFee = 100;
 
         vm.prank(i_deployerAddress);
 
@@ -1931,50 +1924,12 @@ contract ChestTest is Test {
     }
 
     function test_setFeeCallerIsNotOwner() external {
-        uint256 newFee = 100;
+        uint128 newFee = 100;
 
         vm.prank(testAddress);
         vm.expectRevert(Ownable__CallerIsNotOwner.selector);
 
         chest.setFee(newFee);
-    }
-
-    function test_setMaxBooster() external {
-        uint120 newMaxBooster = 5e18;
-
-        vm.prank(i_deployerAddress);
-        chest.setMaxBooster(newMaxBooster);
-
-        assertEq(chest.maxBooster(), newMaxBooster);
-    }
-
-    function test_setMaxBoosterEmitsSetMaxBoosterEvent() external {
-        uint120 newMaxBooster = 5e18;
-
-        vm.prank(i_deployerAddress);
-
-        vm.expectEmit(false, false, false, true, address(chest));
-        emit SetMaxBooster(newMaxBooster);
-
-        chest.setMaxBooster(newMaxBooster);
-    }
-
-    function test_setMaxBoosterCallerIsNotOwner() external {
-        uint120 newMaxBooster = 5e18;
-
-        vm.prank(testAddress);
-        vm.expectRevert(Ownable__CallerIsNotOwner.selector);
-
-        chest.setMaxBooster(newMaxBooster);
-    }
-
-    function test_setMaxBoosterInvalidBoosterValue() external {
-        uint120 newMaxBooster = INITIAL_BOOSTER - 1;
-
-        vm.prank(i_deployerAddress);
-        vm.expectRevert(Chest__InvalidBoosterValue.selector);
-
-        chest.setMaxBooster(newMaxBooster);
     }
 
     function test_withdrawFees() external openPosition {
