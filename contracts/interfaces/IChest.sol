@@ -9,19 +9,6 @@ pragma solidity ^0.8.0;
  */
 interface IChest {
     /**
-     * @dev Struct representing vesting position.
-     */
-    struct VestingPosition {
-        uint256 totalVestedAmount;
-        uint256 releasedAmount;
-        uint48 cliffTimestamp;
-        uint32 vestingDuration;
-        uint32 freezingPeriod;
-        uint128 booster;
-        uint8 nerfParameter;
-    }
-    
-    /**
      * @dev Emitted when an account changes their delegate.
      */
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
@@ -67,10 +54,11 @@ interface IChest {
      */
     function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) external;
 
-    /**
+
+/**
      * @dev Mints special chest.
      */
-    function stakeSpecial(
+     function stakeSpecial(
         uint256 amount,
         address beneficiary,
         uint32 freezingPeriod,
@@ -78,13 +66,5 @@ interface IChest {
         uint8 nerfParameter
     ) external;
 
-    /**
-     * @dev Returns the vesting position for a given token ID.
-     */
-    function getVestingPosition(uint256 tokenId) external returns (VestingPosition memory);
-
-    /**
-     * @dev Returns the fee for chest creation.
-     */
-    function fee() external view returns (uint256);
+     function fee() external view returns (uint256);
 }

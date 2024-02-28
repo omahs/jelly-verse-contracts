@@ -6,7 +6,7 @@ import "./extensions/GovernorSettings.sol";
 import "./extensions/GovernorCountingSimple.sol";
 import "./GovernorVotes.sol";
 import "./extensions/GovernorTimelockControl.sol";
-import "./IChest.sol";
+import "./interfaces/IChest.sol";
 
 contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorTimelockControl {
     constructor(address _chest, TimelockController _timelock)

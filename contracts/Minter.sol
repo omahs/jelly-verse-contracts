@@ -7,7 +7,7 @@ import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyG
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
-import {IStakingRewardDistribution} from "./IStakingRewardDistribution.sol";  
+import {IStakingRewardDistribution} from "./interfaces/IStakingRewardDistribution.sol";  
 import {SD59x18, convert, exp, mul, div, sd, intoUint256} from "./vendor/prb/math/v0.4.1/SD59x18.sol";
 
 /**

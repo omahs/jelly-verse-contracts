@@ -13,7 +13,7 @@ import "./vendor/openzeppelin/v4.9.0/utils/structs/DoubleEndedQueue.sol";
 import "./vendor/openzeppelin/v4.9.0/utils/Address.sol";
 import "./vendor/openzeppelin/v4.9.0/utils/Context.sol";
 import "./vendor/openzeppelin/v4.9.0/governance/IGovernor.sol";
-import "./IChest.sol";
+import "./interfaces/IChest.sol";
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.

@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import {Ownable} from "./utils/Ownable.sol";
-import {IChest} from "./IChest.sol";
+import {IChest} from "./interfaces/IChest.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
 

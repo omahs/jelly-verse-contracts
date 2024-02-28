@@ -24,6 +24,10 @@ export interface Signers {
 	timelockAdmin: SignerWithAddress;
 	timelockProposer: SignerWithAddress;
 	timelockExecutor: SignerWithAddress;
+	allocator: SignerWithAddress;
+	distributor: SignerWithAddress;
+	investor: SignerWithAddress;
+  newLpRewardsContractAddress: SignerWithAddress;
 }
 
 export interface Mocks {
@@ -50,4 +54,21 @@ export interface Params {
 	vestingTeamAddress: string;
 	vestingInvestorsAddress: string;
 	minterAddress: string;
+}
+
+export enum ProposalState {
+    Pending,
+    Active,
+    Canceled,
+    Defeated,
+    Succeeded,
+    Queued,
+    Expired,
+    Executed,
+}
+
+export enum VoteType {
+    Against,
+    For,
+    Abstain,
 }
