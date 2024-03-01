@@ -56,6 +56,12 @@ npx hardhat test
 forge test
 ```
 
+7. Get storage layout of contract
+
+```shell
+docker run -v $PWD:/src ethereum/solc:0.8.19 --storage-layout /src/contracts/Chest.sol
+```
+
 ## Usage
 
 This project consists of the following smart contracts:

@@ -1,9 +1,12 @@
-import './deployOfficialPoolsRegister';
+import './deployAllocator';
+import './deployChest';
+import './deployDailySnapshot';
 import './deployGovernance';
 import './deployJellyToken';
-import './deployMinter';
-import './deployChest';
 import './deployLiquidityRewardDistribution';
-import './deployStaktingRewardDistribution';
+import './deployMinter';
+import './deployOfficialPoolsRegister';
 import './deployRewardVesting';
+import './deployStaktingRewardDistribution';
+import './deployTeamDistribution';
 
