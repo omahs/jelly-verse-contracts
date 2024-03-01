@@ -30,7 +30,6 @@ describe("TeamDistribution", function () {
       erc20.address,
       0,
       0,
-      0,
       deployer.address,
       constants.AddressZero
     );

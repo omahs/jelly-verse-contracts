@@ -1,4 +1,3 @@
-/*
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
@@ -19,7 +18,6 @@ contract ChestHarness is Chest {
         Chest(
             jellyToken,
             fee_,
-            maxBooster_,
             timeFactor_,
             owner,
             pendingOwner
@@ -27,16 +25,17 @@ contract ChestHarness is Chest {
     {}
 
     function exposed_calculateBooster(
-        ChestHarness.VestingPosition memory vestingPosition
-    ) external view returns (uint128) {
-        return calculateBooster(vestingPosition);
+        ChestHarness.VestingPosition memory vestingPosition,
+        uint48 timestamp
+    ) external view returns (uint120) {
+        return calculateBooster(vestingPosition, timestamp);
     }
 
     function exposed_createVestingPosition(
         uint256 amount,
         uint32 freezingPeriod,
         uint32 vestingDuration,
-        uint128 booster,
+        uint120 booster,
         uint8 nerfParameter
     ) external returns (VestingPosition memory) {
         return
@@ -55,8 +54,9 @@ contract ChestBoosterCalculationDifferentialTest is Test {
 
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
-    uint128 private constant DECIMALS = 1e18;
-    uint128 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint120 private constant DECIMALS = 1e18;
+    uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    uint256 private constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
 
     address jellyToken = makeAddr("jellyToken");
 
@@ -85,7 +85,7 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         uint32 freezingPeriod
     ) external {
         vm.assume(
-            amount > 0 &&
+            amount > MIN_STAKING_AMOUNT &&
                 freezingPeriod < MAX_FREEZING_PERIOD_REGULAR_CHEST &&
                 freezingPeriod > MIN_FREEZING_PERIOD_REGULAR_CHEST
         );
@@ -102,7 +102,8 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         );
 
         uint128 boosterSol = chestHarness.exposed_calculateBooster(
-            vestingPosition
+            vestingPosition,
+            uint48(block.timestamp)
         );
         uint128 boosterRust = ffi_booster();
 
@@ -113,16 +114,18 @@ contract ChestBoosterCalculationDifferentialTest is Test {
     }
 
     function ffi_booster() private returns (uint128 boosterRust) {
-        string[] memory inputs = new string[](9);
+        string[] memory inputs = new string[](11);
         inputs[0] = "cargo";
         inputs[1] = "run";
         inputs[2] = "--quiet";
         inputs[3] = "--manifest-path";
         inputs[4] = "test/differential/chest/booster/Cargo.toml";
-        inputs[5] = vestingPosition.freezingPeriod.toString();
-        inputs[6] = vestingPosition.vestingDuration.toString();
-        inputs[7] = vestingPosition.booster.toString();
-        inputs[8] = chestHarness.maxBooster().toString();
+        inputs[5] = vestingPosition.vestingDuration.toString();
+        inputs[6] = vestingPosition.cliffTimestamp.toString();
+        inputs[7] = vestingPosition.boosterTimestamp.toString();
+        inputs[8] = block.timestamp.toString();
+        inputs[9] = vestingPosition.accumulatedBooster.toString();
+        inputs[10] = chestHarness.MAX_BOOSTER().toString();
 
         bytes memory result = vm.ffi(inputs);
         assembly {
@@ -130,4 +133,3 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         }
     }
 }
-*/

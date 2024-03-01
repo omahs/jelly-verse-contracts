@@ -32,7 +32,7 @@ abstract contract VestingLibChest {
         uint256 totalVestedAmount;
         uint256 releasedAmount;
         uint48 cliffTimestamp;
-        uint48 creationTimestamp;
+        uint48 boosterTimestamp;
         uint32 vestingDuration;
         uint120 accumulatedBooster;
         uint8 nerfParameter;
@@ -90,7 +90,7 @@ abstract contract VestingLibChest {
 
         vestingPositions[index].totalVestedAmount = amount;
         vestingPositions[index].cliffTimestamp = cliffTimestamp;
-        vestingPositions[index].creationTimestamp = uint48(block.timestamp);
+        vestingPositions[index].boosterTimestamp = uint48(block.timestamp);
         vestingPositions[index].vestingDuration = vestingDuration;
         vestingPositions[index].accumulatedBooster = booster;
         vestingPositions[index].nerfParameter = nerfParameter;

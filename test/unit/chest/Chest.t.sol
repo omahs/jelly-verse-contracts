@@ -26,7 +26,7 @@ contract ChestHarness is Chest {
 
     function exposed_calculateBooster(
         ChestHarness.VestingPosition memory vestingPosition,
-        uint256 timestamp
+        uint48 timestamp
     ) external view returns (uint120) {
         return calculateBooster(vestingPosition, timestamp);
     }
@@ -246,7 +246,7 @@ contract ChestTest is Test {
             vestingPosition.cliffTimestamp,
             block.timestamp + freezingPeriod
         );
-        assertEq(vestingPosition.creationTimestamp, block.timestamp);
+        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 0);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, 10);
@@ -395,7 +395,7 @@ contract ChestTest is Test {
             vestingPosition.cliffTimestamp,
             block.timestamp + freezingPeriod
         );
-        assertEq(vestingPosition.creationTimestamp, block.timestamp);
+        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 1000);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, nerfParameter);
@@ -453,7 +453,7 @@ contract ChestTest is Test {
         assertEq(vestingPosition.releasedAmount, 0);
 
         assertEq(vestingPosition.cliffTimestamp, block.timestamp);
-        assertEq(vestingPosition.creationTimestamp, block.timestamp);
+        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
 
         assertEq(vestingPosition.vestingDuration, 1000);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
@@ -654,8 +654,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -727,8 +727,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -790,7 +790,7 @@ contract ChestTest is Test {
             (block.timestamp + increaseFreezingPeriodFor)
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -864,7 +864,7 @@ contract ChestTest is Test {
             (block.timestamp + increaseFreezingPeriodFor)
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -926,8 +926,8 @@ contract ChestTest is Test {
         vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -983,7 +983,7 @@ contract ChestTest is Test {
         block.timestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -1045,8 +1045,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1109,7 +1109,7 @@ contract ChestTest is Test {
             (block.timestamp + increaseFreezingPeriodFor)
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -1168,8 +1168,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1237,7 +1237,7 @@ contract ChestTest is Test {
             block.timestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -1317,7 +1317,7 @@ contract ChestTest is Test {
 
             uint120 newBooster = chestHarness.exposed_calculateBooster(
                 vestingPositionBefore,
-                block.timestamp
+                uint48(block.timestamp)
             );
 
             vm.startPrank(testAddress);
@@ -1516,8 +1516,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1578,8 +1578,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1717,8 +1717,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1785,8 +1785,8 @@ contract ChestTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -2010,15 +2010,15 @@ contract ChestTest is Test {
                     nerfParameter
                 );
 
-        uint256 creationTimestamp = block.timestamp;
+        uint256 boosterTimestamp = vestingPositionMinimumFreezingPeriod.boosterTimestamp;
 
         for(uint256 i = 0; i < 8; i++) {
-            uint256 timestamp = creationTimestamp + (i * 1 days);
+            uint256 timestamp = boosterTimestamp + (i * 1 days);
 
             vm.warp(timestamp);
             uint120 booster = chestHarness.exposed_calculateBooster(
                 vestingPositionMinimumFreezingPeriod,
-                timestamp
+                uint48(timestamp)
             );
 
             assertEq(booster, INITIAL_BOOSTER + Math.ceilDiv(i * 1 days, i_timeFactor) * WEEKLY_BOOSTER_INCREMENT);
@@ -2035,17 +2035,16 @@ contract ChestTest is Test {
                     nerfParameter
                 );
 
-        creationTimestamp = block.timestamp;
+        boosterTimestamp = vestingPositionMaximumFreezingPeriod.boosterTimestamp;
 
         for(uint256 i = 0; i < 1093; i++) {
-            uint256 timestamp = creationTimestamp + (i * 1 days);
+            uint256 timestamp = boosterTimestamp + (i * 1 days);
           
             vm.warp(timestamp);
             uint120 booster = chestHarness.exposed_calculateBooster(
                 vestingPositionMaximumFreezingPeriod,
-                timestamp
+                uint48(timestamp)
             );
-
             assertEq(booster, INITIAL_BOOSTER + Math.ceilDiv(i * 1 days, i_timeFactor) * WEEKLY_BOOSTER_INCREMENT);
         }
     }
@@ -2069,7 +2068,7 @@ contract ChestTest is Test {
 
         uint120 booster = chestHarness.exposed_calculateBooster(
             vestingPositionVestingDurationZero,
-            block.timestamp
+            uint48(block.timestamp)
         );
         assertEq(booster, INITIAL_BOOSTER);
     }
@@ -2108,7 +2107,7 @@ contract ChestTest is Test {
 
         uint120 booster = chestHarness.exposed_calculateBooster(
               vestingPositionRegularChestFreezingPeriodMinimum,
-              timestamp
+              uint48(timestamp)
         );
 
         power = chestHarness.exposed_calculatePower(
@@ -2126,7 +2125,7 @@ contract ChestTest is Test {
 
             booster = chestHarness.exposed_calculateBooster(
               vestingPositionRegularChestFreezingPeriodMinimum,
-              timestamp
+              uint48(timestamp)
             );
 
             power = chestHarness.exposed_calculatePower(
@@ -2184,7 +2183,7 @@ contract ChestTest is Test {
 
         uint120 booster = chestHarness.exposed_calculateBooster(
               vestingPositionRegularChestFreezingPeriodMaximum,
-              timestamp
+              uint48(timestamp)
           );
 
         power = chestHarness.exposed_calculatePower(
@@ -2201,7 +2200,7 @@ contract ChestTest is Test {
 
             booster = chestHarness.exposed_calculateBooster(
               vestingPositionRegularChestFreezingPeriodMaximum,
-              timestamp
+             uint48(timestamp)
             );
 
             power = chestHarness.exposed_calculatePower(
@@ -2400,7 +2399,7 @@ contract ChestTest is Test {
             block.timestamp,
             vestingPosition
         );
-        uint256 powerGetter = chest.getChestPower(
+        uint256 powerGetter = chest.estimateChestPower(
             block.timestamp,
             vestingPosition
         );
@@ -2416,7 +2415,7 @@ contract ChestTest is Test {
             block.timestamp,
             vestingPosition
         );
-        powerGetter = chest.getChestPower(block.timestamp, vestingPosition);
+        powerGetter = chest.estimateChestPower(block.timestamp, vestingPosition);
 
         assertEq(powerHarness, powerGetter);
     }
@@ -2464,7 +2463,7 @@ contract ChestTest is Test {
             vestingPosition.cliffTimestamp,
             block.timestamp + MIN_FREEZING_PERIOD_REGULAR_CHEST
         );
-        assertEq(vestingPosition.creationTimestamp, block.timestamp);
+        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 0);
 
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
@@ -2476,7 +2475,7 @@ contract ChestTest is Test {
         assertEq(vestingPosition.totalVestedAmount, MIN_STAKING_AMOUNT);
         assertEq(vestingPosition.releasedAmount, 0);
         assertEq(vestingPosition.cliffTimestamp, block.timestamp + 1000);
-        assertEq(vestingPosition.creationTimestamp, block.timestamp);
+        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 1000);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, 5);

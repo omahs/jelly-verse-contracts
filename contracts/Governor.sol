@@ -321,7 +321,7 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
             __gap_unused0: 0,
             __gap_unused1: 0
         });
-        /*
+
         emit ProposalCreated(
             proposalId,
             proposer,
@@ -333,7 +333,6 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
             deadline,
             description
         );
-        */
 
         return proposalId;
     }
@@ -373,7 +372,6 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
             __gap_unused1: 0
         });
 
-        /*
         emit ProposalCreated(
             proposalId,
             proposer,
@@ -385,7 +383,6 @@ abstract contract Governor is Context, ERC165, EIP712, IGovernor, IERC721Receive
             deadline,
             description
         );
-        */
 
         return proposalId;
     }

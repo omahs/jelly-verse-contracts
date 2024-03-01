@@ -30,7 +30,7 @@ contract InvariantChestMaxVotingPower is BaseSetup {
             positionIndex
         );
 
-        uint256 chestPower = chest.getChestPower(
+        uint256 chestPower = chest.estimateChestPower(
             block.timestamp,
             vestingPosition
         );

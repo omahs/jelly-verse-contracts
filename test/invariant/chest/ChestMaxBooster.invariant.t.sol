@@ -15,6 +15,7 @@ contract InvariantChestMaxBooster is BaseSetup {
         super.setUp();
         targetContract(address(chestHandler));
         maxBooster = chest.MAX_BOOSTER();
+        console.log("maxBooster: %s", maxBooster);
     }
 
     function invariant_maxBooster() external {
@@ -22,7 +23,8 @@ contract InvariantChestMaxBooster is BaseSetup {
             positionIndex
         );
 
-      uint256 booster = chestHarness.exposed_calculateBooster(vestingPosition, block.timestamp);
+      uint256 booster = chestHarness.exposed_calculateBooster(vestingPosition, uint48(block.timestamp));
+        console.log("booster: %s", booster);
 
       assertLe(booster, maxBooster);
     }

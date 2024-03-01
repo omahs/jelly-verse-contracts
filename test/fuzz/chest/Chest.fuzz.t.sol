@@ -26,7 +26,7 @@ contract ChestHarness is Chest {
         ChestHarness.VestingPosition memory vestingPosition,
         uint256 timestamp
     ) external view returns (uint120) {
-        return calculateBooster(vestingPosition, timestamp);
+        return calculateBooster(vestingPosition, uint48(timestamp));
     }
 
     function exposed_calculatePower(
@@ -245,7 +245,7 @@ contract ChestFuzzTest is Test {
             vestingPosition.cliffTimestamp,
             block.timestamp + freezingPeriod
         );
-        assertEq(vestingPosition.creationTimestamp, block.timestamp);
+        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 0);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, 10);
@@ -418,7 +418,7 @@ contract ChestFuzzTest is Test {
             vestingPosition.cliffTimestamp,
             block.timestamp + freezingPeriod
         );
-        assertEq(vestingPosition.creationTimestamp, block.timestamp);
+        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, vestingDuration);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
         assertEq(vestingPosition.nerfParameter, nerfParameter);
@@ -625,8 +625,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -702,8 +702,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -773,8 +773,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -837,7 +837,7 @@ contract ChestFuzzTest is Test {
             (block.timestamp + increaseFreezingPeriodFor)
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -907,8 +907,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            vestingPositionBefore.boosterTimestamp
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -976,7 +976,7 @@ contract ChestFuzzTest is Test {
             (block.timestamp + increaseFreezingPeriodFor)
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -1121,7 +1121,7 @@ contract ChestFuzzTest is Test {
             block.timestamp + increaseFreezingPeriodFor
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
+            vestingPositionAfter.boosterTimestamp,
             block.timestamp
         );
         assertEq(
@@ -1307,8 +1307,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1375,8 +1375,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1510,8 +1510,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
@@ -1581,8 +1581,8 @@ contract ChestFuzzTest is Test {
             vestingPositionBefore.cliffTimestamp
         );
         assertEq(
-            vestingPositionAfter.creationTimestamp,
-            vestingPositionBefore.creationTimestamp
+            vestingPositionAfter.boosterTimestamp,
+            0
         );
         assertEq(
             vestingPositionAfter.vestingDuration,
