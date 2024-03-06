@@ -524,7 +524,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             return INITIAL_BOOSTER;
         }
         if (vestingPosition.boosterTimestamp == 0) {
-            // Unstaked chest
+            // unstaked chest
             return INITIAL_BOOSTER;
         }
         timestamp = vestingPosition.cliffTimestamp > timestamp

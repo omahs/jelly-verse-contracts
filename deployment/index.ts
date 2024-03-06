@@ -9,4 +9,5 @@ import './deployOfficialPoolsRegister';
 import './deployRewardVesting';
 import './deployStaktingRewardDistribution';
 import './deployTeamDistribution';
+import './deployInvestorDistribution';
 
