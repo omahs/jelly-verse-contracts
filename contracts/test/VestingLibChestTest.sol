@@ -24,7 +24,7 @@ contract VestingLibChestTest is VestingLibChest {
         uint256 amount,
         uint32 cliffDuration,
         uint32 vestingDuration,
-        uint128 booster,
+        uint120 booster,
         uint8 nerfParameter
     ) public returns (VestingPosition memory) {
         return

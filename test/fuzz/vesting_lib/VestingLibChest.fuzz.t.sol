@@ -16,7 +16,7 @@ contract VestingLibChestFuzzTest is VestingLibChest, Test {
     uint256 amount;
     uint32 cliffDuration;
     uint32 vestingDuration;
-    uint128 booster;
+    uint120 booster;
     uint8 nerfParameter;
     VestingPosition vestingPosition;
 
@@ -24,7 +24,7 @@ contract VestingLibChestFuzzTest is VestingLibChest, Test {
         amount = 133_000_000 * 10 ** 18;
         cliffDuration = SafeCast.toUint32(15638400); // @dev 6 month Wednesday, 1 July 1970 00:00:00
         vestingDuration = SafeCast.toUint32(44582400); // @dev 18 month Tuesday, 1 June 1971 00:00:00
-        booster = SafeCast.toUint128(10 ether); // @dev max booster value
+        booster = SafeCast.toUint120(2 ether); // @dev max booster value
         nerfParameter = 10; // @dev no nerf
         vestingLibChestTest = new VestingLibChestTest();
         vestingPosition = vestingLibChestTest.createNewVestingPosition(
@@ -40,7 +40,7 @@ contract VestingLibChestFuzzTest is VestingLibChest, Test {
         uint256 _amount,
         uint32 _cliffDuration,
         uint32 _vestingDuration,
-        uint128 _booster,
+        uint120 _booster,
         uint8 _nerfParameter
     ) external {
         vm.assume(_amount > 0);

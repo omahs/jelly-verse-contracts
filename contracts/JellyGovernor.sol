@@ -17,7 +17,7 @@ contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Go
     {}
 
     function quorum(uint256 blockNumber) public pure override returns (uint256) {
-        return 424000000000000000000000000; // Chest power of 8_000_000 JELLY staked for a year
+        return 424000; // Chest power of 8_000_000 JELLY staked for a year
     }
 
     // The following functions are overrides required by Solidity.

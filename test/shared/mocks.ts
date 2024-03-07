@@ -127,7 +127,7 @@ export async function deployMockChest(deployer: Signer): Promise<MockContract> {
 		chestArtifact.abi
 	);
 
-	await chest.mock.getVotingPower.returns(BigNumber.from('424000000000000000000000000').sub(1)); // Chest power of 8_000_000 JELLY staked for a year - 1
+	await chest.mock.getVotingPower.returns(BigNumber.from('424000').sub(1)); // Chest power of 8_000_000 JELLY staked for a year - 1
 	await chest.mock.totalSupply.returns(BigNumber.from(10));
 	await chest.mock.stake.returns();
 

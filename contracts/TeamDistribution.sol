@@ -86,7 +86,7 @@ contract TeamDistribution is Ownable {
             amount: 20000000,
             beneficiary: 0x886dD9472c88f09b94bfF3333FfFe2EB2234e821,
             freezingPeriod: 180 days,
-            vestingDuration: 0 days,
+            vestingDuration: 1, // @dev 1 second to differentiate from regular chest
             nerfParameter: 10
         });
         teamList[1] = Team({

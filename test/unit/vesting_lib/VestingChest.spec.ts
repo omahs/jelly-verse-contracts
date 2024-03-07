@@ -52,8 +52,7 @@ export function shouldBehaveLikeVestingChest(): void {
 					expect(vestingPosition.releasedAmount).to.equal(0);
 					expect(vestingPosition.cliffTimestamp).to.equal(_cliffTimestamp.add(2));
 					expect(vestingPosition.vestingDuration).to.equal(_vestingDuration);
-					expect(vestingPosition.freezingPeriod).to.equal(_cliffDuration);
-					expect(vestingPosition.booster).to.equal(_booster);
+					expect(vestingPosition.accumulatedBooster).to.equal(_booster);
 					expect(vestingPosition.nerfParameter).to.equal(_nerfParameter);
 				});
 

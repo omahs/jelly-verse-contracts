@@ -28,9 +28,6 @@ describe("TeamDistribution", function () {
 
     const chest = await ChestFactory.deploy(
       erc20.address,
-      TeamDistribution.address, //random adress
-      TeamDistribution.address, //random adress
-      0,
       0,
       0,
       deployer.address,
