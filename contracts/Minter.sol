@@ -18,15 +18,15 @@ import {SD59x18, convert, exp, mul, div, sd, intoUint256} from "./vendor/prb/mat
 contract Minter is Ownable, ReentrancyGuard {
     struct Beneficiary {
         address beneficiary;
-        uint16 weight; //BPS
+        uint256 weight; //BPS
     }
 
     address public _jellyToken;
-    address public _lpRewardsContract;
+    uint256 public _mintingStartedTimestamp;
     address public _stakingRewardsContract;
     uint256 public _lastMintedTimestamp;
-    uint256 public _mintingStartedTimestamp;
     uint256 public _mintingPeriod = 7 days;
+   
     bool public _started;
 
     Beneficiary[] public _beneficiaries;
@@ -58,21 +58,14 @@ contract Minter is Ownable, ReentrancyGuard {
         uint256 indexed mintingPeriod
     );
 
-    event LPRewardsContractSet(
-        address indexed sender,
-        address indexed lpRewardsContract
-    );
-
     event StakingRewardsContractSet(
         address indexed sender,
-        address indexed lpRewardsContract
+        address indexed stakingRewardsContract
     );
 
     event JellyMinted(
         address indexed sender,
-        address lpRewardsContract,
         address stakingRewardsContract,
-        uint256 indexed mintedTimestamp,
         uint256 newLastMintedTimestamp,
         uint256 mintingPeriod,
         uint256 mintedAmount,
@@ -87,13 +80,11 @@ contract Minter is Ownable, ReentrancyGuard {
 
     constructor(
         address jellyToken_,
-        address lpRewardsContract_,
         address stakingRewardsContract_,
         address newOwner_,
         address pendingOwner_
     ) Ownable(newOwner_, pendingOwner_) {
         _jellyToken = jellyToken_;
-        _lpRewardsContract = lpRewardsContract_;
         _stakingRewardsContract = stakingRewardsContract_;
     }
 
@@ -130,8 +121,9 @@ contract Minter is Ownable, ReentrancyGuard {
         uint256 epochId;
 
         for (uint16 i = 0; i < _beneficiaries.length; i++) {
-            uint256 amount = (mintAmountWithDecimals *
-                _beneficiaries[i].weight) / 1000;
+            uint256 weight=  _beneficiaries[i].weight;
+            uint256 amount = (mintAmount * DECIMALS *
+              weight) / 1000; //check to see why stack too deep
 
             if (_beneficiaries[i].beneficiary == _stakingRewardsContract) {
                 JellyToken(_jellyToken).mint(address(this), amount);
@@ -151,9 +143,7 @@ contract Minter is Ownable, ReentrancyGuard {
 
         emit JellyMinted(
             msg.sender,
-            _lpRewardsContract,
             _stakingRewardsContract,
-            currentTimestamp,
             _lastMintedTimestamp,
             mintingPeriod,
             mintAmountWithDecimals,
@@ -182,20 +172,6 @@ contract Minter is Ownable, ReentrancyGuard {
         return mintAmount;
     }
 
-    /**
-     * @notice Set new LP Rewards Distribution Contract
-     *
-     * @dev Only owner can call.
-     *
-     * @param newLpRewardsContract_ new LP rewards distribution contract
-     */
-    function setLpRewardsContract(
-        address newLpRewardsContract_
-    ) external onlyOwner {
-        _lpRewardsContract = newLpRewardsContract_;
-
-        emit LPRewardsContractSet(msg.sender, newLpRewardsContract_);
-    }
 
     /**
      * @notice Set new Staking Rewards Distribution Contract

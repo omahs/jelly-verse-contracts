@@ -1,27 +1,27 @@
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import { mine } from '@nomicfoundation/hardhat-network-helpers';
 import { utils, BigNumber, constants } from 'ethers';
 import { ProposalState, VoteType } from '../../../shared/types';
 
 export function shouldFollowProposalLifeCycle(): void {
-  context('Minter Set new LP Rewards Distribution Contract Proposal Lifecycle', async function () {
-    const proposalDescription = 'Test Proposal #1: Set new LP Rewards Distribution Contract';
-    let setLpRewardsContractFunctionCalldata: string;
+  context('Minter Set new Staking Rewards Distribution Contract Proposal Lifecycle', async function () {
+    const proposalDescription = 'Test Proposal #1: Set new Staking Rewards Distribution Contract';
+    let setStakingRewardsContractFunctionCalldata: string;
     let proposalId: BigNumber;
     let proposalParams: string;
     const chestIDs: number[] = [0, 1, 2];
 
     beforeEach(async function () {
-      setLpRewardsContractFunctionCalldata = this.minter.interface.encodeFunctionData(
-        'setLpRewardsContract',
-        [this.signers.newLpRewardsContractAddress.address]
+      setStakingRewardsContractFunctionCalldata = this.minter.interface.encodeFunctionData(
+        'setStakingRewardsContract',
+        [this.signers.newStakingRewardsContractAddress.address]
       );
       await this.jellyGovernor
         .connect(this.signers.alice)
         .propose(
           [this.minter.address],
           [0],
-          [setLpRewardsContractFunctionCalldata],
+          [setStakingRewardsContractFunctionCalldata],
           proposalDescription
         );
 
@@ -30,7 +30,7 @@ export function shouldFollowProposalLifeCycle(): void {
         [
           [this.minter.address],
           [0],
-          [setLpRewardsContractFunctionCalldata],
+          [setStakingRewardsContractFunctionCalldata],
           utils.keccak256(utils.toUtf8Bytes(proposalDescription)),
         ]
       );
@@ -123,7 +123,7 @@ export function shouldFollowProposalLifeCycle(): void {
         .queue(
           [this.minter.address],
           [0],
-          [setLpRewardsContractFunctionCalldata],
+          [setStakingRewardsContractFunctionCalldata],
           proposalDescriptionHash
         );
 
@@ -155,7 +155,7 @@ export function shouldFollowProposalLifeCycle(): void {
         .queue(
           [this.minter.address],
           [0],
-          [setLpRewardsContractFunctionCalldata],
+          [setStakingRewardsContractFunctionCalldata],
           proposalDescriptionHash
         );
 
@@ -166,18 +166,18 @@ export function shouldFollowProposalLifeCycle(): void {
         .execute(
           [this.minter.address],
           [0],
-          [setLpRewardsContractFunctionCalldata],
+          [setStakingRewardsContractFunctionCalldata],
           proposalDescriptionHash
         );
 
       const proposalState = await this.jellyGovernor.state(proposalId);
-      const lpRewardsContract = await this.minter._lpRewardsContract();
+      const stakingRewardsContract = await this.minter._stakingRewardsContract();
 
       assert(
         proposalState === ProposalState.Executed,
         'Proposal should be in executed state'
       );
-      assert(lpRewardsContract === this.signers.newLpRewardsContractAddress.address, 'New LP Rewards Contract should be set');
+      assert(stakingRewardsContract === this.signers.newStakingRewardsContractAddress.address, 'New Staking Rewards Contract should be set');
     });
   });
 }
