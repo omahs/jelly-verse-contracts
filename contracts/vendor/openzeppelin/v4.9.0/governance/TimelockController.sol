@@ -3,9 +3,9 @@
 
 pragma solidity ^0.8.0;
 
-import "./vendor/openzeppelin/v4.9.0/access/AccessControl.sol";
-import "./vendor/openzeppelin/v4.9.0/token/ERC721/IERC721Receiver.sol";
-import "./vendor/openzeppelin/v4.9.0/token/ERC1155/IERC1155Receiver.sol";
+import "../access/AccessControl.sol";
+import "../token/ERC721/IERC721Receiver.sol";
+import "../token/ERC1155/IERC1155Receiver.sol";
 
 /**
  * @dev Contract module which acts as a timelocked controller. When set as the
@@ -152,7 +152,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
      */
     function isOperationReady(bytes32 id) public view virtual returns (bool) {
         uint256 timestamp = getTimestamp(id);
-        return timestamp > _DONE_TIMESTAMP && timestamp <= block.number;
+        return timestamp > _DONE_TIMESTAMP && timestamp <= block.timestamp;
     }
 
     /**
@@ -268,7 +268,7 @@ contract TimelockController is AccessControl, IERC721Receiver, IERC1155Receiver 
     function _schedule(bytes32 id, uint256 delay) private {
         require(!isOperation(id), "TimelockController: operation already scheduled");
         require(delay >= getMinDelay(), "TimelockController: insufficient delay");
-        _timestamps[id] = block.number + delay;
+        _timestamps[id] = block.timestamp + delay;
     }
 
     /**

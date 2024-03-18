@@ -101,7 +101,7 @@ abstract contract GovernorTimelockControl is IGovernorTimelock, Governor {
         _timelockIds[proposalId] = _timelock.hashOperationBatch(targets, values, calldatas, 0, descriptionHash);
         _timelock.scheduleBatch(targets, values, calldatas, 0, descriptionHash, delay);
 
-        emit ProposalQueued(proposalId, block.number + delay);
+        emit ProposalQueued(proposalId, block.timestamp + delay);
 
         return proposalId;
     }
