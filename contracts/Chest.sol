@@ -578,7 +578,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             // regular chest
             uint120 booster = calculateBooster(vestingPosition, uint48(timestamp));
             power =
-                (booster * vestingPosition.totalVestedAmount * regularFreezingTime) /
+                (booster * (vestingPosition.totalVestedAmount - vestingPosition.releasedAmount) * regularFreezingTime) /
                 (MIN_STAKING_AMOUNT * DECIMALS); // @dev scaling because of minimum staking amount and booster
         } else {
             // special chest
@@ -602,7 +602,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             // apply nerf parameter
             uint8 nerfParameter = vestingPosition.nerfParameter;
             power =
-                (vestingPosition.totalVestedAmount *
+                ((vestingPosition.totalVestedAmount - vestingPosition.releasedAmount) *
                     totalFreezingTimeInWeeks *
                     nerfParameter) /
                 (10 * MIN_STAKING_AMOUNT); // @dev scaling because of minimum staking amount

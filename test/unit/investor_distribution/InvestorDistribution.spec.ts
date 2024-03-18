@@ -393,13 +393,14 @@ describe("InvestorDistribution", function () {
           const cliffTimestamp = BigNumber.from(
             timestamps[Math.floor(i / 10)] + FREEZING_PERIOD
           );
+          const boosterTimestamp = BigNumber.from(timestamps[Math.floor(i / 10)]);
 
           const vestingPosition = await chest.getVestingPosition(i);
           expect(vestingPosition[0]).to.equal(totalVestedAmount);
           expect(vestingPosition[1]).to.equal(releasedAmount);
           expect(vestingPosition[2]).to.equal(cliffTimestamp);
-          expect(vestingPosition[3]).to.equal(VESTING_DURATION);
-          expect(vestingPosition[4]).to.equal(FREEZING_PERIOD);
+          expect(vestingPosition[3]).to.equal(boosterTimestamp);
+          expect(vestingPosition[4]).to.equal(VESTING_DURATION);
           expect(vestingPosition[5]).to.equal(INITIAL_BOOSTER);
           expect(vestingPosition[6]).to.equal(NERF_PARAMETER);
         }
