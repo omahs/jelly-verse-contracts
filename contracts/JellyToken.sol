@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.19;
-
+// q is this final compiler version? pragma solidity 0.8.19;  
+// q is vendor copied well?
 import {ERC20, ERC20Capped} from "./vendor/openzeppelin/v4.9.0/token/ERC20/extensions/ERC20Capped.sol";
 import {AccessControl} from "./vendor/openzeppelin/v4.9.0/access/AccessControl.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
@@ -17,10 +18,13 @@ import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyG
  *    ######  ######## ######## ########    ##
  *
  */
+
+// i storage is OK
 contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
     bytes32 constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     bool internal preminted;
+    
 
     event Preminted(
         address indexed vestingTeam,
@@ -35,11 +39,13 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
             revert JellyToken__AlreadyPreminted();
         }
         _;
-    }
-
+    } 
+     // i 10 ** decimals() should be maybe changed to constant 
+     // @audit missing input validation(it's redundant I guess) 
+     // q who is _defaultAdminRole? is it a multi-sig? because they can mint supply later as they do not rennounce the role? constructor( address _defaultAdminRole )
     constructor(
         address _defaultAdminRole
-    )
+    )   
         ERC20("Jelly Token", "JLY")
         ERC20Capped(1_000_000_000 * 10 ** decimals())
     {
@@ -47,6 +53,7 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
         _grantRole(MINTER_ROLE, _defaultAdminRole);
     }
 
+    // @audit missing input validation(it's redundant I guess), not for _minterContract?
     function premint(
         address _vestingTeam,
         address _vestingInvestor,

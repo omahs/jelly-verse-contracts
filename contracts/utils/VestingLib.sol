@@ -25,9 +25,24 @@ import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
  * @dev Total vested amount is stored as an immutable storage variable to prevent manipulations when calculating current releasable amount.
  */
 
+// i change name to Vesting
+// i style of declaration is not consistent and doesn't follow the style guide
 abstract contract VestingLib {
+    // i move index below struct
     uint256 public index;
 
+    // @audit inefficient order of fields
+    /* audit order of fields
+    struct VestingPosition {
+        uint256 totalVestedAmount;
+        uint256 releasedAmount;
+        address beneficiary;
+        uint48 cliffTimestamp;
+        uint32 vestingDuration;
+    }
+    */
+
+    // i move struct to top
     struct VestingPosition {
         address beneficiary;
         uint256 totalVestedAmount;
@@ -56,9 +71,12 @@ abstract contract VestingLib {
      *
      * @return uint256 The amount that has vested but hasn't been released yet
      */
+    // i doesn't check if index is valid? not sure if it's needed
     function releasableAmount(uint256 vestingIndex) public view returns (uint256) {
         VestingPosition memory vestingPosition = vestingPositions[vestingIndex];
+        // i pass struct to function, no need to duplicate code
         return vestedAmount(vestingIndex) - vestingPosition.releasedAmount;
+
     }
 
     function vestedAmount(
@@ -95,6 +113,7 @@ abstract contract VestingLib {
         if (beneficiary == address(0)) revert VestingLib__InvalidBeneficiary();
         if (amount == 0) revert VestingLib__InvalidVestingAmount();
 
+        // i no need for SafeCast.toUint48(cliffDuration) I guess
         uint48 cliffTimestamp = SafeCast.toUint48(block.timestamp) +
             SafeCast.toUint48(cliffDuration);
 
@@ -120,6 +139,7 @@ abstract contract VestingLib {
         uint256 releaseAmount
     ) internal {
         if (vestingIndex >= index) revert VestingLib__InvalidIndex();
+        // i maybe merge these two below
         if (releaseAmount == 0) revert VestingLib__InvalidReleaseAmount();
         if (releaseAmount > releasableAmount(vestingIndex)) revert VestingLib__InvalidReleaseAmount();
 

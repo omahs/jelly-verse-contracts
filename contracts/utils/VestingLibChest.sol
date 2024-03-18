@@ -26,8 +26,6 @@ import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
  */
 
 abstract contract VestingLibChest {
-    uint256 public index;
-
     struct VestingPosition {
         uint256 totalVestedAmount;
         uint256 releasedAmount;
@@ -38,9 +36,10 @@ abstract contract VestingLibChest {
         uint8 nerfParameter;
     }
 
-    event NewVestingPosition(VestingPosition position, uint256 index);
-
+    uint256 public index;
     mapping(uint256 => VestingPosition) internal vestingPositions;
+
+    event NewVestingPosition(VestingPosition position, uint256 index);
 
     /**
      * @notice Calculates the amount that has already vested but hasn't been released yet
@@ -68,6 +67,7 @@ abstract contract VestingLibChest {
             vestingPosition_.cliffTimestamp + vestingPosition_.vestingDuration
         ) {
             vestedAmount_ = vestingPosition_.totalVestedAmount;
+        // i check this part for increaseStake
         } else {
             unchecked {
                 vestedAmount_ =

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
+// i change to import {} from 
 import "./utils/Ownable.sol";
 
 /**
@@ -8,11 +9,15 @@ import "./utils/Ownable.sol";
  *
  * @notice Store & retrieve daily snapshots blocknumbers per epoch
  */
+
+// @audit storage is not OK
 contract DailySnapshot is Ownable {
   bool public started;
   uint8 public epochDaysIndex;
   uint48 public epoch;
   uint48 public beginningOfTheNewDayBlocknumber;
+  // i blocks not accurate, dependend on chain.. change name of constant, maybe also put it above storage vars
+  // maybe it's better to set this as immutable and set it in constructor depending on the chain of deployment
   uint48 constant ONE_DAY = 7200; // 7200 blocks = 1 day
   mapping(uint48 => uint48[7]) public dailySnapshotsPerEpoch;
   
@@ -29,8 +34,11 @@ contract DailySnapshot is Ownable {
       }
       _;
   }
+  // i naming convention different accross contracts
+  // i Snapshoting -> Snapshotting
   constructor(address newOwner_, address pendingOwner_) Ownable(newOwner_, pendingOwner_) {}
 
+  // q who is the owner?
   function startSnapshoting() external onlyOwner {
     if(started) {
       revert DailySnapshot_AlreadyStarted();
