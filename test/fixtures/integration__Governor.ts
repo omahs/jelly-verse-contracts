@@ -1,7 +1,6 @@
 import { ethers } from "hardhat";
 import { BigNumber, utils } from "ethers";
 import { getSigners } from "../shared/utils";
-import { Signers } from "./types";
 import {
     JellyGovernor,
     JellyGovernor__factory,
@@ -19,8 +18,7 @@ import {
     OfficialPoolsRegister__factory,
     Minter,
     Minter__factory
-
-} from "../../typechain";
+} from "../../typechain-types";
 
 type IntegrationJellyGovernorFixtureType = {
     jellyGovernor: JellyGovernor;
@@ -56,7 +54,6 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
     } = await getSigners();
 
     const fee = BigNumber.from("10"); // 10 wei
-    const maxBooster = utils.parseEther("2"); // 2e18
     const timeFactor = ONE_WEEK_IN_SOLIDITY; // 7 days in seconds
 
     const votingDelay = BigNumber.from("7200"); // 7200 blocks
@@ -88,10 +85,7 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
         .connect(deployer)
         .deploy(
             jellyToken.address,
-            allocator.address,
-            distributor.address,
             fee,
-            maxBooster,
             timeFactor,
             deployer.address,
             jellyTimelock.address

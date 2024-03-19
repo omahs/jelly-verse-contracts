@@ -25,4 +25,4 @@ runs = 1000
 depth = 100
 runs = 1000
 
-gas_reports = ["Chest"]
+gas_reports = ["Chest", "InvestorDistribution"]

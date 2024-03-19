@@ -4,10 +4,7 @@ import { Chest__factory } from '../typechain-types';
 
 task(`deploy-chest`, `Deploys the Chest contract`)
     .addParam(`jellyToken`, `The Jelly token address`)
-    .addParam(`allocator`, `The allocator address`)
-    .addParam(`distributor`, `The distributor address`)
     .addParam(`fee`, `The minting fee`)
-    .addParam(`maxBooster`, `The max booster`)
     .addParam(`timeFactor`, `The time factor`)
     .addParam(`owner`, `The multisig owner address`)
     .addParam(`pendingOwner`, `The pending owner address if needed`)
@@ -15,10 +12,7 @@ task(`deploy-chest`, `Deploys the Chest contract`)
         async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
             const {
                 jellyToken,
-                allocator,
-                distributor,
                 fee,
-                maxBooster,
                 timeFactor,
                 owner,
                 pendingOwner,
@@ -26,7 +20,7 @@ task(`deploy-chest`, `Deploys the Chest contract`)
             const [deployer] = await hre.ethers.getSigners();
 
             console.log(
-                `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${allocator} as the allocator address, ${distributor} as the distributor address, ${fee} as the minting fee, ${maxBooster} as the max booster, ${timeFactor} as the time factor, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
+                `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${fee} as the minting fee, ${timeFactor} as the time factor, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
             );
 
             const ChestFactory: Chest__factory = await hre.ethers.getContractFactory(
@@ -35,10 +29,7 @@ task(`deploy-chest`, `Deploys the Chest contract`)
 
             const chest = await ChestFactory.deploy(
                 jellyToken,
-                allocator,
-                distributor,
                 fee,
-                maxBooster,
                 timeFactor,
                 owner,
                 pendingOwner
@@ -58,10 +49,7 @@ task(`deploy-chest`, `Deploys the Chest contract`)
                     address: chest.address,
                     constructorArguments: [
                         jellyToken,
-                        allocator,
-                        distributor,
                         fee,
-                        maxBooster,
                         timeFactor,
                         owner,
                         pendingOwner,
@@ -73,7 +61,7 @@ task(`deploy-chest`, `Deploys the Chest contract`)
                 );
 
                 console.log(
-                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${allocator} ${distributor} ${fee} ${maxBooster} ${timeFactor} ${owner} ${pendingOwner}`
+                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${fee} ${timeFactor} ${owner} ${pendingOwner}`
                 );
             }
 
