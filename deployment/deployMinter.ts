@@ -4,24 +4,22 @@ import { Minter, Minter__factory } from '../typechain-types';
 
 task(`deploy-minter`, `Deploys the Minter contract`)
 	.addParam(`jellyToken`, `The multisig owner address`)
-	.addParam(`lpRewardsContract`, `The LP Rewards Contract address`)
 	.addParam(`stakingRewardsContract`, `The Staking Rewards Contract address`)
 	.addParam(`owner`, `The owner address`)
 	.addParam(`pendingOwner`, `The pending owner address`)
 	.setAction(
 		async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
-			const { jellyToken, lpRewardsContract, stakingRewardsContract, owner, pendingOwner } = taskArguments;
+			const { jellyToken,  stakingRewardsContract, owner, pendingOwner } = taskArguments;
 			const [deployer] = await hre.ethers.getSigners();
 
 			console.log(
-				`ℹ️  Attempting to deploy the Minter smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing\n ${jellyToken} as the jelly token address,\n ${lpRewardsContract} as the LP Rewards Contract address,\n ${stakingRewardsContract} as the Staking Rewards Contract address,\n ${owner} as the owner address,\n ${pendingOwner} as the pending owner address if needed...`
+				`ℹ️  Attempting to deploy the Minter smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing\n ${jellyToken} as the jelly token address,\n ${stakingRewardsContract} as the Staking Rewards Contract address,\n ${owner} as the owner address,\n ${pendingOwner} as the pending owner address if needed...`
 			);
 
 			const minterFactory: Minter__factory =
 				await hre.ethers.getContractFactory('Minter');
 			const minter: Minter = await minterFactory.deploy(
 				jellyToken,
-				lpRewardsContract,
 				stakingRewardsContract,
 				owner,
 				pendingOwner
@@ -40,7 +38,7 @@ task(`deploy-minter`, `Deploys the Minter contract`)
 					address: minter.address,
 					constructorArguments: [
 						jellyToken,
-						lpRewardsContract,
+						
 						stakingRewardsContract,
 						owner,
 						pendingOwner
@@ -52,7 +50,7 @@ task(`deploy-minter`, `Deploys the Minter contract`)
 				);
 
 				console.log(
-					`📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${minter.address} ${jellyToken} ${lpRewardsContract} ${stakingRewardsContract} ${owner} ${pendingOwner}`
+					`📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${minter.address} ${jellyToken} ${stakingRewardsContract} ${owner} ${pendingOwner}`
 				);
 			}
 		}
