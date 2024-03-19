@@ -232,3 +232,4 @@ The original order of fields within the `VestingPosition` struct is not optimize
 - Correct spelling errors, such as changing "Snapshoting" to "Snapshotting," for consistency and professionalism.
 - Utilize the import { } from syntax to maintain clean and organized code imports.
 - Follow the official Solidity style guide. The current declaration style in `VestingLib/VestingLibChest` lacks consistency and does not align with the recommended guidelines.
+- Pass the `VestingPosition` struct to the `vestedAmount` function in `VestingLib/VestingLibChest` instead of the index to avoid code duplication.
