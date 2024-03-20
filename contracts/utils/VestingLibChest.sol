@@ -28,7 +28,7 @@ import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 abstract contract VestingLibChest {
     struct VestingPosition {
         uint256 totalVestedAmount;
-        uint256 releasedAmount;
+        uint256 releasedAmount; // q is this reduntant? 
         uint48 cliffTimestamp;
         uint48 boosterTimestamp;
         uint32 vestingDuration;

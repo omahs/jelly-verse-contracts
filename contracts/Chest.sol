@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
-
+// i imports OK
 import {ERC721} from "./vendor/openzeppelin/v4.9.0/token/ERC721/ERC721.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
@@ -11,22 +11,27 @@ import {Base64} from "./vendor/openzeppelin/v4.9.0/utils/Base64.sol";
 import {Ownable} from "./utils/Ownable.sol";
 import {VestingLibChest} from "./utils/VestingLibChest.sol";
 
-contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
+// i storage OK, can't save any slot for this contract
+// just check if somehow it can be more efficient 
+contract Chest is ERC721, ReentrancyGuard, VestingLibChest, Ownable {
     using SafeERC20 for IERC20;
-    using Math for uint256;
+    using Math for uint256; // i check if it's used OK and library is OK
 
-    uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
-    uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
-    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    // @audit change this to 156 x 7 days
+    uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days; // i 3 years, 
+    uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days; // i 5 years
+    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days; 
     uint32 constant MIN_VESTING_DURATION = 1; // @dev need this to make difference between special and regular chest
 
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
+    // i check if it's used OK
     uint120 private constant WEEKLY_BOOSTER_INCREMENT = 6_410_256_410_256_410; // @dev 1 / 156 weeks
 
     uint256 public constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
     uint120 public constant MAX_BOOSTER = 2 * DECIMALS;
 
+    // i check how this affects bytecode
     string constant BASE_SVG =
         "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 21.500672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
 
@@ -39,7 +44,9 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     string constant END_SVG =
         "]]></tspan><tspan x='0' y='64' font-weight='400' stroke-width='0'><![CDATA[}]]></tspan></text></svg>";
 
+    // i change it to IERC20/IJellyToken
     address internal immutable i_jellyToken;
+    // @audit change it to constant as it will be always 7 days
     uint32 internal immutable i_timeFactor;
 
     uint128 public fee;
@@ -84,6 +91,9 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     error Chest__InvalidBoosterValue();
     error Chest__NoFeesToWithdraw();
 
+    // i checks if msg.sender is owner/approved/approvedForAll
+    // @audit check if it's maybe better that only owner can withdraw
+    // @audit any attack vectors?
     modifier onlyAuthorizedForToken(uint256 _tokenId) {
         if (!_isApprovedOrOwner(msg.sender, _tokenId)) {
             revert Chest__NotAuthorizedForToken();
@@ -98,15 +108,16 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         address owner,
         address pendingOwner
     ) ERC721("Chest", "CHEST") Ownable(owner, pendingOwner) {
+        
         if (
             jellyToken == address(0)
         ) {
             revert Chest__ZeroAddress();
         }
 
-        i_jellyToken = jellyToken;
-        fee = mintingFee;
-        i_timeFactor = timeFactor;
+        i_jellyToken = jellyToken; // @audit change to IJellyToken, no need to check for zero address in that case
+        fee = mintingFee; // i would be good to have maximum value for mintingFee, DDOS in case it's too big?
+        i_timeFactor = timeFactor; // i change to constant
     }
 
     /**
@@ -118,6 +129,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
+    // input validation OK
     function stake(
         uint256 amount,
         address beneficiary,
@@ -136,14 +148,17 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         createVestingPosition(
             amount,
             freezingPeriod,
-            0,
+            0, // @audit change to constant for better readability
             INITIAL_BOOSTER,
             10 // @dev nerf parameter is hardcoded to 10 for regular chests (no nerf, not included in calculations)
+              // @audit change to constant for better readability, actually change it to 0 as it's not used in calculations
         );
 
+        // q cache fee or sm?
         unchecked {
             totalFees += fee;
         }
+        // i maybe change to uint32
         uint256 cliffTimestamp = block.timestamp + freezingPeriod;
 
         emit Staked(
@@ -153,13 +168,13 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             cliffTimestamp,
             0,
             INITIAL_BOOSTER,
-            10
+            10 
         );
-
+        
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
             address(this),
-            amount + fee
+            amount + fee // i check optimization
         );
         _safeMint(beneficiary, currentTokenId);
     }
@@ -177,6 +192,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
+    // @audit missing minimum freezing period check
+    // @audit missing input validation for nerfParameter, critical for security
     function stakeSpecial(
         uint256 amount,
         address beneficiary,
@@ -192,13 +209,15 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         if (vestingDuration < MIN_VESTING_DURATION) {
           revert Chest__InvalidVestingDuration();
         }
-        
+
+        // @audit H[] i set maximum value for vestingDuration
+        // @audit as it can be set to uint256.max and be abused and get big voting power with low amount of tokens
         uint256 currentTokenId = index;
         createVestingPosition(
             amount,
             freezingPeriod,
             vestingDuration,
-            INITIAL_BOOSTER,
+            INITIAL_BOOSTER, // @audit change it to zero maybe, see how this affect voting power
             nerfParameter
         );
         unchecked {
@@ -219,7 +238,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         IERC20(i_jellyToken).safeTransferFrom(
             msg.sender,
             address(this),
-            amount + fee
+            amount + fee // i check optimization
         );
         _safeMint(beneficiary, currentTokenId);
     }
@@ -233,6 +252,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
+    // i not needed to check if tokenId exists, it's already done in onlyAuthorizedForToken
     function increaseStake(
         uint256 tokenId,
         uint256 amount,
@@ -253,6 +273,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             // regular chest
             if (block.timestamp < vestingPosition.cliffTimestamp) {
                 // chest is frozen
+                // i doing this even if extendFreezingPeriod is 0, not sure if it's OK
                 newCliffTimestamp =
                 vestingPosition.cliffTimestamp +
                 extendFreezingPeriod;
@@ -265,6 +286,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
                 // chest is open
                 if (extendFreezingPeriod == 0) {
                     // chest is open, freezing period must be set to non-zero value
+                    // @audit missing here minimum duration check :)
                     revert Chest__InvalidFreezingPeriod();
                 }
                 if (
@@ -288,6 +310,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             revert Chest__CannotModifySpecial();
         }
 
+        // i doing the change even if amount is 0, not sure if it's OK
         uint256 newTotalStaked = vestingPosition.totalVestedAmount + amount;
 
         vestingPositions[tokenId].totalVestedAmount = newTotalStaked;
@@ -314,12 +337,18 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
+    // input validation seems OK, no need to validate tokenId as it's already done in onlyAuthorizedForToken 
+    // @audit H[] can't withdraw if position was updated and vesting just started before vestedAmount becomes bigger than releasedAmount
+    // @audit Above vector won't happen as special chest with vesting > 0 can't be updated and released amount will be 0 at begining
     function unstake(
         uint256 tokenId,
         uint256 amount
     ) external onlyAuthorizedForToken(tokenId) nonReentrant {
+        // q will this be cheaper if changes are done on memory struct and at the end assigned to storage?
         VestingPosition storage vestingPosition = vestingPositions[tokenId];
         uint256 releasableAmount = releasableAmount(tokenId);
+        // i redundant check, if amount is 0  next check will revert
+        // amount > releasableAmount will always revert if amount is 0
         if (releasableAmount == 0 || amount == 0) {
             revert Chest__NothingToUnstake();
         }
@@ -329,6 +358,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         }
 
         vestingPosition.releasedAmount += amount;
+        // i avoid changing this if position is open and unstaked once already?
         vestingPosition.accumulatedBooster = INITIAL_BOOSTER;
         vestingPosition.boosterTimestamp = 0; // @dev this indicates that the chest is unstaked
         uint256 newTotalStaked = vestingPosition.totalVestedAmount -
@@ -336,6 +366,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
         emit Unstake(tokenId, amount, newTotalStaked, INITIAL_BOOSTER);
 
+        // i maybe should be sent to owner instead of msg.sender
+        // q any attack vector beside approving bad actor?
         IERC20(i_jellyToken).safeTransfer(msg.sender, amount);
     }
 
@@ -347,6 +379,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
+    // @audit set maximum value for fee, DDOS in case it's too big and governance is compromised/influenced
     function setFee(uint128 fee_) external onlyOwner {
         fee = fee_;
         emit SetFee(fee_);
@@ -360,6 +393,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * No return, reverts on error.
      */
+    // i owner is governance, it would need to pass vote to withdraw fees
+    // i maybe choose more flexibile option
     function withdrawFees(address beneficiary) external onlyOwner {
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
 
@@ -374,7 +409,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     }
 
     /**
-     * @notice Calculates the voting power of all account's chests.
+     * @notice Calculates the voting power of all account's chests. // i not all, provided change this, and for current timestamp
      *
      * @param account - address of the account
      *
@@ -384,7 +419,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      */
     function getVotingPower(
         address account,
-        uint256[] memory tokenIds
+        uint256[] memory tokenIds // i change to calldata
     ) external view returns (uint256) {
         uint256 power;
         for (uint256 i = 0; i < tokenIds.length; ) {
@@ -409,6 +444,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * @return - voting power of the chest.
      */
+    // q shall struct inputs be validated?
+    // @audit input validation missing, can be missused if structs are not validated
     function estimateChestPower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
@@ -500,7 +537,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         address to,
         uint256 firstTokenId,
         uint256 batchSize
-    ) internal virtual override {
+    ) internal virtual override {  
+        // i to == address(0) is not needed as it's not possible to burn chest
         if (!(from == address(0) || to == address(0))) {
             revert Chest__NonTransferrableToken();
         }
@@ -514,11 +552,13 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * @return - booster of the chest.
      */
+    // i check under/overflow, this is OK
     function calculateBooster(
         VestingPosition memory vestingPosition,
         uint48 timestamp
     ) internal view returns (uint120) {
         uint120 booster;
+        // @audit reduntant check, booster is not included in calculations for special chest
         if (vestingPosition.vestingDuration > 0) {
             // special chest
             return INITIAL_BOOSTER;
@@ -530,10 +570,14 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         timestamp = vestingPosition.cliffTimestamp > timestamp
             ? timestamp
             : vestingPosition.cliffTimestamp;
+        // i if accumulatedBooster is MAX_BOOSTER, return MAX_BOOSTER
         uint120 accumulatedBooster = vestingPosition.accumulatedBooster;
         
+        // q is boosterTimestamp updated correctly?
+        // q is it possible that timestamp is below boosterTimestamp?
+        // q maybe add this check, not sure if it's logical
         uint120 weeksPassed = uint120(Math.ceilDiv(
-            timestamp - vestingPosition.boosterTimestamp,
+            timestamp - vestingPosition.boosterTimestamp, // i this is 157 after 3 years
             i_timeFactor
         ));
 
@@ -554,7 +598,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      * @return - voting power of the chest.
      */
     function calculatePower(
-        uint256 timestamp,
+        uint256 timestamp, // i pass this as uint48?
         VestingPosition memory vestingPosition
     ) internal view returns (uint256) {
         uint256 power;
@@ -578,6 +622,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             // regular chest
             uint120 booster = calculateBooster(vestingPosition, uint48(timestamp));
             power =
+                // @audit this doesn't include releasedAmount, which is wrong
+                // @audit H[]
                 (booster * vestingPosition.totalVestedAmount * regularFreezingTime) /
                 (MIN_STAKING_AMOUNT * DECIMALS); // @dev scaling because of minimum staking amount and booster
         } else {
@@ -601,11 +647,14 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
             // apply nerf parameter
             uint8 nerfParameter = vestingPosition.nerfParameter;
+            // @audit H[] this doesn't include releasedAmount, which is wrong
+            // @audit nerfParameter if set too high creates a vector for abuse
             power =
                 (vestingPosition.totalVestedAmount *
                     totalFreezingTimeInWeeks *
                     nerfParameter) /
                 (10 * MIN_STAKING_AMOUNT); // @dev scaling because of minimum staking amount
+                // i change 10 to some constant for better readability
         }
         return power;
     }

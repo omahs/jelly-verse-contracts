@@ -7,11 +7,17 @@ A time-boxed practice security review of the **JellyVerse** protocol was done by
 A smart contract security review can never verify the complete absence of vulnerabilities. This is a time, resource and expertise bound effort where I try to find as many vulnerabilities as possible. I can not guarantee 100% security after the review or even if the review will find any problems with your smart contracts. Subsequent security reviews, bug bounty programs and on-chain monitoring are strongly recommended.
 
 # About **JellyVerse**
+
 TBF
+
 ## Observations
+
 TBF
+
 ## Privileged Roles & Actors
+
 TBF
+
 # Severity classification
 
 | Severity               | Impact: High | Impact: Medium | Impact: Low |
@@ -42,35 +48,45 @@ The following smart contracts were in scope of the audit:
 - `OfficialPoolRegister.sol`
 - `VestingLib.sol`
 - `VestingLibChest.sol`
+- `Chest.sol`
 
 ---
 
 The following number of issues were found, categorized by their severity:
 
-- High: 3 issues
-- Medium: 2 issues
-- Low: 5 issues
-- Informational: 3 issues
+- High: 7 issues
+- Medium: 5 issues
+- Low: 6 issues
+- Informational: 6 issues
 
 # Findings Summary
 
-| ID     | Title                                       | Severity      |
-| ------ | ------------------------------------------- | ------------- |
-| [H-01] | Faulty Randomness Generation                | High          |
-| [H-02] | Hardcoded Block Time Dependency             | High          |
-| [H-03] | Underflow in `releasableAmount` Calculation | High          |
-| [M-01] | Minting of `JellyToken` is centralized      | Medium        |
-| [M-02] | Burned Tokens Can Be Reissued by Minters    | Medium        |
-| [L-01] | Missing input validation in constructor     | Low           |
-| [L-02] | Missing input validation in premint         | Low           |
-| [L-03] | No Check for Duplicate Pool Registration    | Low           |
-| [L-04] | Wasteful Pool Registration Logic            | Low           |
-| [L-05] | Redundant Pool Struct                       | Low           |
-| [I-01] | Suboptimal Storage Layout                   | Informational |
-| [I-02] | Suboptimal Storage Layout for Struct        | Informational |
-| [I-03] | Code Style Enhancements                     | Informational |
-
-# Detailed Findings
+| ID     | Title                                                                                          | Severity      |
+| ------ | ---------------------------------------------------------------------------------------------- | ------------- |
+| [H-01] | Faulty Randomness Generation                                                                   | High          |
+| [H-02] | Hardcoded Block Time Dependency                                                                | High          |
+| [H-03] | Underflow in `releasableAmount` Calculation                                                    | High          |
+| [H-04] | Missing Input Validation in `stakeSpecial` Allows Excessive Voting Power                       | High          |
+| [H-05] | No Minimum freezingPeriod Validation in `stakeSpecial` Enables Immediate Unstaking             | High          |
+| [H-06] | Inaccurate Voting Power Calculation Due to Exclusion of releasedAmount in calculatePower       | High          |
+| [H-07] | Absence of extendFreezingPeriod Validation Enables Immediate Unstaking                         | High          |
+| [M-01] | Minting of `JellyToken` is centralized                                                         | Medium        |
+| [M-02] | Burned Tokens Can Be Reissued by Minters                                                       | Medium        |
+| [M-03] | timeFactor Initialization Risks                                                                | Medium        |
+| [M-04] | Excessive Fee Settings Could Render Staking Protocol Inoperable                                | Medium        |
+| [M-05] | Lack of vestingPosition Validation in `estimateChestPower` Risks Inaccurate Power Calculations | Medium        |
+| [L-01] | Missing input validation in constructor                                                        | Low           |
+| [L-02] | Missing input validation in premint                                                            | Low           |
+| [L-03] | No Check for Duplicate Pool Registration                                                       | Low           |
+| [L-04] | Wasteful Pool Registration Logic                                                               | Low           |
+| [L-05] | Redundant Pool Struct                                                                          | Low           |
+| [L-06] | Redirecting unstake Withdrawals to Predefined Beneficiary                                      | Low           |
+| [I-01] | Suboptimal Storage Layout                                                                      | Informational |
+| [I-02] | Suboptimal Storage Layout for Struct                                                           | Informational |
+| [I-03] | Redundant Check in `calculateBooster`                                                          | Informational |
+| [I-04] | Unnecessary Initialization of Unused values                                                    | Informational |
+| [I-05] | Redundant Storage Updates in `increaseStake` and `unstake` Functions                           | Informational |
+| [I-06] | Code Style Enhancements                                                                        | Informational |
 
 # [H-01] Faulty Randomness Generation
 
@@ -138,6 +154,83 @@ function test_vestingLib() external {
 
 Ensure that any updates to vesting positions properly handle previously released amounts to prevent underflow.
 
+# [H-04] Missing Input Validation in `stakeSpecial` Allows Excessive Voting Power
+
+## Severity
+
+**Impact:**
+High, as user can obtain excessive voting power.
+
+**Likelihood:**
+High, as there are no limitations on inputs.
+
+## Description
+
+Currently, the `stakeSpecial` function lacks proper validation for the `vestingDuration` and `nerfParameter` inputs. This oversight permits users to input the maximum allowable values for these parameters, resulting in disproportionately high voting power, even when staking the minimum required amount.
+
+## Recommendations
+
+Implement input validation to restrict the `vestingDuration` to a predefined maximum value and constrain the `nerfParameter` within a range of 0 to 10, to match the nerf scaling factor of 10.
+
+# [H-05] No Minimum freezingPeriod Validation in `stakeSpecial` Enables Immediate Unstaking
+
+## Severity
+
+**Impact:**
+High, as users can stake, vote, and unstake in rapid succession, undermining governance mechanism.
+
+**Likelihood:**
+Medium, as malicious actor would need to frontrun governance proposal.
+
+## Description
+
+Currently, the `stakeSpecial` function lacks proper validation for the `freezingPeriod` which allows users to stake, vote, and unstake in rapid succession, undermining governance mechanism.
+
+## Recommendations
+
+Add minimum `freezingPeriod` check.
+
+# [H-06] Inaccurate Voting Power Calculation Due to Exclusion of releasedAmount in calculatePower
+
+## Severity
+
+**Impact:**
+High, The calculation error leads to incorrect voting power.
+
+**Likelihood:**
+High, The incorrect value is consistently used in the calculation.
+
+## Description
+
+In the `calculatePower` function, the `totalVestedAmount` is incorrectly utilized as the staked amount, which does not accurately represent the total funds because it excludes the `releasedAmount`.
+
+## Recommendations
+
+Include `releasedAmount` in calculation.
+
+```diff
+-   vestingPosition.totalVestedAmount
++   vestingPosition.totalVestedAmount -  vestingPosition.releasedAmount
+```
+
+# [H-07] Absence of extendFreezingPeriod Validation Enables Immediate Unstaking
+
+## Severity
+
+**Impact:**
+High, as users can stake, vote, and unstake in rapid succession, undermining governance mechanism.
+
+**Likelihood:**
+High, as there are no limitations on inputs.
+
+## Description
+
+The function `increaseStake` fails to properly validate the `extendedFreezingPeriod` when dealing with an open chest. In scenarios where the chest is open and a user attempts to reactivate it, the `extendedFreezingPeriod` should be set to at least `MIN_FREEZING_PERIOD_REGULAR_CHEST`.
+
+## Recommendations
+
+Implement a check to ensure the `extendedFreezingPeriod` meets the minimum required value for such circumstances.
+
 # [M-01] Minting of `JellyToken` is centralized
 
 ## Severity
@@ -160,7 +253,66 @@ Give those roles only to contracts that have a Timelock mechanism so that users 
 
 This issue permits any entity with the `Minter` role to re-mint tokens that have been previously burned. This could affect scenarios like a presale where unsold tokens are burned, as they might be re-minted later. It's important to verify within the tokenomics whether the cap refers to the circulating supply or the total minted supply.
 
-# [L-01] Missing input validation in constructor
+# [M-03] timeFactor Initialization Risks
+
+## Severity
+
+**Impact:**
+High, An incorrect assignment of timeFactor can result in erroneous calculations of booster or voting power values.
+
+**Likelihood:**
+Low, The issue arises only if the deployer inputs an incorrect value.
+
+## Description
+
+The `i_timeFactor` is an immutable variable initialized in the constructor, where its value is not validated. It should perpetually be set to `7 days`. Any deviation due to incorrect initialization can lead to inaccurate calculations for booster or voting power.
+
+## Recommendations
+
+Change `i_timeFactor` from an immutable variable to a constant to ensure its value remains correct
+
+```diff
+- uint256 immutable i_timeFactor
++ uint256 constant TIME_FACTOR = 7 days;
+```
+
+# [M-04] Excessive Fee Settings Could Render Staking Protocol Inoperable
+
+## Severity
+
+**Impact:**
+High, Configuring the fee to an excessively high value could render the protocol unusable.
+
+**Likelihood:**
+Low, Implementing such a change requires a successful governance vote, and malicious actors would likely devalue the protocol.
+
+## Description
+
+The `setFee` function lacks an upper limit for the `fee_` parameter, allowing it to be set to `type(uint128).max`. Such an extreme setting could effectively disrupt the protocol, as staking would necessitate stakers to possess an amount exceeding the total token supply, rendering the staking function inaccessible.
+
+## Recommendations
+
+Implement an upper limit for the fee to prevent excessively high values.
+
+# [M-05] Lack of vestingPosition Validation in `estimateChestPower` Risks Inaccurate Power Calculations
+
+## Severity
+
+**Impact:**
+High, The function `calculatePower` assumes that a valid `vestingPosition` is provided, but without proper validation, this assumption may lead to miscalculated power estimates for unrealistic vesting positions.
+
+**Likelihood:**
+Low, this issue requires the caller to intentionally input invalid values.
+
+## Description
+
+The function `estimateChestPower` does not perform validation checks on the `vestingPosition` input parameters. This omission can result in the calculation of power estimates for non-existent or invalid vesting positions, potentially leading to erroneous outputs.
+
+## Recommendations
+
+Incorporate validation checks for the `vestingPosition` input to ensure only realistic and valid positions are processed.
+
+# [L-01] Missing Input Validation in Constructor
 
 The `_defaultAdminRole `is a critical parameter in the `JellyToken` contract, initialized in the constructor. Assigning a address zero to this parameter would require re-deployment.
 
@@ -170,7 +322,7 @@ The `_defaultAdminRole `is a critical parameter in the `JellyToken` contract, in
 + }
 ```
 
-# [L-02] Missing input validation in premint function
+# [L-02] Missing Input Validation in Premint Function
 
 The `_minterContract `is a parameter passed in the `JellyToken` contract in the `premint` function. Assigning a role to address zero would require doing the action again.
 
@@ -192,6 +344,10 @@ Check `OfficialPoolsRegisterNew.sol` implementation for reference.
 # [L-05] Redundant Pool Struct
 
 The `Pool` struct is not effectively used. Remove it if the `weight` field is unnecessary, and simplify the pool registration process.
+
+# [L-06] Redirecting unstake Withdrawals to Predefined Beneficiary
+
+The `unstake` function currently allows an approved account to withdraw funds to their own address. A design reconsideration could involve sending these funds directly to the originally specified beneficiary, enhancing predictability and security in fund management, especially in scenarios where account permissions are delegated.
 
 # [I-01] Suboptimal Storage Layout
 
@@ -226,10 +382,32 @@ The original order of fields within the `VestingPosition` struct is not optimize
 + }
 ```
 
-# [I-03] Code Style Enhancements
+# [I-03] Redundant Check in `calculateBooster`
+
+Booster is not included in special chests calculations.
+
+```diff
+-   if (vestingPosition.vestingDuration > 0) {
+-            // special chest
+-            return INITIAL_BOOSTER;
+-        }
+```
+
+# [I-04] Unnecessary Initialization of Unused values
+
+In the `stake` and `stakeSpecial` functions, the `nerfParameter` and `booster` values are initialized with non-zero default values. This initialization is redundant since these variables are not utilized in subsequent calculations or logic within these functions.
+
+# [I-05] Redundant Storage Updates in increaseStake and unstake Functions
+
+The `increaseStake` function unnecessarily updates storage values when the `amount` or `extendFreezingPeriod` is zero. Similarly, `unstake` function updates `accumulatedBooster` and `boosterTimestamp` even when no actual change occurs. These redundant operations can waste gas.
+
+# [I-06] Code Style Enhancements
 
 - Replace hardcoded magic numbers with named constants for better code clarity.
+- Use IJellyToken/IERC20 instead of IERC20(address) in `Chest`
 - Correct spelling errors, such as changing "Snapshoting" to "Snapshotting," for consistency and professionalism.
 - Utilize the import { } from syntax to maintain clean and organized code imports.
 - Follow the official Solidity style guide. The current declaration style in `VestingLib/VestingLibChest` lacks consistency and does not align with the recommended guidelines.
 - Pass the `VestingPosition` struct to the `vestedAmount` function in `VestingLib/VestingLibChest` instead of the index to avoid code duplication.
+- Change function reference parameters in external functions from memory to calldata.
+- Improve NatSpec, more detailed descriptions/explanations.
