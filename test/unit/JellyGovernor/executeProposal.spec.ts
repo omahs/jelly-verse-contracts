@@ -51,7 +51,7 @@ export function shouldExecuteProposals(): void {
 			['uint256[]'],
 			[chestIDs]     
 			);
-			await mine(this.params.votingDelay);
+			await time.increase(this.params.votingDelay);
 			await this.jellyGovernor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
 		});
 
@@ -83,7 +83,7 @@ export function shouldExecuteProposals(): void {
 
 			it('should revert if proposal is not queued (successfull state)', async function () {
 				await this.jellyGovernor.connect(this.signers.bob).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod.add(constants.One));
+				await time.increase(this.params.votingPeriod.add(constants.One));
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(
@@ -98,7 +98,7 @@ export function shouldExecuteProposals(): void {
 
 			it('should revert if proposal is not queued (unsuccessfull state)', async function () {
 				await this.jellyGovernor.connect(this.signers.bob).castVoteWithReasonAndParams(proposalId, voteAgainst, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod.add(constants.One));
+				await time.increase(this.params.votingPeriod.add(constants.One));
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(
@@ -134,10 +134,10 @@ export function shouldExecuteProposals(): void {
 					proposalCalldata,
 					proposalDescription
 				);
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await governor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
 				await governor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
@@ -181,10 +181,10 @@ export function shouldExecuteProposals(): void {
 					proposalCalldata,
 					proposalDescription
 				);
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await governor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
 				await governor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
@@ -211,7 +211,7 @@ export function shouldExecuteProposals(): void {
 
 			beforeEach(async function () {
 				await this.jellyGovernor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				hashedDescription = utils.keccak256(descriptionBytes);
 

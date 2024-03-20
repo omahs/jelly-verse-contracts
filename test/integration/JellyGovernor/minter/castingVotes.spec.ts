@@ -1,5 +1,5 @@
 import { assert, expect } from 'chai';
-import { mine } from '@nomicfoundation/hardhat-network-helpers';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { utils, BigNumber, constants } from 'ethers';
 import { ProposalState, VoteType } from '../../../shared/types';
 
@@ -56,7 +56,7 @@ export function shouldCastVotes(): void {
                     });
 
                     it('should revert if user has already voted', async function () {
-                        await mine(this.params.votingDelay.add(constants.One));
+                        await time.increase(this.params.votingDelay.add(constants.One));
 
                         proposalParams = utils.defaultAbiCoder.encode(
                             ['uint256[]'],
@@ -78,7 +78,7 @@ export function shouldCastVotes(): void {
 
                 describe('success', async function () {
                     beforeEach(async function () {
-                        await mine(this.params.votingDelay.add(constants.One));
+                        await time.increase(this.params.votingDelay.add(constants.One));
                     });
 
                     proposalParams = utils.defaultAbiCoder.encode(

@@ -60,7 +60,7 @@ export function shouldExecuteScheduledOperations(): void {
 
 			describe('success', async function () {
 				it('should execute operation if called by anyone', async function () {
-					await mine(this.params.minTimelockDelay);
+					await time.increase(this.params.minTimelockDelay);
 
 					await this.jellyTimelock
 						.connect(this.signers.alice)
@@ -79,7 +79,7 @@ export function shouldExecuteScheduledOperations(): void {
 				});
 
 				it('should emit CallExecuted event', async function () {
-					await mine(this.params.minTimelockDelay);
+					await time.increase(this.params.minTimelockDelay);
 
 					await expect(
 						this.jellyTimelock
@@ -150,7 +150,7 @@ export function shouldExecuteScheduledOperations(): void {
 
 				EXECUTOR_ROLE = await this.jellyTimelock.EXECUTOR_ROLE();
 
-				await mine(this.params.minTimelockDelay);
+				await time.increase(this.params.minTimelockDelay);
 			});
 
 			describe('failure', async function () {

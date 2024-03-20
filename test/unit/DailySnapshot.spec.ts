@@ -10,8 +10,9 @@ describe('DailySnapshot', function () {
   let dailySnapshot: DailySnapshot;
   let owner: SignerWithAddress;
   let pendingOwner: SignerWithAddress;
-  const ONE_DAY = 7200; // one day in blocks
-
+  const ONE_DAY_BLOCKS = 192000; // 192000 blocks = 1 day, 0.45s per block
+  const ONE_DAY_SECONDS = 86400; // one day in seconds
+  
   beforeEach(async function () {
     const fixture = await loadFixture(unitDailySnapshotFixture);
     dailySnapshot = fixture.dailySnapshot;
@@ -47,6 +48,12 @@ describe('DailySnapshot', function () {
         expect(await dailySnapshot.beginningOfTheNewDayBlocknumber()).to.equal(currentBlockNumber + 1);
       });
 
+      it("should set beginningOfTheNewDayTimestamp to current block timestamp", async () => {
+        const currentBlockTimestamp = await time.latest();
+        await dailySnapshot.startSnapshoting();
+        expect(await dailySnapshot.beginningOfTheNewDayTimestamp()).to.equal(currentBlockTimestamp + 1);
+      });
+
       it("should emit SnapshotingStarted event", async () => {
         await expect(dailySnapshot.startSnapshoting())
         .to.emit(dailySnapshot, 'SnapshotingStarted')
@@ -75,7 +82,7 @@ describe('DailySnapshot', function () {
 
       it("should increase epochDaysIndex by 1", async () => {
         const epochDaysIndexBefore = await dailySnapshot.epochDaysIndex();
-        await mine(ONE_DAY);
+        await time.increase(ONE_DAY_SECONDS);
         await dailySnapshot.dailySnapshot();
         const epochDaysIndexAfter = await dailySnapshot.epochDaysIndex();
         expect(epochDaysIndexAfter).to.equal(epochDaysIndexBefore + 1);
@@ -83,44 +90,52 @@ describe('DailySnapshot', function () {
 
       it("should increase beginningOfTheNewDayBlocknumber by ONE_DAY", async () => {
         const beginningOfTheNewDayBlocknumberBefore = await dailySnapshot.beginningOfTheNewDayBlocknumber();
-        await mine(ONE_DAY);
+        await time.increase(ONE_DAY_SECONDS);
         await dailySnapshot.dailySnapshot();
         const beginningOfTheNewDayBlocknumberAfter = await dailySnapshot.beginningOfTheNewDayBlocknumber();
-        expect(beginningOfTheNewDayBlocknumberAfter).to.equal(beginningOfTheNewDayBlocknumberBefore + ONE_DAY);
+        expect(beginningOfTheNewDayBlocknumberAfter).to.equal(beginningOfTheNewDayBlocknumberBefore + ONE_DAY_BLOCKS);
+      });
+
+      it("should increase beginningOfTheNewDayTimestamp by ONE_DAY", async () => {
+        const beginningOfTheNewDayTimestampBefore = await dailySnapshot.beginningOfTheNewDayTimestamp();
+        await time.increase(ONE_DAY_SECONDS);
+        await dailySnapshot.dailySnapshot();
+        const beginningOfTheNewDayTimestampAfter = await dailySnapshot.beginningOfTheNewDayTimestamp();
+        expect(beginningOfTheNewDayTimestampAfter).to.equal(beginningOfTheNewDayTimestampBefore + ONE_DAY_SECONDS);
       });
 
       it("should set dailySnapshotsPerEpoch correctly", async () => {
-        await mine(ONE_DAY);
+        await time.increase(ONE_DAY_SECONDS);
         const epoch = await dailySnapshot.epoch();
         const epochDaysIndex = await dailySnapshot.epochDaysIndex();
         const beginningOfTheNewDayBlocknumber = await dailySnapshot.beginningOfTheNewDayBlocknumber();
         const prevrandao = 12340; // prevrandao is used to generate random value and it's % 7200
         await setPrevRandao(prevrandao);
         await dailySnapshot.dailySnapshot();
-        expect(await dailySnapshot.dailySnapshotsPerEpoch(epoch, epochDaysIndex)).to.equal(beginningOfTheNewDayBlocknumber + prevrandao % 7200);
+        expect(await dailySnapshot.dailySnapshotsPerEpoch(epoch, epochDaysIndex)).to.equal(beginningOfTheNewDayBlocknumber + prevrandao % 192000);
       });
 
       it("should emit DailySnapshotAdded event", async () => {
         const beginningOfTheNewDayBlocknumber = await dailySnapshot.beginningOfTheNewDayBlocknumber();
         const epoch = await dailySnapshot.epoch();
         const epochDaysIndex = await dailySnapshot.epochDaysIndex();
-        await mine(ONE_DAY);
+        await time.increase(ONE_DAY_SECONDS);
         const prevrandao = 12340; // prevrandao is used to generate random value and it's % 7200
         await setPrevRandao(prevrandao);        
         await expect(dailySnapshot.dailySnapshot())
         .to.emit(dailySnapshot, 'DailySnapshotAdded')
-        .withArgs(owner.address, epoch, beginningOfTheNewDayBlocknumber + prevrandao % 7200, epochDaysIndex);
+        .withArgs(owner.address, epoch, beginningOfTheNewDayBlocknumber + prevrandao % 192000, epochDaysIndex);
       });
 
       it("should set epochDaysIndex to 0 if 7 snapshoots done", async () => {
         for (let i = 0; i < 6; i++) {
-          await mine(ONE_DAY);
+          await time.increase(ONE_DAY_SECONDS);
           await dailySnapshot.dailySnapshot();
         }
         const epochDaysIndexBefore = await dailySnapshot.epochDaysIndex();
         expect(epochDaysIndexBefore).to.equal(6);
 
-        await mine(ONE_DAY);
+        await time.increase(ONE_DAY_SECONDS);
         await dailySnapshot.dailySnapshot();
         const epochDaysIndexAfter = await dailySnapshot.epochDaysIndex();
         expect(epochDaysIndexAfter).to.equal(0);
@@ -130,7 +145,7 @@ describe('DailySnapshot', function () {
         const epochBefore = await dailySnapshot.epoch();
         expect(epochBefore).to.equal(0);
         for (let i = 0; i < 7; i++) {
-          await mine(ONE_DAY);
+          await time.increase(ONE_DAY_SECONDS);
           await dailySnapshot.dailySnapshot();
         }
         const epochAfter = await dailySnapshot.epoch();

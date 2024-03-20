@@ -12,8 +12,10 @@ contract DailySnapshot is Ownable {
   bool public started;
   uint8 public epochDaysIndex;
   uint48 public epoch;
+  uint48 public beginningOfTheNewDayTimestamp;
   uint48 public beginningOfTheNewDayBlocknumber;
-  uint48 constant ONE_DAY = 7200; // 7200 blocks = 1 day
+  uint48 constant ONE_DAY_BLOCKS = 192000; // 192000 blocks = 1 day, 0.45s per block
+  uint48 constant ONE_DAY_SECONDS = 86400; // one day in seconds
   mapping(uint48 => uint48[7]) public dailySnapshotsPerEpoch;
   
   event SnapshotingStarted(address sender);
@@ -36,6 +38,7 @@ contract DailySnapshot is Ownable {
       revert DailySnapshot_AlreadyStarted();
     }
     started = true;
+    beginningOfTheNewDayTimestamp = uint48(block.timestamp);
     beginningOfTheNewDayBlocknumber = uint48(block.number);
     
     emit SnapshotingStarted(msg.sender);
@@ -47,17 +50,18 @@ contract DailySnapshot is Ownable {
   * @dev Only callable when snapshoting has already started
   */
   function dailySnapshot() external onlyStarted {
-    if (block.number - beginningOfTheNewDayBlocknumber <= ONE_DAY) {
+    if (block.timestamp - beginningOfTheNewDayTimestamp <= ONE_DAY_SECONDS) {
       revert DailySnapshot_TooEarly();
     }
-    uint48 randomBlockOffset = uint48(block.prevrandao) % ONE_DAY;
+    uint48 randomBlockOffset = uint48(block.prevrandao) % ONE_DAY_BLOCKS;
     uint48 randomDailyBlock = beginningOfTheNewDayBlocknumber + randomBlockOffset;
     dailySnapshotsPerEpoch[epoch][epochDaysIndex] = randomDailyBlock;
 
     emit DailySnapshotAdded(msg.sender, epoch, randomDailyBlock, epochDaysIndex);
 
     unchecked {
-      beginningOfTheNewDayBlocknumber += ONE_DAY;
+      beginningOfTheNewDayTimestamp += ONE_DAY_SECONDS;
+      beginningOfTheNewDayBlocknumber += ONE_DAY_BLOCKS;
       ++epochDaysIndex;
     }
     if (epochDaysIndex == 7) {

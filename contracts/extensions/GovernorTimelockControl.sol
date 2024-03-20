@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 
 import "../vendor/openzeppelin/v4.9.0/governance/extensions/IGovernorTimelock.sol";
 import "../Governor.sol";
-import "../TimelockController.sol";
+import "../vendor/openzeppelin/v4.9.0/governance/TimelockController.sol";
 
 /**
  * @dev Extension of {Governor} that binds the execution process to an instance of {TimelockController}. This adds a
