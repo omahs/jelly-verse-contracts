@@ -98,7 +98,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
         //approve jelly tokens to be spent by jellySwapVault
         IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount); 
 
-        IVault(jellySwapVault).joinPool{value: msg.value}(
+        IVault(jellySwapVault).joinPool(
             jellySwapPoolId,
             sender,
             recipient,
