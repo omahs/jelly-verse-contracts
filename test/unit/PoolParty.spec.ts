@@ -1,89 +1,89 @@
 import { loadFixture, mine, time,  } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { unitAllocatorFixture } from '../fixtures/unit__Allocator';
-import { Allocator } from '../../typechain-types';
+import { unitPoolPartyFixture } from '../fixtures/unit__PoolParty';
+import { PoolParty } from '../../typechain-types/index.js';
 import { MockContract } from '@ethereum-waffle/mock-contract';
 
 // @notice -- I did not test ownable cuz it is not necessary and it is community approved
 
-describe('Allocator', function () {
-  let allocator: Allocator;
+describe.only('PoolParty', function () {
+  let poolParty: PoolParty;
   let owner: SignerWithAddress;
   let pendingOwner: SignerWithAddress;
   let jellyToken: MockContract;
-  let wethToken: MockContract;
+  let usdToken: MockContract;
   let vaultContract: MockContract;
-  let nativeToJellyRatio: number;
+  let usdToJellyRatio: number;
   let poolId: string;
 
   beforeEach(async function () {
-    const fixture = await loadFixture(unitAllocatorFixture);
-    allocator = fixture.allocator;
+    const fixture = await loadFixture(unitPoolPartyFixture);
+    poolParty = fixture.poolParty;
     owner = fixture.owner;
     pendingOwner = fixture.pendingOwner;
     jellyToken = fixture.jellyToken;
-    wethToken = fixture.wethToken;
+    usdToken = fixture.usdToken;
     vaultContract = fixture.vaultMockContract;
-    nativeToJellyRatio = fixture.nativeToJellyRatio;
+    usdToJellyRatio = fixture.usdToJellyRatio;
     poolId = fixture.poolId;
   });
 
   describe("Check for initial state after deployment", async function () {
     it("should have correct initial owner and pending owner", async () => {
-      expect(await owner.getAddress(), await allocator.owner());
+      expect(await owner.getAddress(), await poolParty.owner());
       expect(
         await pendingOwner.getAddress(),
-        await allocator.getPendingOwner(),
+        await poolParty.getPendingOwner(),
       );
     });
 
     it("should have the expected initial owner", async () => {
-      const initialOwner = await allocator.owner();
+      const initialOwner = await poolParty.owner();
       expect(initialOwner).to.equal(await owner.getAddress());
     });
 
     it("should have the expected jelly token address", async () => {
-      const initialJellyTokenAddress = await allocator.i_jellyToken();
+      const initialJellyTokenAddress = await poolParty.i_jellyToken();
       expect(initialJellyTokenAddress).to.equal(jellyToken.address);
     });
 
-    it("should have the expected weth token address", async () => {
-      const initialWethAddress = await allocator.weth();
-      expect(initialWethAddress).to.equal(wethToken.address);
+    it("should have the expected usd token address", async () => {
+      const initialWethAddress = await poolParty.usdToken();
+      expect(initialWethAddress).to.equal(usdToken.address);
     });
 
-    it("should have the expected native to jelly ratio", async () => {
-      const initialNativeToJellyRatio = await allocator.nativeToJellyRatio();
-      expect(initialNativeToJellyRatio).to.equal(nativeToJellyRatio);
+    it("should have the expected usd to jelly ratio", async () => {
+      const initialNativeToJellyRatio = await poolParty.usdToJellyRatio();
+      expect(initialNativeToJellyRatio).to.equal(usdToJellyRatio);
     });
 
     it("should have the expected valut address", async () => {
-      const initialVaultAddress = await allocator.jellySwapVault();
+      const initialVaultAddress = await poolParty.jellySwapVault();
       expect(initialVaultAddress).to.equal(vaultContract.address);
     });
 
     it("should have the expected poolID", async () => {
-      const initialPoolId = await allocator.jellySwapPoolId();
+      const initialPoolId = await poolParty.jellySwapPoolId();
       expect(initialPoolId).to.equal(poolId);
     });
 
     it("should have the expected isOver flag", async () => {
-      const initialIsOver = await allocator.isOver();
+      const initialIsOver = await poolParty.isOver();
       expect(initialIsOver).to.equal(false);
     });
   });
 
-  describe("#setNativeToJellyRatio", async function () {
+  describe("#setUSDToJellyRatio", async function () {
     describe("success", async () => {
-      it("should set native to token ration", async () => {
-        await allocator.setNativeToJellyRatio(2);
-        expect(await allocator.nativeToJellyRatio()).to.be.equal(2);
+      it("should set usd to token ration", async () => {
+        await poolParty.setUSDToJellyRatio(2);
+        expect(await poolParty.usdToJellyRatio()).to.be.equal(2);
       });
 
       it("should emit NativeToJellyRatioSet event", async () => {
-        await expect(allocator.setNativeToJellyRatio(2))
-        .to.emit(allocator, 'NativeToJellyRatioSet')
+        await expect(poolParty.setUSDToJellyRatio(2))
+        .to.emit(poolParty, 'NativeToJellyRatioSet')
         .withArgs(2);
       });
     })
@@ -91,9 +91,9 @@ describe('Allocator', function () {
     describe("failure", async () => {
       it("should revert if not called by owner", async () => {
         await expect(
-          allocator.connect(pendingOwner).setNativeToJellyRatio(2),
+          poolParty.connect(pendingOwner).setUSDToJellyRatio(2),
         ).to.be.revertedWithCustomError(
-          allocator,
+          poolParty,
           "Ownable__CallerIsNotOwner",
         );
       });
@@ -103,57 +103,59 @@ describe('Allocator', function () {
   describe("#endBuyingPeriod", async function () {
     describe("success", async () => {
       it("should set isOver flag to true", async () => {
-        expect(await allocator.isOver()).to.be.equal(false);
-        await allocator.endBuyingPeriod();
-        expect(await allocator.isOver()).to.be.equal(true);
+        expect(await poolParty.isOver()).to.be.equal(false);
+        await poolParty.endBuyingPeriod();
+        expect(await poolParty.isOver()).to.be.equal(true);
       });
 
       it("should emit EndBuyingPeriod event", async () => {
-        await expect(allocator.endBuyingPeriod())
-        .to.emit(allocator, 'EndBuyingPeriod');
+        await expect(poolParty.endBuyingPeriod())
+        .to.emit(poolParty, 'EndBuyingPeriod');
       });
     })
 
     describe("failure", async () => {
       it("should revert if not called by owner", async () => {
         await expect(
-          allocator.connect(pendingOwner).endBuyingPeriod(),
+          poolParty.connect(pendingOwner).endBuyingPeriod(),
         ).to.be.revertedWithCustomError(
-          allocator,
+          poolParty,
           "Ownable__CallerIsNotOwner",
         );
       });
     })
   });
 
-  describe("#buyWithNative", async function () {
+  describe("#buyWithUsd", async function () {
     describe("success", async () => {
       it("should emit BuyWithNative event", async () => {
-        const nativeToJellyRatio = await allocator.nativeToJellyRatio();
+        const usdToJellyRatio = await poolParty.usdToJellyRatio();
         const amount = 1000;
-        await expect(allocator.buyWithNative({ value: amount }))
-        .to.emit(allocator, 'BuyWithNative')
-        .withArgs(amount, nativeToJellyRatio.mul(amount), owner.address);
+        console.log("usdToJellyRatio", usdToJellyRatio);
+        await expect(poolParty.buyWithUsd(amount))
+        .to.emit(poolParty, 'BuyWithUsd')
+        .withArgs(amount, usdToJellyRatio.mul(amount), owner.address);
       });
     })
 
     describe("failure", async () => {
       it("should revert if buying period is over", async () => {
-        await allocator.endBuyingPeriod();
+        await poolParty.endBuyingPeriod();
+        const amount = 1000;
         await expect(
-          allocator.buyWithNative(),
+          poolParty.buyWithUsd(amount),
         ).to.be.revertedWithCustomError(
-          allocator,
-          "Allocator__CannotBuy",
+          poolParty,
+          "PoolParty__CannotBuy",
         );
       });
 
       it("should revert if called with zero amount", async () => {
         await expect(
-          allocator.buyWithNative(),
+          poolParty.buyWithUsd(0),
         ).to.be.revertedWithCustomError(
-          allocator,
-          "Allocator__NoValueSent",
+          poolParty,
+          "PoolParty__NoValueSent",
         );
       });
     })

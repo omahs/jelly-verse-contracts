@@ -1,38 +1,38 @@
-import { Allocator, Allocator__factory } from '../../typechain-types';
+import { PoolParty, PoolParty__factory } from '../../typechain-types';
 import { ethers } from 'hardhat';
 import { deployMockJellyNoReverts, deployMockJellyVault } from '../shared/mocks';
 import { MockContract } from '@ethereum-waffle/mock-contract';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 type UnitAlloctorFixtureType = {
-	allocator: Allocator;
+	poolParty: PoolParty;
     jellyToken: MockContract;
-    wethToken: MockContract;
+    usdToken: MockContract;
     owner: SignerWithAddress;
     pendingOwner: SignerWithAddress;
     vaultMockContract: MockContract;
-    nativeToJellyRatio: number;
+    usdToJellyRatio: number;
     poolId: string;
 };
 
-export async function unitAllocatorFixture(): Promise<UnitAlloctorFixtureType> {
+export async function unitPoolPartyFixture(): Promise<UnitAlloctorFixtureType> {
     const [owner, pendingOwner] = await ethers.getSigners();
     const jellyToken = await deployMockJellyNoReverts(owner);
-    const wethToken = await deployMockJellyNoReverts(owner);
-    const vaultMockContract = await deployMockJellyVault(owner, jellyToken.address, wethToken.address);
-    const nativeToJellyRatio = 1;
+    const usdToken = await deployMockJellyNoReverts(owner);
+    const vaultMockContract = await deployMockJellyVault(owner, jellyToken.address, usdToken.address);
+    const usdToJellyRatio = 25;
     const poolId = "0x034e2d995b39a88ab9a532a9bf0deddac2c576ea0002000000000000000005d1";
 
-    const AllocatorFactory: Allocator__factory = await ethers.getContractFactory("Allocator");
-    const allocator: Allocator = await AllocatorFactory.deploy(
+    const PoolPartyFactory: PoolParty__factory = await ethers.getContractFactory("PoolParty");
+    const poolParty: PoolParty = await PoolPartyFactory.deploy(
         jellyToken.address, 
-        wethToken.address,
-        nativeToJellyRatio,
+        usdToken.address,
+        usdToJellyRatio,
         vaultMockContract.address, 
         poolId, 
         owner.address, 
         pendingOwner.address
     );
 
-    return { allocator, jellyToken, wethToken, owner, pendingOwner, vaultMockContract, nativeToJellyRatio, poolId};
+    return { poolParty, jellyToken, usdToken: usdToken, owner, pendingOwner, vaultMockContract, usdToJellyRatio, poolId};
 }
