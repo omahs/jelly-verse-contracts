@@ -242,7 +242,7 @@ The function `increaseStake` fails to properly validate the `extendedFreezingPer
 
 Implement a check to ensure the `extendedFreezingPeriod` meets the minimum required value for such circumstances.
 
-[H-08] Double Spending Vulnerability in `Governor`
+# [H-08] Double Spending Vulnerability in `Governor`
 
 ## Severity
 
@@ -258,7 +258,7 @@ The `Governor` contract's `propose` and `proposeCustom` functions use `lastChest
 
 Introduce a robust snapshot mechanism that captures the state of `Chest` holdings at the proposal's snapshot time. Alternatively, restrict voting to `Chests` that are locked for the duration of the proposal's voting period, preventing the transfer of tokens and subsequent double voting.
 
-[H-09] Unrestricted Proposer Role in Timelock Enables Governance Disruption
+# [H-09] Unrestricted Proposer Role in Timelock Enables Governance Disruption
 
 ## Severity
 
