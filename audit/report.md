@@ -36,6 +36,8 @@ TBF
 
 **_review commit hash_ - [bc27b5fe86e714a9266ea9cbc5c483a7381d7c1a](https://github.com/MVPWorkshop/jelly-verse-contracts/commit/bc27b5fe86e714a9266ea9cbc5c483a7381d7c1a)**
 
+**_review commit hash_ governance contracts -[c9bf2c684df4dcb85222b53383648e5dbf9106ce](https://github.com/MVPWorkshop/jelly-verse-contracts/commit/c9bf2c684df4dcb85222b53383648e5dbf9106ce)**
+
 **No fixes implemented.**
 
 ### Scope
@@ -49,14 +51,19 @@ The following smart contracts were in scope of the audit:
 - `VestingLib.sol`
 - `VestingLibChest.sol`
 - `Chest.sol`
+- `JellyGovernor.sol`
+- `Governor.sol`
+- `GovernorVotes.sol`
+- `JellyTimelock.sol`
+- `TimelockController.sol`
 
 ---
 
 The following number of issues were found, categorized by their severity:
 
-- High: 7 issues
-- Medium: 5 issues
-- Low: 6 issues
+- High: 9 issues
+- Medium: 6 issues
+- Low: 7 issues
 - Informational: 6 issues
 
 # Findings Summary
@@ -68,19 +75,23 @@ The following number of issues were found, categorized by their severity:
 | [H-03] | Underflow in `releasableAmount` Calculation                                                    | High          |
 | [H-04] | Missing Input Validation in `stakeSpecial` Allows Excessive Voting Power                       | High          |
 | [H-05] | No Minimum freezingPeriod Validation in `stakeSpecial` Enables Immediate Unstaking             | High          |
-| [H-06] | Inaccurate Voting Power Calculation Due to Exclusion of releasedAmount in calculatePower       | High          |
-| [H-07] | Absence of extendFreezingPeriod Validation Enables Immediate Unstaking                         | High          |
+| [H-06] | Inaccurate Voting Power Calculation Due to Exclusion of `releasedAmount` in `calculatePower`   | High          |
+| [H-07] | Absence of `extendFreezingPeriod` Validation Enables Immediate Unstaking                       | High          |
+| [H-08] | Double Spending Vulnerability in `Governor`                                                    | High          |
+| [H-09] | Unrestricted Proposer Role in `Timelock` Enables Governance Disruption                         | High          |
 | [M-01] | Minting of `JellyToken` is centralized                                                         | Medium        |
 | [M-02] | Burned Tokens Can Be Reissued by Minters                                                       | Medium        |
-| [M-03] | timeFactor Initialization Risks                                                                | Medium        |
+| [M-03] | `timeFactor` Initialization Risks                                                              | Medium        |
 | [M-04] | Excessive Fee Settings Could Render Staking Protocol Inoperable                                | Medium        |
 | [M-05] | Lack of vestingPosition Validation in `estimateChestPower` Risks Inaccurate Power Calculations | Medium        |
+| [M-06] | Incomplete Voting Power                                                                        | Medium        |
 | [L-01] | Missing input validation in constructor                                                        | Low           |
-| [L-02] | Missing input validation in premint                                                            | Low           |
+| [L-02] | Missing input validation in `premint`                                                          | Low           |
 | [L-03] | No Check for Duplicate Pool Registration                                                       | Low           |
 | [L-04] | Wasteful Pool Registration Logic                                                               | Low           |
 | [L-05] | Redundant Pool Struct                                                                          | Low           |
-| [L-06] | Redirecting unstake Withdrawals to Predefined Beneficiary                                      | Low           |
+| [L-06] | Redirecting `unstake` Withdrawals to Predefined Beneficiary                                    | Low           |
+| [L-07] | Removal of Redundant Functions                                                                 | Low           |
 | [I-01] | Suboptimal Storage Layout                                                                      | Informational |
 | [I-02] | Suboptimal Storage Layout for Struct                                                           | Informational |
 | [I-03] | Redundant Check in `calculateBooster`                                                          | Informational |
@@ -231,6 +242,38 @@ The function `increaseStake` fails to properly validate the `extendedFreezingPer
 
 Implement a check to ensure the `extendedFreezingPeriod` meets the minimum required value for such circumstances.
 
+[H-08] Double Spending Vulnerability in `Governor`
+
+## Severity
+
+**Impact**: High, Users can potentially vote multiple times with the same tokens.
+
+**Likelihood**: High, The current system does not prevent token reuse for voting.
+
+## Description
+
+The `Governor` contract's `propose` and `proposeCustom` functions use `lastChestId` to determine the last eligible `Chest` for voting. However, the `snapshot` only marks the start of the voting period (including delay) and does not capture the state of `Chest` positions at that time. This gap allows users to alter their `Chests` to gain additional voting power during the voting process. Moreover, it creates an opportunity for double spending, where a user votes with one `Chest`, then transfers tokens to another `Chest` after it becomes available within the voting window, and votes again.
+
+## Recommendations
+
+Introduce a robust snapshot mechanism that captures the state of `Chest` holdings at the proposal's snapshot time. Alternatively, restrict voting to `Chests` that are locked for the duration of the proposal's voting period, preventing the transfer of tokens and subsequent double voting.
+
+[H-09] Unrestricted Proposer Role in Timelock Enables Governance Disruption
+
+## Severity
+
+**Impact**: High, Allows any user to create or cancel proposals, leading to potential protocol disruption.
+
+**Likelihood**: High, No current safeguards against malicious activity.
+
+## Description
+
+The deployment script incorrectly sets the proposers array to include `address(0)`, effectively granting proposal creation and cancellation rights to any address. This oversight permits any user to interfere with the governance process, including the ability to cancel legitimately voted proposals or to schedule unauthorized operations.
+
+## Recommendations
+
+Restrict the proposer role exclusively to the `Governor` contract to ensure only legitimate governance actions are executable. Remove `address(0)` from the proposers array to prevent unauthorized proposal management.
+
 # [M-01] Minting of `JellyToken` is centralized
 
 ## Severity
@@ -312,6 +355,24 @@ The function `estimateChestPower` does not perform validation checks on the `ves
 
 Incorporate validation checks for the `vestingPosition` input to ensure only realistic and valid positions are processed.
 
+# [M-06] Incomplete Voting Power
+
+## Severity
+
+**Impact:**
+Medium, Users may not fully leverage their voting power.
+
+**Likelihood:**
+Medium, Depends on provided input parameters and number of chests(gas limit).
+
+## Description
+
+The `_getVotes` function requires users to input an array of `Chest` IDs to calculate their voting power. If a user doesn't include all owned `Chest` IDs or owns a large number of `Chests`, they may be unable to vote with their full entitlement as `hasVoted` is set on first vote.
+
+## Recommendations
+
+Consider implementing a one-chest-per-account functionallity so users can fully leverage their voting power without manual enumeration. This change simplifies the governance mechanism and avoids potential gas limitations. However, it may require users to manage multiple accounts if they wish to own more than one chest. Evaluate the impact on user experience and the protocol's objectives before proceeding with this change.
+
 # [L-01] Missing Input Validation in Constructor
 
 The `_defaultAdminRole `is a critical parameter in the `JellyToken` contract, initialized in the constructor. Assigning a address zero to this parameter would require re-deployment.
@@ -348,6 +409,10 @@ The `Pool` struct is not effectively used. Remove it if the `weight` field is un
 # [L-06] Redirecting unstake Withdrawals to Predefined Beneficiary
 
 The `unstake` function currently allows an approved account to withdraw funds to their own address. A design reconsideration could involve sending these funds directly to the originally specified beneficiary, enhancing predictability and security in fund management, especially in scenarios where account permissions are delegated.
+
+# [L-07] Removal of Redundant Functions
+
+The functions `castVote`, `castVoteBySig`, `castVoteWithReason` and `getVotes` are not usable in their current form as they do not provide an array of `Chest IDs`, which is necessary for calculating the voting power of a user. These functions should be removed to avoid confusion and potential misuse.
 
 # [I-01] Suboptimal Storage Layout
 
@@ -411,3 +476,5 @@ The `increaseStake` function unnecessarily updates storage values when the `amou
 - Pass the `VestingPosition` struct to the `vestedAmount` function in `VestingLib/VestingLibChest` instead of the index to avoid code duplication.
 - Change function reference parameters in external functions from memory to calldata.
 - Improve NatSpec, more detailed descriptions/explanations.
+- Use same License Identifier and compiler versions across codebase.
+- Lower number of local variables in `propose` and `proposeCustom` or make internal function to remove need of viaIR.

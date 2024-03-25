@@ -6,7 +6,7 @@ test = 'test'
 cache_path = 'cache_forge'
 solc_version = '0.8.19'
 ffi = true
-optimizer = true
+optimizer = false
 optimizer_runs = 10000
 via_ir = false
 
