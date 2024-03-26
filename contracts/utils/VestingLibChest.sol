@@ -50,8 +50,7 @@ abstract contract VestingLibChest {
     function releasableAmount(
         uint256 vestingIndex
     ) public view returns (uint256) {
-        VestingPosition memory vestingPosition = vestingPositions[vestingIndex];
-        return vestedAmount(vestingIndex) - vestingPosition.releasedAmount;
+        return vestedAmount(vestingIndex);
     }
 
     function vestedAmount(
@@ -67,11 +66,11 @@ abstract contract VestingLibChest {
             block.timestamp >=
             vestingPosition_.cliffTimestamp + vestingPosition_.vestingDuration
         ) {
-            vestedAmount_ = vestingPosition_.totalVestedAmount;
+            vestedAmount_ = vestingPosition_.totalVestedAmount - vestingPosition_.releasedAmount;
         } else {
             unchecked {
                 vestedAmount_ =
-                    (vestingPosition_.totalVestedAmount *
+                    ((vestingPosition_.totalVestedAmount - vestingPosition_.releasedAmount) *
                         (block.timestamp - vestingPosition_.cliffTimestamp)) /
                     vestingPosition_.vestingDuration;
             }
