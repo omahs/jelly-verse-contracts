@@ -1,4 +1,4 @@
-import './deployAllocator';
+import './deployPoolParty';
 import './deployChest';
 import './deployDailySnapshot';
 import './deployGovernance';
