@@ -38,7 +38,7 @@ TBF
 
 **_review commit hash_ governance contracts -[c9bf2c684df4dcb85222b53383648e5dbf9106ce](https://github.com/MVPWorkshop/jelly-verse-contracts/commit/c9bf2c684df4dcb85222b53383648e5dbf9106ce)**
 
-**_review commit hash_ minter contract -[5ed44bbe4dc8a2cf93a5dcf1f808a35544b37529](https://github.com/MVPWorkshop/jelly-verse-contracts/commit/5ed44bbe4dc8a2cf93a5dcf1f808a35544b37529)**
+**_review commit hash_ minter and poolParty contract -[5ed44bbe4dc8a2cf93a5dcf1f808a35544b37529](https://github.com/MVPWorkshop/jelly-verse-contracts/commit/5ed44bbe4dc8a2cf93a5dcf1f808a35544b37529)**
 
 **No fixes implemented.**
 
@@ -59,15 +59,16 @@ The following smart contracts were in scope of the audit:
 - `JellyTimelock.sol`
 - `TimelockController.sol`
 - `Minter.sol`
+- `PoolParty.sol`
 
 ---
 
 The following number of issues were found, categorized by their severity:
 
-- High: 9 issues
-- Medium: 6 issues
-- Low: 7 issues
-- Informational: 7 issues
+- High: 10 issues
+- Medium: 7 issues
+- Low: 13 issues
+- Informational: 12 issues
 
 # Findings Summary
 
@@ -82,12 +83,14 @@ The following number of issues were found, categorized by their severity:
 | [H-07] | Absence of `extendFreezingPeriod` Validation Enables Immediate Unstaking                       | High          |
 | [H-08] | Double Spending Vulnerability in `Governor`                                                    | High          |
 | [H-09] | Unrestricted Proposer Role in `Timelock` Enables Governance Disruption                         | High          |
+| [H-10] | Token Ratio Does Not Support a Realistic Price Range                                           | High          |
 | [M-01] | Minting of `JellyToken` is centralized                                                         | Medium        |
 | [M-02] | Burned Tokens Can Be Reissued by Minters                                                       | Medium        |
 | [M-03] | `timeFactor` Initialization Risks                                                              | Medium        |
 | [M-04] | Excessive Fee Settings Could Render Staking Protocol Inoperable                                | Medium        |
 | [M-05] | Lack of vestingPosition Validation in `estimateChestPower` Risks Inaccurate Power Calculations | Medium        |
 | [M-06] | Incomplete Voting Power                                                                        | Medium        |
+| [M-07] | Unsafe usage of ERC20 transferFrom/transfer                                                    | Medium        |
 | [L-01] | Missing input validation in constructor                                                        | Low           |
 | [L-02] | Missing input validation in `premint`                                                          | Low           |
 | [L-03] | No Check for Duplicate Pool Registration                                                       | Low           |
@@ -99,6 +102,8 @@ The following number of issues were found, categorized by their severity:
 | [L-09] | Missing Input Validation in `Minter` set functions                                             | Low           |
 | [L-10] | Missing Input Validation in `Minter` for weight and beneficiary                                | Low           |
 | [L-11] | Wasteful Beneficiary Set Logic                                                                 | Low           |
+| [L-12] | Missing Input Validation in `PoolParty` Constructor                                            | Low           |
+| [L-13] | Missing Input Validation in `PoolParty` set function                                           | Low           |
 | [I-01] | Suboptimal Storage Layout                                                                      | Informational |
 | [I-02] | Suboptimal Storage Layout for Struct                                                           | Informational |
 | [I-03] | Redundant Check in `calculateBooster`                                                          | Informational |
@@ -108,7 +113,9 @@ The following number of issues were found, categorized by their severity:
 | [I-07] | Suboptimal Storage Layout in `Minter`                                                          | Informational |
 | [I-08] | `Minter` Code Style should follow official Solidity style guide                                | Informational |
 | [I-09] | Potential Gas Limit Issues Due to Unbounded Beneficiary Array                                  | Informational |
-| [I-10] | Code Style Enhancements                                                                        | Informational |
+| [I-10] | Suboptimal Storage Layout in `PoolParty`                                                       | Informational |
+| [I-11] | Add Sale Duration in `PoolParty`                                                               | Informational |
+| [I-12] | Code Style Enhancements                                                                        | Informational |
 
 # [H-01] Faulty Randomness Generation
 
@@ -285,6 +292,22 @@ The deployment script incorrectly sets the proposers array to include `address(0
 
 Restrict the proposer role exclusively to the `Governor` contract to ensure only legitimate governance actions are executable. Remove `address(0)` from the proposers array to prevent unauthorized proposal management.
 
+# [H-10] Token Ratio Does Not Support a Realistic Price Range
+
+## Severity
+
+**Impact**: High, The current token ratio does not allow for an accurate price range coverage.
+
+**Likelihood**: High, The contract's utility is compromised under these conditions
+
+## Description
+
+The `usdToJellyRatio` is crucial as it determines the amount of tokens users receive during a `PoolParty`. Currently, the logic only accommodates ratios greater than one, leading to an FDV of $1 billion, which conflicts with the planned tokenomics.
+
+## Recommendations
+
+It's recommended to update the logic to include support for `usdToJellyRatio` values between 0 and 1, ensuring more realistic price range is achievable.
+
 # [M-01] Minting of `JellyToken` is centralized
 
 ## Severity
@@ -384,6 +407,24 @@ The `_getVotes` function requires users to input an array of `Chest` IDs to calc
 
 Consider implementing a one-chest-per-account functionallity so users can fully leverage their voting power without manual enumeration. This change simplifies the governance mechanism and avoids potential gas limitations. However, it may require users to manage multiple accounts if they wish to own more than one chest. Evaluate the impact on user experience and the protocol's objectives before proceeding with this change.
 
+# [M-07] Unsafe usage of ERC20 transferFrom/transfer
+
+## Severity
+
+**Impact:**
+High, Some tokens (like USDT) don't correctly implement the EIP20 standard.
+
+**Likelihood:**
+Medium, Depends on choosen chain implementation.
+
+## Description
+
+The `ERC20.transfer()` and `ERC20.transferFrom()` functions return a boolean value indicating success. This parameter needs to be checked for success. Some tokens do not revert if the transfer failed but return false instead.
+
+## Recommendations
+
+Recommend using OpenZeppelin's `SafeERC20` versions with the `safeTransfer` and `safeTransferFrom` functions that handle the return value check as well as non-standard-compliant tokens.
+
 # [L-01] Missing Input Validation in Constructor
 
 The `_defaultAdminRole `is a critical parameter in the `JellyToken` contract, initialized in the constructor. Assigning a address zero to this parameter would require re-deployment.
@@ -456,6 +497,26 @@ Ensure that in the `setBeneficiaries` function, both the `weight` parameter and 
 # [L-11] Wasteful Beneficiary Set Logic
 
 Updating the beneficiary list by deleting and re-adding everyone is not efficient. It’s better to just update what needs changing. Also, avoid using the viaIR compiler option to bypass code limitations; it makes things compile slower. Instead of copying the whole array at once, add or update beneficiaries one by one. This avoids the need for viaIR and keeps the contracts compiling smoothly. Using `push` also makes using viaIR obsolete.
+
+# [L-12] Missing Input Validation in `PoolParty` Constructor
+
+The `i_jellyToken`, `usdToJellyRatio`, `jellySwapVault`, `jellySwapPoolId`, `usdToken` are critical parameters in the `PoolParty` contract, initialized in the constructor. Assigning a address zero to these parameters would require re-deployment, or assigning zero to usdToJellyRatio would lead to USDT amount for zero JELLY amount swaps.
+
+```diff
++ if (
++     _jellyToken == address(0)     ||
++    _jellySwapVault == address(0)  ||
++    _jellySwapPoolId == address(0) ||
++    _usdToken == address(0)        ||
++    _usdToJellyRatio == 0
++ ) {
++   revert CustomError();
++ }
+```
+
+# [L-13] Missing Input Validation in `PoolParty` set function
+
+The `setUSDToJellyRatio` function assign critical contract parameter based on the provided input values. Ensure `_usdToJellyRatio` is not zero. Such conditions could allow swapping USDT amount for zero JELLY.
 
 # [I-01] Suboptimal Storage Layout
 
@@ -562,7 +623,31 @@ The contract's storage layout is suboptimal, with `_jellyToken` unnecessarily co
 
 Having unbounded `beneficiaries` in the `Minter` contract could cause minting to fail, as it may exceed the maximum gas limit. To prevent this, it's recommended to set a maximum length for the array, taking into account gas consumption.
 
-# [I-10] Code Style Enhancements
+# [I-10] Suboptimal Storage Layout in `PoolParty`
+
+The contract's storage layout is suboptimal, with `jellySwapPoolId` and `jellySwapVault` unnecessarily consuming 2 storage slots, as both should be immutable variables. Moving then `isOver` at the top gives optimal storage layout, saving 2 slots.
+
+```diff
+ address public immutable i_jellyToken;
+ address public immutable usdToken;
+- uint256 public usdToJellyRatio;
+- bytes32 public jellySwapPoolId;
+- address public jellySwapVault;
+- bool public isOver;
+
+ address public immutable i_jellyToken;
+ address public immutable usdToken;
++ bytes32 public immutable jellySwapPoolId;
++ address public immutable jellySwapVault;
++ bool public isOver;
++ uint256 public usdToJellyRatio;
+```
+
+# [I-11] Add Sale Duration in `PoolParty`
+
+Currently, the `endBuyingPeriod` function allows the owner to conclude the buying period at any time. Introducing a sale duration parameter would prevent premature termination, ensuring the sale continues for its full intended duration. This change promotes fairness and predictability in the sale process.
+
+# [I-12] Code Style Enhancements
 
 - Replace hardcoded magic numbers with named constants for better code clarity.
 - Use IJellyToken/IERC20 instead of IERC20(address) in `Chest`
@@ -574,3 +659,4 @@ Having unbounded `beneficiaries` in the `Minter` contract could cause minting to
 - Improve NatSpec, more detailed descriptions/explanations.
 - Use same License Identifier and compiler versions across codebase.
 - Lower number of local variables in `propose` and `proposeCustom` or make internal function to remove need of viaIR.
+- In `PoolParty` use `IERC20` everywhere instead of mixing it with `IJellyToken`.

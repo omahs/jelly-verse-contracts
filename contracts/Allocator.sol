@@ -8,56 +8,58 @@ import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyG
 import {Ownable} from "./utils/Ownable.sol";
 
 /**
- * @title The Allocator contract
+ * @title The PoolParty contract
  * @notice Contract for swapping native tokens for jelly tokens
  */
-contract Allocator is ReentrancyGuard, Ownable {
+contract PoolParty is ReentrancyGuard, Ownable {
     address public immutable i_jellyToken;
-    address public immutable weth;
-    uint256 public nativeToJellyRatio;
-    bytes32 public jellySwapPoolId;
-    address public jellySwapVault; // ───╮
-    bool public isOver; // ──────────────╯
+    address public immutable usdToken;
+    uint256 public usdToJellyRatio;
+    bytes32 public jellySwapPoolId; // @audit change this to immutable variable, no need to waste storage // done
+    address public jellySwapVault; // ───╮ // @audit change this to immutable variable, no need to waste storage // done
+    bool public isOver; // ──────────────╯ // @audit put this above usdToJellyRatio to save storage slot // done
 
-    event BuyWithNative(uint256 nativeAmount, uint256 jellyAmount, address buyer);
+    event BuyWithUsd(uint256 usdAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
-    event NativeToJellyRatioSet(uint256 nativeToJellyRatio);
+    event NativeToJellyRatioSet(uint256 usdToJellyRatio);
 
-    error Allocator__CannotBuy();
-    error Allocator__NoValueSent();
+    error PoolParty__CannotBuy();
+    error PoolParty__NoValueSent();
 
     modifier canBuy() {
         if (isOver) {
-            revert Allocator__CannotBuy();
+            revert PoolParty__CannotBuy();
         }
         _;
     }
 
     constructor(
         address _jellyToken,
-        address _weth,
-        uint256 _nativeToJellyRatio,
+        address _usdToken,
+        uint256 _usdToJellyRatio,
         address _jellySwapVault,
         bytes32 _jellySwapPoolId,
         address _owner,
         address _pendingOwner
     ) Ownable(_owner, _pendingOwner) {
+        // @audit input validation missing? // done
         i_jellyToken = _jellyToken;
-        nativeToJellyRatio = _nativeToJellyRatio;
+        usdToJellyRatio = _usdToJellyRatio;
         jellySwapVault = _jellySwapVault;
         jellySwapPoolId = _jellySwapPoolId;
-        weth = _weth;
+        usdToken = _usdToken;
     }
 
     /**
-     * @notice Buys jelly tokens with native token.
+     * @notice Buys jelly tokens with USD pegged token.
      */
-    function buyWithNative() external payable nonReentrant canBuy {
-        uint256 amount = msg.value;
+    function buyWithUsd(uint256 amount) external payable nonReentrant canBuy {
         if (amount == 0) {
-            revert Allocator__NoValueSent();
+            revert PoolParty__NoValueSent();
         }
-        uint256 jellyAmount = msg.value * nativeToJellyRatio;
+        IERC20(usdToken).transferFrom(msg.sender, address(this), amount); // @audit [M] use safeTransferFrom // done
+
+        uint256 jellyAmount = amount * usdToJellyRatio; // q: how you set ratio below 1? // done
 
         (IERC20[] memory tokens, , ) = IVault(jellySwapVault).getPoolTokens(
             jellySwapPoolId
@@ -69,11 +71,8 @@ contract Allocator is ReentrancyGuard, Ownable {
         for (uint256 i; i < length; ) {
             if (tokens[i] == IERC20(i_jellyToken)) {
                 maxAmountsIn[i] = jellyAmount;
-            } else if (tokens[i] == IERC20(weth)) {
-                maxAmountsIn[i] = amount;
-                tokens[i] == IERC20(address(0));
             } else {
-                maxAmountsIn[i] = 0;
+                maxAmountsIn[i] = amount;
             }
 
             unchecked {
@@ -84,7 +83,7 @@ contract Allocator is ReentrancyGuard, Ownable {
         bytes memory userData = abi.encode(
             WeightedPoolUserData.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT,
             maxAmountsIn,
-            0
+            0 // why 0?
         );
 
         IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest({
@@ -98,18 +97,18 @@ contract Allocator is ReentrancyGuard, Ownable {
         address recipient = address(0); // burning LP tokens
 
         //approve jelly tokens to be spent by jellySwapVault
-        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount); 
+        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount); // @audit use IERC20 or IJellyToken? IERC20 must be used // done
 
-        IVault(jellySwapVault).joinPool{value: msg.value}(
+        IVault(jellySwapVault).joinPool(
             jellySwapPoolId,
             sender,
-            recipient,
+            recipient, // burning LP tokens
             request
         );
 
         IJellyToken(i_jellyToken).transfer(msg.sender, jellyAmount);
 
-        emit BuyWithNative(amount, jellyAmount, msg.sender);
+        emit BuyWithUsd(amount, jellyAmount, msg.sender);
     }
 
     /**
@@ -118,10 +117,13 @@ contract Allocator is ReentrancyGuard, Ownable {
      *
      * No return, reverts on error.
      */
+    // @audit add sale duration so owner can't end it before the sale ends
     function endBuyingPeriod() external onlyOwner {
         isOver = true;
-        
-        uint256 remainingJelly = IJellyToken(i_jellyToken).balanceOf(address(this));
+
+        uint256 remainingJelly = IJellyToken(i_jellyToken).balanceOf(
+            address(this)
+        );
         IJellyToken(i_jellyToken).burn(remainingJelly); // burn remaining jelly tokens
 
         emit EndBuyingPeriod();
@@ -131,14 +133,15 @@ contract Allocator is ReentrancyGuard, Ownable {
      * @notice Sets native to jelly ratio.
      * @dev Only owner can call.
      *
-     * @param _nativeToJellyRatio - ratio of native to jelly tokens.
+     * @param _usdToJellyRatio - ratio of native to jelly tokens.
      *
      * No return, reverts on error.
      */
-    function setNativeToJellyRatio(uint256 _nativeToJellyRatio) external onlyOwner {
-        nativeToJellyRatio = _nativeToJellyRatio;
+    function setUSDToJellyRatio(uint256 _usdToJellyRatio) external onlyOwner {
+        // @audit input validation, e.g. != 0 // done
+        usdToJellyRatio = _usdToJellyRatio;
 
-        emit NativeToJellyRatioSet(nativeToJellyRatio);
+        emit NativeToJellyRatioSet(usdToJellyRatio);
     }
 
     function _convertERC20sToAssets(

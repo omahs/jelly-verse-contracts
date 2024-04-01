@@ -8,6 +8,7 @@ import {OfficialPoolsRegister} from "../../contracts/OfficialPoolsRegister.sol";
 import {OfficialPoolsRegisterNew} from "../../contracts/OfficialPoolsRegisterNew.sol";
 import {VestingLib} from "../../contracts/utils/VestingLib.sol";
 import {Minter} from "../../contracts/Minter.sol";
+import {PoolParty} from "../../contracts/Allocator.sol";
 
 import "forge-std/console.sol";
 
@@ -19,6 +20,7 @@ contract AuditTest is Test, VestingLib {
     address minterContract = makeAddr("minterContract");
 
     bytes32 constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    uint256 constant USD_JELLY_RATIO = 1;
 
     JellyTokenDeployer public jellyTokenDeployer;
     JellyToken public jellyToken;
@@ -26,6 +28,7 @@ contract AuditTest is Test, VestingLib {
     OfficialPoolsRegisterNew public orn;
     VestingLib public vestingLib;
     Minter public minter;
+    PoolParty public poolParty;
 
     function setUp() external {
         jellyTokenDeployer = new JellyTokenDeployer();
@@ -36,6 +39,15 @@ contract AuditTest is Test, VestingLib {
         minter = new Minter(
             address(jellyToken),
             address(or),
+            deployer,
+            address(0)
+        );
+        poolParty = new PoolParty(
+            address(jellyToken),
+            address(0),
+            USD_JELLY_RATIO,
+            address(0),
+            bytes32(0),
             deployer,
             address(0)
         );
@@ -164,6 +176,25 @@ contract AuditTest is Test, VestingLib {
 
         jellyToken.grantRole(MINTER_ROLE, address(0));
 
+        vm.stopPrank();
+    }
+
+    function test_poolParty() external {
+        vm.startPrank(deployer);
+        jellyToken.premint(
+            vestingTeam,
+            vestingInvestor,
+            allocator,
+            minterContract
+        );
+        jellyToken.mint(deployer, jellyToken.cap() - jellyToken.totalSupply());
+        jellyToken.transfer(address(poolParty), 1000);
+
+        assertEq(jellyToken.balanceOf(address(poolParty)), 1000);
+
+        poolParty.endBuyingPeriod();
+        assertEq(jellyToken.balanceOf(address(poolParty)), 0);
+        assertEq(jellyToken.totalSupply(), jellyToken.cap() - 1000);
         vm.stopPrank();
     }
 }

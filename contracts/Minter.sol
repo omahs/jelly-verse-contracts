@@ -221,7 +221,7 @@ contract Minter is Ownable, ReentrancyGuard {
      *
      * @param beneficiaries_ to store
      */
-
+    /*
     // @audit doesn't compile without viaIR, change the way how array is copied from memory to storage
     // @audit missing input validation on beneficiaries_, which could lead to ddos if beneficiaries_.address is set to 0
     //        also make sure to validate that weight is between 0 and 1000
@@ -234,4 +234,5 @@ contract Minter is Ownable, ReentrancyGuard {
 
         emit BeneficiariesChanged();
     }
+    */
 }
