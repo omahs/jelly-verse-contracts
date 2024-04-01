@@ -5,6 +5,7 @@ import "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {RewardVesting} from "./RewardVesting.sol";
+import {IJellyToken} from "./interfaces/IJellyToken.sol";
 import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 /**
@@ -13,9 +14,9 @@ import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
  */
 
 contract LiquidityRewardDistribution is Ownable {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IJellyToken;
 
-    IERC20 public token;
+    IJellyToken public token;
 
     mapping(uint256 => bytes32) public merkleRoots;
     mapping(uint256 => mapping(address => bool)) public claimed;
@@ -35,7 +36,7 @@ contract LiquidityRewardDistribution is Ownable {
     error Claim_WrongProof();
 
     constructor(
-        IERC20 _token,
+        IJellyToken _token,
         address _owner,
         address _pendingOwner
     ) Ownable(_owner, _pendingOwner) {
@@ -100,7 +101,10 @@ contract LiquidityRewardDistribution is Ownable {
         if (_isVesting) {
             token.approve(vestingContract, _amount);
             RewardVesting(vestingContract).vestLiquidity(_amount, msg.sender);
-        } else token.safeTransfer(msg.sender, _amount / 2);
+        } else {
+            token.burn(_amount - _amount / 2);
+            token.safeTransfer(msg.sender, _amount / 2);
+        }
     }
 
     /**
@@ -139,7 +143,10 @@ contract LiquidityRewardDistribution is Ownable {
                     totalBalance,
                     msg.sender
                 );
-            } else token.safeTransfer(msg.sender, totalBalance / 2);
+            } else {
+                token.burn(totalBalance - totalBalance / 2);
+                token.safeTransfer(msg.sender, totalBalance / 2);
+            }
         } else {
             revert Claim_ZeroAmount();
         }

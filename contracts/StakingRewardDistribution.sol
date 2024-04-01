@@ -5,6 +5,7 @@ import "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {RewardVesting} from "./RewardVesting.sol";
+import {IJellyToken} from "./interfaces/IJellyToken.sol";
 import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 /**
@@ -14,12 +15,13 @@ import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 contract StakingRewardDistribution is Ownable {
     using SafeERC20 for IERC20;
+    using SafeERC20 for IJellyToken;
 
     mapping(uint256 => bytes32) public merkleRoots;
     mapping(uint256 => mapping(IERC20 => mapping(address => bool)))
         public claimed;
     mapping(uint256 => mapping(IERC20 => uint256)) public tokensDeposited;
-    IERC20 public jellyToken;
+    IJellyToken public jellyToken;
     address vestingContract;
 
     uint256 public epoch;
@@ -42,7 +44,7 @@ contract StakingRewardDistribution is Ownable {
     error Claim_WrongProof();
 
     constructor(
-        IERC20 _jellyToken,
+        IJellyToken _jellyToken,
         address _owner,
         address _pendingOwner
     ) Ownable(_owner, _pendingOwner) {
@@ -144,15 +146,16 @@ contract StakingRewardDistribution is Ownable {
             );
 
             if (_tokens[token] == jellyToken) {
-
                 if (_isVesting) {
                     _tokens[token].approve(vestingContract, amount);
                     RewardVesting(vestingContract).vestStaking(
                         amount,
                         msg.sender
                     );
-                } else _tokens[token].safeTransfer(msg.sender, amount / 2);
-                
+                } else {
+                    jellyToken.burn(amount - amount / 2);
+                    jellyToken.safeTransfer(msg.sender, amount / 2);
+                }
             } else _tokens[token].safeTransfer(msg.sender, amount);
         }
     }
@@ -250,7 +253,7 @@ contract StakingRewardDistribution is Ownable {
             );
     }
 
-     /**
+    /**
      * @notice Changes the vesting contract
      *
      * @param _vestingContract - address of vesting contract
