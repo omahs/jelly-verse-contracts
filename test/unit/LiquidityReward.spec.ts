@@ -1,5 +1,5 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import { Signer, constants } from "ethers";
 import { ethers } from "hardhat";
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
@@ -8,9 +8,9 @@ describe("LiquidityRewardDistribution", function () {
   async function deployUnitFixture() {
     const [deployer, user, ...otherSigners] = await ethers.getSigners();
 
-    const ERC20Factory = await ethers.getContractFactory("ERC20Token");
-    const erc20 = await ERC20Factory.deploy("test", "test");
-    erc20.mint("100000");
+    const ERC20Factory = await ethers.getContractFactory("JellyToken");
+    const erc20 = await ERC20Factory.deploy(deployer.address);
+    erc20.mint(deployer.address,"100000");
 
     const LiquidityRewardDistributionFactory = await ethers.getContractFactory(
       "LiquidityRewardDistribution"

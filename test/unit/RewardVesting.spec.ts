@@ -8,10 +8,10 @@ describe("RewardVesting", function () {
   async function deployUnitFixture() {
     const [deployer, user, ...otherSigners] = await ethers.getSigners();
 
-    const ERC20Factory = await ethers.getContractFactory("ERC20Token");
-    const erc20 = await ERC20Factory.deploy("test", "test");
+    const ERC20Factory = await ethers.getContractFactory("JellyToken");
+    const erc20 = await ERC20Factory.deploy(deployer.address);
     const amount = "100000";
-    erc20.mint(amount);
+    erc20.mint(deployer.address,amount);
 
     const RewardVestingFactory = await ethers.getContractFactory(
       "RewardVesting"
