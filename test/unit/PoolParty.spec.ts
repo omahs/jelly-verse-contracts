@@ -7,7 +7,7 @@ import { MockContract } from '@ethereum-waffle/mock-contract';
 
 // @notice -- I did not test ownable cuz it is not necessary and it is community approved
 
-describe.only('PoolParty', function () {
+describe('PoolParty', function () {
   let poolParty: PoolParty;
   let owner: SignerWithAddress;
   let pendingOwner: SignerWithAddress;
