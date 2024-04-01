@@ -11,23 +11,14 @@ contract ChestHarness is Chest {
         address jellyToken,
         uint128 fee_,
         uint128 maxBooster_,
-        uint8 timeFactor_,
         address owner,
         address pendingOwner
-    )
-        Chest(
-            jellyToken,
-            fee_,
-            timeFactor_,
-            owner,
-            pendingOwner
-        )
-    {}
+    ) Chest(jellyToken, fee_, owner, pendingOwner) {}
 
     function exposed_calculateBooster(
         ChestHarness.VestingPosition memory vestingPosition,
         uint48 timestamp
-    ) external view returns (uint120) {
+    ) external pure returns (uint120) {
         return calculateBooster(vestingPosition, timestamp);
     }
 
@@ -68,13 +59,11 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         uint128 maxBooster = 2e18;
         address owner = msg.sender;
         address pendingOwner = makeAddr("pendingOwner");
-        uint8 timeFactor = 2;
 
         chestHarness = new ChestHarness(
             jellyToken,
             fee,
             maxBooster,
-            timeFactor,
             owner,
             pendingOwner
         );

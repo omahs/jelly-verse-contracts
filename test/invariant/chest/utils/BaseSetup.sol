@@ -10,23 +10,14 @@ contract ChestHarness is Chest {
     constructor(
         address jellyToken,
         uint128 fee_,
-        uint32 timeFactor_,
         address owner,
         address pendingOwner
-    )
-        Chest(
-            jellyToken,
-            fee_,
-            timeFactor_,
-            owner,
-            pendingOwner
-        )
-    {}
+    ) Chest(jellyToken, fee_, owner, pendingOwner) {}
 
     function exposed_calculateBooster(
         ChestHarness.VestingPosition memory vestingPosition,
         uint48 timestamp
-    ) external view returns (uint120) {
+    ) external pure returns (uint120) {
         return calculateBooster(vestingPosition, timestamp);
     }
 }
@@ -62,28 +53,16 @@ contract BaseSetup is Test {
         uint128 fee = 10;
         address owner = msg.sender;
         address pendingOwner = testAddress;
-        uint32 timeFactor = 7 days;
 
         jellyToken = new ERC20Token("Jelly", "JELLY");
-        chest = new Chest(
-            address(jellyToken),
-            fee,
-            timeFactor,
-            owner,
-            pendingOwner
-        );
+        chest = new Chest(address(jellyToken), fee, owner, pendingOwner);
         chestHarness = new ChestHarness(
             address(jellyToken),
             fee,
-            timeFactor,
             owner,
             pendingOwner
         );
-        chestHandler = new ChestHandler(
-            beneficiary,
-            chest,
-            jellyToken
-        );
+        chestHandler = new ChestHandler(beneficiary, chest, jellyToken);
 
         excludeContract(address(jellyToken));
         excludeContract(address(chest));

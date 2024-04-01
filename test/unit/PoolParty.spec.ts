@@ -1,4 +1,4 @@
-import { loadFixture, mine, time,  } from '@nomicfoundation/hardhat-network-helpers';
+import { loadFixture, mine, time, } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { unitPoolPartyFixture } from '../fixtures/unit__PoolParty';
@@ -7,7 +7,7 @@ import { MockContract } from '@ethereum-waffle/mock-contract';
 
 // @notice -- I did not test ownable cuz it is not necessary and it is community approved
 
-describe.only('PoolParty', function () {
+describe('PoolParty', function () {
   let poolParty: PoolParty;
   let owner: SignerWithAddress;
   let pendingOwner: SignerWithAddress;
@@ -83,8 +83,8 @@ describe.only('PoolParty', function () {
 
       it("should emit NativeToJellyRatioSet event", async () => {
         await expect(poolParty.setUSDToJellyRatio(2))
-        .to.emit(poolParty, 'NativeToJellyRatioSet')
-        .withArgs(2);
+          .to.emit(poolParty, 'NativeToJellyRatioSet')
+          .withArgs(2);
       });
     })
 
@@ -110,7 +110,7 @@ describe.only('PoolParty', function () {
 
       it("should emit EndBuyingPeriod event", async () => {
         await expect(poolParty.endBuyingPeriod())
-        .to.emit(poolParty, 'EndBuyingPeriod');
+          .to.emit(poolParty, 'EndBuyingPeriod');
       });
     })
 
@@ -133,8 +133,8 @@ describe.only('PoolParty', function () {
         const amount = 1000;
         console.log("usdToJellyRatio", usdToJellyRatio);
         await expect(poolParty.buyWithUsd(amount))
-        .to.emit(poolParty, 'BuyWithUsd')
-        .withArgs(amount, usdToJellyRatio.mul(amount), owner.address);
+          .to.emit(poolParty, 'BuyWithUsd')
+          .withArgs(amount, usdToJellyRatio.mul(amount), owner.address);
       });
     })
 

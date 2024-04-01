@@ -37,7 +37,6 @@ export async function deployInvestorDistributionFixture(): Promise<UnitInvestorD
   const chest: Chest = await ChestFactory.deploy(
     jellyToken.address,
     0,
-    0,
     deployer.address,
     otherAccount.address
   );
