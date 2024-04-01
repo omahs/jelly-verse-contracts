@@ -14,11 +14,10 @@ contract MinterDifferentialTest is Test {
 
   function setUp() public {
     address _jellyToken = makeAddr("jellyToken");
-    address _lpRewardsContract = makeAddr("lpRewardsContract");
     address _stakingRewardsContract = makeAddr("stakingRewardsContract");
     address _ownerAddress = makeAddr("owner");
     address _pendingOwnerAddress = makeAddr("pendingOwner");
-    minter = new Minter(_jellyToken, _lpRewardsContract, _stakingRewardsContract, _ownerAddress, _pendingOwnerAddress);
+    minter = new Minter(_jellyToken, _stakingRewardsContract, _ownerAddress, _pendingOwnerAddress);
   }
 
   function test_calculateMintAmount(int256 daysSinceMintingStarted) external {  

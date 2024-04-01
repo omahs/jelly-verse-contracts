@@ -7,6 +7,8 @@ import {JellyToken} from "../../contracts/JellyToken.sol";
 import {OfficialPoolsRegister} from "../../contracts/OfficialPoolsRegister.sol";
 import {OfficialPoolsRegisterNew} from "../../contracts/OfficialPoolsRegisterNew.sol";
 import {VestingLib} from "../../contracts/utils/VestingLib.sol";
+import {Minter} from "../../contracts/Minter.sol";
+
 import "forge-std/console.sol";
 
 contract AuditTest is Test, VestingLib {
@@ -23,6 +25,7 @@ contract AuditTest is Test, VestingLib {
     OfficialPoolsRegister public or;
     OfficialPoolsRegisterNew public orn;
     VestingLib public vestingLib;
+    Minter public minter;
 
     function setUp() external {
         jellyTokenDeployer = new JellyTokenDeployer();
@@ -30,12 +33,21 @@ contract AuditTest is Test, VestingLib {
         vm.startPrank(deployer);
         or = new OfficialPoolsRegister(deployer, address(0));
         orn = new OfficialPoolsRegisterNew(deployer, address(0));
+        minter = new Minter(
+            address(jellyToken),
+            address(or),
+            deployer,
+            address(0)
+        );
         vm.stopPrank();
     }
 
     function test_zeroAddress() external {
         jellyTokenDeployer.deployJellyToken("0x01", address(0));
-        bool hasRole = jellyToken.hasRole(jellyToken.DEFAULT_ADMIN_ROLE(), address(0));
+        bool hasRole = jellyToken.hasRole(
+            jellyToken.DEFAULT_ADMIN_ROLE(),
+            address(0)
+        );
         assert(hasRole == false);
     }
 
@@ -47,9 +59,13 @@ contract AuditTest is Test, VestingLib {
         }
         vm.startPrank(deployer);
         // Generate 50 Pool structs
-        OfficialPoolsRegister.Pool[] memory pools = new OfficialPoolsRegister.Pool[](50);
+        OfficialPoolsRegister.Pool[]
+            memory pools = new OfficialPoolsRegister.Pool[](50);
         for (uint256 i = 0; i < 50; i++) {
-            pools[i] = OfficialPoolsRegister.Pool({poolId: bytes32(keccak256(abi.encode(i))), weight: 0});
+            pools[i] = OfficialPoolsRegister.Pool({
+                poolId: bytes32(keccak256(abi.encode(i))),
+                weight: 0
+            });
         }
         uint256 start = gasleft();
         or.registerOfficialPool(pools);
@@ -76,9 +92,13 @@ contract AuditTest is Test, VestingLib {
         console.log(gasUsed);
 
         // Generate 50 Pool structs
-        OfficialPoolsRegister.Pool[] memory pools = new OfficialPoolsRegister.Pool[](50);
+        OfficialPoolsRegister.Pool[]
+            memory pools = new OfficialPoolsRegister.Pool[](50);
         for (uint256 i = 0; i < 50; i++) {
-            pools[i] = OfficialPoolsRegister.Pool({poolId: bytes32(i), weight: 0});
+            pools[i] = OfficialPoolsRegister.Pool({
+                poolId: bytes32(i),
+                weight: 0
+            });
         }
         start = gasleft();
         or.registerOfficialPool(pools);
@@ -96,23 +116,30 @@ contract AuditTest is Test, VestingLib {
         uint32 vestingDuration = 100;
 
         uint256 withrawAmount = 500;
-        
+
         // Intitial position state
         // totalVestedAmount = 1000
         // releasedAmount = 0
         // cliffDuration = 100
         // vestingDuration = 100
-        VestingLib.VestingPosition memory vestingPosition =
-            createVestingPosition(amount, beneficiary, cliffDuration, vestingDuration);
+        VestingLib.VestingPosition
+            memory vestingPosition = createVestingPosition(
+                amount,
+                beneficiary,
+                cliffDuration,
+                vestingDuration
+            );
         uint256 positionIndex = index - 1;
 
         vm.warp(vestingPosition.cliffTimestamp + vestingDuration);
-        
+
         updateReleasedAmount(0, withrawAmount);
 
         // now imagine update of position happens
         vestingPositions[positionIndex].totalVestedAmount += amount; // totalVestedAmount is now 2x amount
-        vestingPositions[positionIndex].cliffTimestamp = uint48(block.timestamp + cliffDuration);
+        vestingPositions[positionIndex].cliffTimestamp = uint48(
+            block.timestamp + cliffDuration
+        );
 
         vm.warp(vestingPositions[positionIndex].cliffTimestamp + 1);
         vm.expectRevert();
@@ -121,7 +148,12 @@ contract AuditTest is Test, VestingLib {
 
     function test_jellyToken() external {
         vm.startPrank(deployer);
-        jellyToken.premint(vestingTeam, vestingInvestor, allocator, minterContract);
+        jellyToken.premint(
+            vestingTeam,
+            vestingInvestor,
+            allocator,
+            minterContract
+        );
         jellyToken.mint(deployer, jellyToken.cap() - jellyToken.totalSupply());
 
         console.log(jellyToken.totalSupply());

@@ -38,6 +38,8 @@ TBF
 
 **_review commit hash_ governance contracts -[c9bf2c684df4dcb85222b53383648e5dbf9106ce](https://github.com/MVPWorkshop/jelly-verse-contracts/commit/c9bf2c684df4dcb85222b53383648e5dbf9106ce)**
 
+**_review commit hash_ minter contract -[5ed44bbe4dc8a2cf93a5dcf1f808a35544b37529](https://github.com/MVPWorkshop/jelly-verse-contracts/commit/5ed44bbe4dc8a2cf93a5dcf1f808a35544b37529)**
+
 **No fixes implemented.**
 
 ### Scope
@@ -56,6 +58,7 @@ The following smart contracts were in scope of the audit:
 - `GovernorVotes.sol`
 - `JellyTimelock.sol`
 - `TimelockController.sol`
+- `Minter.sol`
 
 ---
 
@@ -64,7 +67,7 @@ The following number of issues were found, categorized by their severity:
 - High: 9 issues
 - Medium: 6 issues
 - Low: 7 issues
-- Informational: 6 issues
+- Informational: 7 issues
 
 # Findings Summary
 
@@ -92,12 +95,20 @@ The following number of issues were found, categorized by their severity:
 | [L-05] | Redundant Pool Struct                                                                          | Low           |
 | [L-06] | Redirecting `unstake` Withdrawals to Predefined Beneficiary                                    | Low           |
 | [L-07] | Removal of Redundant Functions                                                                 | Low           |
+| [L-08] | Missing Input Validation in `Minter` Constructor                                               | Low           |
+| [L-09] | Missing Input Validation in `Minter` set functions                                             | Low           |
+| [L-10] | Missing Input Validation in `Minter` for weight and beneficiary                                | Low           |
+| [L-11] | Wasteful Beneficiary Set Logic                                                                 | Low           |
 | [I-01] | Suboptimal Storage Layout                                                                      | Informational |
 | [I-02] | Suboptimal Storage Layout for Struct                                                           | Informational |
 | [I-03] | Redundant Check in `calculateBooster`                                                          | Informational |
 | [I-04] | Unnecessary Initialization of Unused values                                                    | Informational |
 | [I-05] | Redundant Storage Updates in `increaseStake` and `unstake` Functions                           | Informational |
-| [I-06] | Code Style Enhancements                                                                        | Informational |
+| [I-06] | Suboptimal Storage Layout for Struct in `Minter`                                               | Informational |
+| [I-07] | Suboptimal Storage Layout in `Minter`                                                          | Informational |
+| [I-08] | `Minter` Code Style should follow official Solidity style guide                                | Informational |
+| [I-09] | Potential Gas Limit Issues Due to Unbounded Beneficiary Array                                  | Informational |
+| [I-10] | Code Style Enhancements                                                                        | Informational |
 
 # [H-01] Faulty Randomness Generation
 
@@ -414,6 +425,38 @@ The `unstake` function currently allows an approved account to withdraw funds to
 
 The functions `castVote`, `castVoteBySig`, `castVoteWithReason` and `getVotes` are not usable in their current form as they do not provide an array of `Chest IDs`, which is necessary for calculating the voting power of a user. These functions should be removed to avoid confusion and potential misuse.
 
+# [L-08] Missing Input Validation in `Minter` Constructor
+
+The `_jellyToken` and `_stakingRewardsContract` are critical parameters in the `Minter` contract, initialized in the constructor. Assigning a address zero to these parameters would require re-deployment.
+
+```diff
++ if (_jellyToken == address(0) || _stakingRewardsContract == address(0)) {
++   revert CustomError();
++ }
+```
+
+# [L-09] Missing Input Validation in `Minter` set functions
+
+The `setStakingRewardsContract` and `setMintingPeriod` functions assign critical contract parameters based on the provided input values. Ensure these values are not `address(0)` and that the minting period is neither 0 nor an excessively long duration. Such conditions could allow for continuous token minting or restrict it to vast time intervals, thereby disrupting the tokenomics.
+
+```diff
++ if newStakingRewardsContract_ == address(0) {
++   revert CustomError();
++ }
+
++ if _mintingPeriod == 0 || _mintingPeriod > MAX_MINTING_PERIOD {
++   revert CustomError();
++ }
+```
+
+# [L-10] Missing Input Validation in `Minter` for weight and beneficiary
+
+Ensure that in the `setBeneficiaries` function, both the `weight` parameter and the `beneficiary` address are properly validated. The weight must be within the `0-1000` range to prevent issuing an unreasonably large number of tokens. Additionally, verify that the beneficiary address is not `address(0)`, as minting tokens to the zero address would be futile and could disrupt the intended distribution mechanism. It's also critical to check if a `beneficiary` already exists in the list. Allowing duplicate entries could lead to unintended token allocations, potentially skewing the distribution of minted tokens.
+
+# [L-11] Wasteful Beneficiary Set Logic
+
+Updating the beneficiary list by deleting and re-adding everyone is not efficient. It’s better to just update what needs changing. Also, avoid using the viaIR compiler option to bypass code limitations; it makes things compile slower. Instead of copying the whole array at once, add or update beneficiaries one by one. This avoids the need for viaIR and keeps the contracts compiling smoothly. Using `push` also makes using viaIR obsolete.
+
 # [I-01] Suboptimal Storage Layout
 
 The contract's storage layout is suboptimal, with `beginningOfTheNewDayBlocknumber` unnecessarily consuming a full 32-byte storage slot. Reducing `epoch` and `beginningOfTheNewDayBlocknumber` types to uint40 allows for tighter packing of these state variables.
@@ -466,7 +509,60 @@ In the `stake` and `stakeSpecial` functions, the `nerfParameter` and `booster` v
 
 The `increaseStake` function unnecessarily updates storage values when the `amount` or `extendFreezingPeriod` is zero. Similarly, `unstake` function updates `accumulatedBooster` and `boosterTimestamp` even when no actual change occurs. These redundant operations can waste gas.
 
-# [I-06] Code Style Enhancements
+# [I-06] Suboptimal Storage Layout for Struct in `Minter`
+
+The original order of fields within the `VestingPosition` struct is not optimized. By rearranging the fields to group variables of similar types and sizes together, we can minimize storage slots used and reduce gas costs for contract operations involving this struct.
+
+```diff
+  struct Beneficiary {
+        address beneficiary;
+-        uint256 weight; //BPS
+    }
+
+  struct Beneficiary {
+        address beneficiary;
++        uint96 weight; //BPS
+    }
+```
+
+# [I-07] Suboptimal Storage Layout in `Minter`
+
+The contract's storage layout is suboptimal, with `_jellyToken` unnecessarily consuming a full 32-byte storage slot. Reducing timestamps types allows packing of state variables into single slot instead of six slots.
+
+```diff
+-address public _jellyToken;
++address immutable jellyToken // or address constant jellyToken
+```
+
+```diff
+-uint256 public _mintingStartedTimestamp;
+-address public _stakingRewardsContract;
+- uint256 public _lastMintedTimestamp;
+- uint256 public _mintingPeriod = 7 days; // i has setter
+
++ uint32 public mintingStartedTimestamp;
++ address public stakingRewardsContract;
++ uint32 public lastMintedTimestamp
++ uint24 public mintingPeriod = 7 days;
+```
+
+# [I-08] `Minter` Code Style should follow official Solidity style guide
+
+- **Naming Conventions for Visibility**: Public variables should not use underscores in their names. This convention is typically reserved for private or internal variables to differentiate them from public ones, improving code clarity and readability.
+
+- **Function Visibility Optimization**: The `calculateMintAmount` function's visibility should be changed to `public` to avoid indirect calls using `this.calculateMintAmount`. Direct access to functions within the contract is more gas efficient and simplifies the code.
+
+- **Efficient Use of Variables**: It's recommended to utilize `mintAmountWithDecimals` in place of `mintAmount` to eliminate redundant calculations.
+
+- **Code Clarity and Readability**: To enhance the contract's readability, use either `currentTimestamp` or `block.timestamp`.
+
+- **Clean Code Practices**: Unnecessary comments, especially those indicating potential future code paths like "maybe check size," should be removed if they're not part of the immediate implementation plan. Use `IERC20(jellyToken).functionName()` consistently instead of mixing it with `jellyToken(_jellyToken).functionName()`.
+
+# [I-09] Potential Gas Limit Issues Due to Unbounded Beneficiary Array
+
+Having unbounded `beneficiaries` in the `Minter` contract could cause minting to fail, as it may exceed the maximum gas limit. To prevent this, it's recommended to set a maximum length for the array, taking into account gas consumption.
+
+# [I-10] Code Style Enhancements
 
 - Replace hardcoded magic numbers with named constants for better code clarity.
 - Use IJellyToken/IERC20 instead of IERC20(address) in `Chest`
