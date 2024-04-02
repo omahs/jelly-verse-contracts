@@ -19,14 +19,14 @@ contract ChestHarness is Chest {
         ChestHarness.VestingPosition memory vestingPosition,
         uint48 timestamp
     ) external pure returns (uint120) {
-        return calculateBooster(vestingPosition, timestamp);
+        return _calculateBooster(vestingPosition, timestamp);
     }
 
     function exposed_calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
     ) external pure returns (uint256) {
-        return calculatePower(timestamp, vestingPosition);
+        return _calculatePower(timestamp, vestingPosition);
     }
 
     function exposed_createVestingPosition(
@@ -266,7 +266,7 @@ contract ChestTest is Test {
             block.timestamp + freezingPeriod,
             0,
             INITIAL_BOOSTER,
-            10
+            0
         );
 
         chest.stake(amount, testAddress, freezingPeriod);
@@ -420,7 +420,7 @@ contract ChestTest is Test {
             amount,
             block.timestamp + freezingPeriod,
             vestingDuration,
-            INITIAL_BOOSTER,
+            0,
             nerfParameter
         );
 

@@ -17,14 +17,14 @@ contract ChestHarness is Chest {
         ChestHarness.VestingPosition memory vestingPosition,
         uint256 timestamp
     ) external pure returns (uint120) {
-        return calculateBooster(vestingPosition, uint48(timestamp));
+        return _calculateBooster(vestingPosition, uint48(timestamp));
     }
 
     function exposed_calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
     ) external pure returns (uint256) {
-        return calculatePower(timestamp, vestingPosition);
+        return _calculatePower(timestamp, vestingPosition);
     }
 
     function exposed_createVestingPosition(

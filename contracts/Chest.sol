@@ -21,6 +21,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     uint32 constant MIN_VESTING_DURATION = 1; // @dev need this to make difference between special and regular chest
     uint32 constant MAX_VESTING_DURATION = 3 * 365 days;
     uint8 constant MAX_NERF_PARAMETER = 10;
+    uint8 constant NERF_NORMALIZATION_FACTOR = 10;
     uint32 constant TIME_FACTOR = 7 days;
 
     uint120 private constant DECIMALS = 1e18;
@@ -42,7 +43,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     string constant END_SVG =
         "]]></tspan><tspan x='0' y='64' font-weight='400' stroke-width='0'><![CDATA[}]]></tspan></text></svg>";
 
-    address internal immutable i_jellyToken;
+    IERC20 immutable i_jellyToken;
 
     uint128 public fee;
     uint128 public totalFees;
@@ -103,8 +104,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         if (jellyToken == address(0)) {
             revert Chest__ZeroAddress();
         }
-
-        i_jellyToken = jellyToken;
+        i_jellyToken = IERC20(jellyToken);
         fee = mintingFee;
     }
 
@@ -152,14 +152,10 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             cliffTimestamp,
             0,
             INITIAL_BOOSTER,
-            10
+            0
         );
 
-        IERC20(i_jellyToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount + fee
-        );
+        i_jellyToken.safeTransferFrom(msg.sender, address(this), amount + fee);
         _safeMint(beneficiary, currentTokenId);
     }
 
@@ -219,15 +215,11 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             amount,
             cliffTimestamp,
             vestingDuration,
-            INITIAL_BOOSTER,
+            0,
             nerfParameter
         );
 
-        IERC20(i_jellyToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount + fee
-        );
+        i_jellyToken.safeTransferFrom(msg.sender, address(this), amount + fee);
         _safeMint(beneficiary, currentTokenId);
     }
 
@@ -255,7 +247,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
         VestingPosition memory vestingPosition = vestingPositions[tokenId];
         uint48 newCliffTimestamp = vestingPosition.cliffTimestamp;
-        uint120 newAccumulatedBooster = vestingPosition.accumulatedBooster; // I think I will need this one :)
+        uint120 newAccumulatedBooster = vestingPosition.accumulatedBooster;
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
             if (block.timestamp < vestingPosition.cliffTimestamp) {
@@ -284,7 +276,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
                     MIN_STAKING_AMOUNT
                 ) revert Chest__InvalidStakingAmount();
 
-                newAccumulatedBooster = calculateBooster(
+                newAccumulatedBooster = _calculateBooster(
                     vestingPosition,
                     uint48(block.timestamp)
                 );
@@ -316,11 +308,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             newAccumulatedBooster
         );
 
-        IERC20(i_jellyToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount
-        );
+        i_jellyToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /**
@@ -353,7 +341,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
         emit Unstake(tokenId, amount, newTotalStaked, INITIAL_BOOSTER);
 
-        IERC20(i_jellyToken).safeTransfer(ownerOf(tokenId), amount); // @dev transfer to the owner of the chest
+        i_jellyToken.safeTransfer(ownerOf(tokenId), amount); // @dev transfer to the owner of the chest
     }
 
     /**
@@ -387,7 +375,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
         emit FeeWithdrawn(beneficiary);
 
-        IERC20(i_jellyToken).safeTransfer(beneficiary, amountToWithdraw);
+        i_jellyToken.safeTransfer(beneficiary, amountToWithdraw);
     }
 
     /**
@@ -401,7 +389,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      */
     function getVotingPower(
         address account,
-        uint256[] memory tokenIds
+        uint256[] calldata tokenIds
     ) external view returns (uint256) {
         uint256 power;
         for (uint256 i = 0; i < tokenIds.length; ) {
@@ -428,9 +416,9 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      */
     function estimateChestPower(
         uint256 timestamp,
-        VestingPosition memory vestingPosition
+        VestingPosition calldata vestingPosition
     ) external pure returns (uint256) {
-        uint256 power = calculatePower(timestamp, vestingPosition);
+        uint256 power = _calculatePower(timestamp, vestingPosition);
         return power;
     }
 
@@ -459,7 +447,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     function getChestPower(uint256 tokenId) public view returns (uint256) {
         VestingPosition memory vestingPosition = getVestingPosition(tokenId);
 
-        uint256 power = calculatePower(block.timestamp, vestingPosition);
+        uint256 power = _calculatePower(block.timestamp, vestingPosition);
         return power;
     }
 
@@ -531,7 +519,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * @return - booster of the chest.
      */
-    function calculateBooster(
+    function _calculateBooster(
         VestingPosition memory vestingPosition,
         uint48 timestamp
     ) internal pure returns (uint120) {
@@ -568,7 +556,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
      *
      * @return - voting power of the chest.
      */
-    function calculatePower(
+    function _calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
     ) internal pure returns (uint256) {
@@ -591,7 +579,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         // calculate power based on vesting type
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
-            uint120 booster = calculateBooster(
+            uint120 booster = _calculateBooster(
                 vestingPosition,
                 uint48(timestamp)
             );
@@ -627,7 +615,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
                     vestingPosition.releasedAmount) *
                     totalFreezingTimeInWeeks *
                     nerfParameter) /
-                (10 * MIN_STAKING_AMOUNT); // @dev scaling because of minimum staking amount
+                (NERF_NORMALIZATION_FACTOR * MIN_STAKING_AMOUNT); // @dev scaling because of minimum staking amount
         }
         return power;
     }

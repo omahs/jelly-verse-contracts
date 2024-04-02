@@ -45,4 +45,4 @@
 | [I-09] | Potential Gas Limit Issues Due to Unbounded Beneficiary Array                                  | Informational |        |
 | [I-10] | Suboptimal Storage Layout in `PoolParty`                                                       | Informational |        |
 | [I-11] | Add Sale Duration in `PoolParty`                                                               | Informational |        |
-| [I-12] | Code Style Enhancements                                                                        | Informational |        |
+| [I-12] | Code Style Enhancements                                                                        | Informational | Fixed  |
