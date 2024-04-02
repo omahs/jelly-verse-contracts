@@ -353,7 +353,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
         emit Unstake(tokenId, amount, newTotalStaked, INITIAL_BOOSTER);
 
-        IERC20(i_jellyToken).safeTransfer(msg.sender, amount);
+        IERC20(i_jellyToken).safeTransfer(ownerOf(tokenId), amount); // @dev transfer to the owner of the chest
     }
 
     /**

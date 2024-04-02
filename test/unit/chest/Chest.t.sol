@@ -1558,9 +1558,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
-        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
-            approvedAddress
-        );
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
         uint256 unstakeAmount = 50;
@@ -1576,9 +1574,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
 
-        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
-            approvedAddress
-        );
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
@@ -1756,9 +1752,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionBefore = chest
             .getVestingPosition(positionIndex);
 
-        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
-            approvedAddress
-        );
+        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
         uint256 unstakeAmount = 50;
@@ -1777,9 +1771,7 @@ contract ChestTest is Test {
         Chest.VestingPosition memory vestingPositionAfter = chest
             .getVestingPosition(positionIndex);
 
-        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
-            approvedAddress
-        );
+        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(testAddress);
         uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
 
         assertEq(
