@@ -8,9 +8,9 @@
 | [H-02] | Hardcoded Block Time Dependency                                                                | High          |        |
 | [H-03] | Underflow in `releasableAmount` Calculation                                                    | High          |        |
 | [H-04] | Missing Input Validation in `stakeSpecial` Allows Excessive Voting Power                       | High          | Fixed  |
-| [H-05] | No Minimum freezingPeriod Validation in `stakeSpecial` Enables Immediate Unstaking             | High          |        |
-| [H-06] | Inaccurate Voting Power Calculation Due to Exclusion of `releasedAmount` in `calculatePower`   | High          |        |
-| [H-07] | Absence of `extendFreezingPeriod` Validation Enables Immediate Unstaking                       | High          |        |
+| [H-05] | No Minimum freezingPeriod Validation in `stakeSpecial` Enables Immediate Unstaking             | High          | Fixed  |
+| [H-06] | Inaccurate Voting Power Calculation Due to Exclusion of `releasedAmount` in `calculatePower`   | High          | Fixed  |
+| [H-07] | Absence of `extendFreezingPeriod` Validation Enables Immediate Unstaking                       | High          | Fixed  |
 | [H-08] | Double Spending Vulnerability in `Governor`                                                    | High          |        |
 | [H-09] | Unrestricted Proposer Role in `Timelock` Enables Governance Disruption                         | High          |        |
 | [H-10] | Token Ratio Does Not Support a Realistic Price Range                                           | High          |        |

@@ -923,7 +923,7 @@ contract ChestFuzzTest is Test {
         increaseFreezingPeriodFor = uint32(
             bound(
                 increaseFreezingPeriodFor,
-                1,
+                MIN_FREEZING_PERIOD,
                 MAX_FREEZING_PERIOD_REGULAR_CHEST
             )
         );
@@ -1057,7 +1057,7 @@ contract ChestFuzzTest is Test {
         increaseFreezingPeriodFor = uint32(
             bound(
                 increaseFreezingPeriodFor,
-                1,
+                MIN_FREEZING_PERIOD,
                 MAX_FREEZING_PERIOD_REGULAR_CHEST
             )
         );
@@ -1204,7 +1204,7 @@ contract ChestFuzzTest is Test {
         increaseFreezingPeriodFor = uint32(
             bound(
                 increaseFreezingPeriodFor,
-                1,
+                MIN_FREEZING_PERIOD,
                 MAX_FREEZING_PERIOD_REGULAR_CHEST
             )
         );

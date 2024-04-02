@@ -958,7 +958,7 @@ contract ChestTest is Test {
             .accumulatedBooster;
 
         uint256 increaseAmountFor = 0;
-        uint32 increaseFreezingPeriodFor = 50;
+        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD;
 
         vm.warp(vestingPositionBefore.cliffTimestamp + 1);
 
@@ -1079,7 +1079,7 @@ contract ChestTest is Test {
             .accumulatedBooster;
 
         uint256 increaseAmountFor = 0;
-        uint32 increaseFreezingPeriodFor = 50;
+        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD;
 
         vm.prank(testAddress);
         chest.approve(approvedAddress, positionIndex);
@@ -1204,7 +1204,7 @@ contract ChestTest is Test {
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
         uint256 increaseAmountFor = 50;
-        uint32 increaseFreezingPeriodFor = 50;
+        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD;
 
         uint256 totalVestedAmountBefore = vestingPositionBefore
             .totalVestedAmount;
@@ -1306,7 +1306,7 @@ contract ChestTest is Test {
                 .getVestingPosition(positionIndex);
 
             uint256 increaseAmountFor = 50;
-            uint32 increaseFreezingPeriodFor = 50;
+            uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD;
 
             uint256 totalVestedAmountBefore = vestingPositionBefore
                 .totalVestedAmount;
@@ -1467,7 +1467,7 @@ contract ChestTest is Test {
         uint256 positionIndex = 0;
 
         uint256 increaseAmountFor = 100;
-        uint32 increaseFreezingPeriodFor = 0;
+        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD - 1;
 
         vm.warp(chest.getVestingPosition(positionIndex).cliffTimestamp + 1); // open chest
 
