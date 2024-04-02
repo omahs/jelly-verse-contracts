@@ -29,6 +29,7 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
     );
 
     error JellyToken__AlreadyPreminted();
+    error JellyToken__ZeroAddress();
 
     modifier onlyOnce() {
         if (preminted) {
@@ -43,6 +44,10 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
         ERC20("Jelly Token", "JLY")
         ERC20Capped(1_000_000_000 * 10 ** decimals())
     {
+        if (_defaultAdminRole == address(0)) {
+            revert JellyToken__ZeroAddress();
+        }
+
         _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdminRole);
         _grantRole(MINTER_ROLE, _defaultAdminRole);
     }
@@ -53,6 +58,13 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
         address _allocator,
         address _minterContract
     ) external onlyRole(MINTER_ROLE) onlyOnce nonReentrant {
+        if (
+            _vestingTeam == address(0) ||
+            _vestingInvestor == address(0) ||
+            _allocator == address(0) ||
+            _minterContract == address(0)
+        ) revert JellyToken__ZeroAddress();
+
         preminted = true;
 
         _mint(_vestingTeam, 133_000_000 * 10 ** decimals());
@@ -78,7 +90,7 @@ contract JellyToken is ERC20Capped, AccessControl, ReentrancyGuard {
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
-    
+
     /**
      * @dev Destroys a `value` amount of tokens from the caller.
      *
