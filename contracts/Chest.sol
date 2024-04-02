@@ -137,7 +137,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             freezingPeriod,
             0,
             INITIAL_BOOSTER,
-            10 // @dev nerf parameter is hardcoded to 10 for regular chests (no nerf, not included in calculations)
+            0 // @dev nerf parameter is hardcoded to 0 for regular chests (no nerf, not included in calculations)
         );
 
         unchecked {
@@ -205,7 +205,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             amount,
             freezingPeriod,
             vestingDuration,
-            INITIAL_BOOSTER,
+            0, // @dev booster is hardcoded to 0 for special chests (not included in calculations)
             nerfParameter
         );
         unchecked {

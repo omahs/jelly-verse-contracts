@@ -234,7 +234,7 @@ contract ChestTest is Test {
         assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 0);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
-        assertEq(vestingPosition.nerfParameter, 10);
+        assertEq(vestingPosition.nerfParameter, 0);
 
         assertEq(totalFeesAfter, totalFeesBefore + chest.fee());
 
@@ -386,7 +386,7 @@ contract ChestTest is Test {
         );
         assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 1000);
-        assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
+        assertEq(vestingPosition.accumulatedBooster, 0);
         assertEq(vestingPosition.nerfParameter, nerfParameter);
 
         assertEq(totalFeesAfter, totalFeesBefore + chest.fee());
@@ -2492,7 +2492,7 @@ contract ChestTest is Test {
         assertEq(vestingPosition.vestingDuration, 0);
 
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
-        assertEq(vestingPosition.nerfParameter, 10);
+        assertEq(vestingPosition.nerfParameter, 0);
 
         positionIndex = 1;
         vestingPosition = chest.getVestingPosition(positionIndex);
@@ -2505,7 +2505,7 @@ contract ChestTest is Test {
         );
         assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 1000);
-        assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
+        assertEq(vestingPosition.accumulatedBooster, 0);
         assertEq(vestingPosition.nerfParameter, 5);
     }
 

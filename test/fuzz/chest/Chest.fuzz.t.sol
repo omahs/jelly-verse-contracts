@@ -235,7 +235,7 @@ contract ChestFuzzTest is Test {
         assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 0);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
-        assertEq(vestingPosition.nerfParameter, 10);
+        assertEq(vestingPosition.nerfParameter, 0);
 
         // using direct calls for balances to avoid stack too deep error
         assertEq(chest.totalFees(), totalFeesBefore + chest.fee());
@@ -413,7 +413,7 @@ contract ChestFuzzTest is Test {
         );
         assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, vestingDuration);
-        assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
+        assertEq(vestingPosition.accumulatedBooster, 0);
         assertEq(vestingPosition.nerfParameter, nerfParameter);
 
         // using direct calls for balances to avoid stack too deep error

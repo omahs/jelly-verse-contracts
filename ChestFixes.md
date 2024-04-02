@@ -37,7 +37,7 @@
 | [I-01] | Suboptimal Storage Layout                                                                      | Informational |        |
 | [I-02] | Suboptimal Storage Layout for Struct                                                           | Informational |        |
 | [I-03] | Redundant Check in `calculateBooster`                                                          | Informational | Fixed  |
-| [I-04] | Unnecessary Initialization of Unused values                                                    | Informational |        |
+| [I-04] | Unnecessary Initialization of Unused values                                                    | Informational | Fixed  |
 | [I-05] | Redundant Storage Updates in `increaseStake` and `unstake` Functions                           | Informational |        |
 | [I-06] | Suboptimal Storage Layout for Struct in `Minter`                                               | Informational |        |
 | [I-07] | Suboptimal Storage Layout in `Minter`                                                          | Informational |        |
