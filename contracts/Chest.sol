@@ -536,10 +536,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint48 timestamp
     ) internal pure returns (uint120) {
         uint120 booster;
-        if (vestingPosition.vestingDuration > 0) {
-            // special chest
-            return INITIAL_BOOSTER;
-        }
+
         if (vestingPosition.boosterTimestamp == 0) {
             // unstaked chest
             return INITIAL_BOOSTER;

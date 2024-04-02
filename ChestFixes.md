@@ -26,7 +26,7 @@
 | [L-03] | No Check for Duplicate Pool Registration                                                       | Low           |        |
 | [L-04] | Wasteful Pool Registration Logic                                                               | Low           |        |
 | [L-05] | Redundant Pool Struct                                                                          | Low           |        |
-| [L-06] | Redirecting `unstake` Withdrawals to Predefined Beneficiary                                    | Low           |        |
+| [L-06] | Redirecting `unstake` Withdrawals to Predefined Beneficiary                                    | Low           | Fixed  |
 | [L-07] | Removal of Redundant Functions                                                                 | Low           |        |
 | [L-08] | Missing Input Validation in `Minter` Constructor                                               | Low           |        |
 | [L-09] | Missing Input Validation in `Minter` set functions                                             | Low           |        |
@@ -36,7 +36,7 @@
 | [L-13] | Missing Input Validation in `PoolParty` set function                                           | Low           |        |
 | [I-01] | Suboptimal Storage Layout                                                                      | Informational |        |
 | [I-02] | Suboptimal Storage Layout for Struct                                                           | Informational |        |
-| [I-03] | Redundant Check in `calculateBooster`                                                          | Informational |        |
+| [I-03] | Redundant Check in `calculateBooster`                                                          | Informational | Fixed  |
 | [I-04] | Unnecessary Initialization of Unused values                                                    | Informational |        |
 | [I-05] | Redundant Storage Updates in `increaseStake` and `unstake` Functions                           | Informational |        |
 | [I-06] | Suboptimal Storage Layout for Struct in `Minter`                                               | Informational |        |
