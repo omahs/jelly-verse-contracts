@@ -3,18 +3,20 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import {VestingLib} from "../../../contracts/utils/VestingLib.sol";
+import {VestingLibChest} from "../../../contracts/utils/VestingLibChest.sol";
 import {Strings} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/Strings.sol";
 import {SafeCast} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 
-contract VestingLibDifferentialTest is VestingLib, Test {
+contract VestingLibDifferentialTest is VestingLibChest, Test {
     using Strings for uint256;
 
-    address beneficiary;
     uint256 amount;
+    address beneficiary;
     uint40 startTimestamp;
     uint32 cliffDuration;
     uint32 vestingDuration;
+    uint8 nerfParameter;
+    uint120 booster;
     VestingPosition vestingPosition;
 
     function setUp() public {
@@ -23,12 +25,14 @@ contract VestingLibDifferentialTest is VestingLib, Test {
         startTimestamp = SafeCast.toUint40(block.timestamp);
         cliffDuration = SafeCast.toUint32(15638400); // @dev 6 month Wednesday, 1 July 1970 00:00:00
         vestingDuration = SafeCast.toUint32(44582400); // @dev 18 month Tuesday, 1 June 1971 00:00:00
-
+        nerfParameter = 10; // @dev no nerf
+        booster = 1e18; // @dev INITIAL_BOOSTER
         vestingPosition = createVestingPosition(
             amount,
-            beneficiary,
             cliffDuration,
-            vestingDuration
+            vestingDuration,
+            booster,
+            nerfParameter
         );
     }
 

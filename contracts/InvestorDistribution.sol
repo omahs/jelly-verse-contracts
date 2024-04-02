@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 import {Ownable} from "./utils/Ownable.sol";
 import {IChest} from "./interfaces/IChest.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
 
 contract InvestorDistribution is Ownable {
     struct Investor {
@@ -17,7 +16,7 @@ contract InvestorDistribution is Ownable {
     uint32 constant FREEZING_PERIOD = 18 * 30 days;
     uint32 constant VESTING_DURATION = 6 * 30 days;
     uint8 constant NERF_PARAMETER = 10; // no nerf
-    
+
     uint64 private constant DECIMALS = 1e18;
 
     IERC20 public immutable i_jellyToken;
@@ -57,7 +56,7 @@ contract InvestorDistribution is Ownable {
         }
 
         index = endIndex;
-        
+
         for (uint256 i = currentIndex; i < endIndex; i++) {
             i_chest.stakeSpecial(
                 investors[i].amount * DECIMALS,
