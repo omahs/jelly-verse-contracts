@@ -27,7 +27,7 @@ contract BaseSetup is Test {
 
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
-    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MIN_FREEZING_PERIOD = 7 days;
 
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
@@ -79,7 +79,7 @@ contract BaseSetup is Test {
 
         // @dev open regular positions so handler has always position to work with
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount + chest.fee());

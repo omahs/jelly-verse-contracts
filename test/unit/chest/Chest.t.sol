@@ -50,7 +50,7 @@ contract ChestHarness is Chest {
 contract ChestTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
-    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MIN_FREEZING_PERIOD = 7 days;
     uint32 constant MIN_VESTING_DURATION = 1;
     uint32 constant MAX_VESTING_DURATION = 3 * 365 days;
     uint8 constant MAX_NERF_PARAMETER = 10;
@@ -120,7 +120,7 @@ contract ChestTest is Test {
 
     modifier openPosition() {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount + chest.fee());
@@ -133,7 +133,7 @@ contract ChestTest is Test {
 
     modifier openSpecialPosition() {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = 1000;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
@@ -201,7 +201,7 @@ contract ChestTest is Test {
     // Regular chest stake tests
     function test_stake() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         uint256 totalFeesBefore = chest.totalFees();
         uint256 accountJellyBalanceBefore = jellyToken.balanceOf(testAddress);
@@ -253,7 +253,7 @@ contract ChestTest is Test {
 
     function test_stakeEmitsStakedEvent() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount + chest.fee());
@@ -276,7 +276,7 @@ contract ChestTest is Test {
 
     function test_stakeInvalidStakingAmountZero() external {
         uint256 amount = 0; // @dev assigning to zero for clarity & better code readability
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount);
@@ -289,7 +289,7 @@ contract ChestTest is Test {
 
     function test_stakeInvalidStakingAmountBelowMinimum() external {
         uint256 amount = MIN_STAKING_AMOUNT - 1;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount);
@@ -315,7 +315,7 @@ contract ChestTest is Test {
 
     function test_stakeZeroInvalidMinimumFreezingTime() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST - 1;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD - 1;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), amount + chest.fee());
@@ -342,7 +342,7 @@ contract ChestTest is Test {
     // Special chest stake tests
     function test_stakeSpecial() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = 1000;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5; // 5/10 = 1/2
 
@@ -404,77 +404,9 @@ contract ChestTest is Test {
         assertEq(releasableAmount, 0);
     }
 
-    function test_stakeSpecialZeroFreezingTime() external {
-        uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = 0;
-        uint32 vestingDuration = 1000;
-        uint8 nerfParameter = 5;
-
-        uint256 totalFeesBefore = chest.totalFees();
-        uint256 accountJellyBalanceBefore = jellyToken.balanceOf(
-            specialChestCreator
-        );
-        uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
-
-        vm.startPrank(specialChestCreator);
-        jellyToken.approve(address(chest), amount + chest.fee());
-
-        chest.stakeSpecial(
-            amount,
-            testAddress,
-            freezingPeriod,
-            vestingDuration,
-            nerfParameter
-        );
-
-        vm.stopPrank();
-
-        assertEq(chest.ownerOf(0), testAddress);
-        assertEq(chest.balanceOf(testAddress), 1);
-        assertEq(chest.totalSupply(), 1);
-
-        Chest.VestingPosition memory vestingPosition = chest.getVestingPosition(
-            0
-        );
-        uint256 totalFeesAfter = chest.totalFees();
-        uint256 accountJellyBalanceAfter = jellyToken.balanceOf(
-            specialChestCreator
-        );
-        uint256 chestJellyBalanceAfter = jellyToken.balanceOf(address(chest));
-
-        assertEq(vestingPosition.totalVestedAmount, amount);
-        assertEq(vestingPosition.releasedAmount, 0);
-
-        assertEq(vestingPosition.cliffTimestamp, block.timestamp);
-        assertEq(vestingPosition.boosterTimestamp, block.timestamp);
-
-        assertEq(vestingPosition.vestingDuration, 1000);
-        assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
-        assertEq(vestingPosition.nerfParameter, nerfParameter);
-
-        assertEq(totalFeesAfter, totalFeesBefore + chest.fee());
-
-        assertEq(
-            accountJellyBalanceAfter,
-            accountJellyBalanceBefore - amount - chest.fee()
-        );
-        assertEq(
-            chestJellyBalanceAfter,
-            chestJellyBalanceBefore + amount + chest.fee()
-        );
-
-        uint256 releasableAmount = chest.releasableAmount(0);
-        assertEq(releasableAmount, 0);
-
-        vm.warp(block.timestamp + 1000 + 1);
-
-        releasableAmount = chest.releasableAmount(0);
-        assertEq(releasableAmount, amount);
-    }
-
     function test_stakeSpecialEmitsStakedEvent() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = 1000;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
@@ -505,7 +437,7 @@ contract ChestTest is Test {
 
     function test_stakeSpecialInvalidStakingAmountZero() external {
         uint256 amount = 0;
-        uint32 freezingPeriod = 1000;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
@@ -526,7 +458,7 @@ contract ChestTest is Test {
 
     function test_stakeSpecialInvalidStakingAmountBelowMinimum() external {
         uint256 amount = MIN_STAKING_AMOUNT - 1;
-        uint32 freezingPeriod = 1000;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
@@ -547,7 +479,7 @@ contract ChestTest is Test {
 
     function test_stakeSpecialZeroAddress() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = 1000;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
         uint32 vestingDuration = 1000;
         uint8 nerfParameter = 5;
 
@@ -566,7 +498,28 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
-    function test_stakeSpecialInvalidFreezingPeriod() external {
+    function test_stakeSpecialInvalidMinimumFreezingPeriod() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD - 1;
+        uint32 vestingDuration = 1000;
+        uint8 nerfParameter = 5;
+
+        vm.startPrank(specialChestCreator);
+        jellyToken.approve(address(chest), amount);
+
+        vm.expectRevert(Chest__InvalidFreezingPeriod.selector);
+        chest.stakeSpecial(
+            amount,
+            testAddress,
+            freezingPeriod,
+            vestingDuration,
+            nerfParameter
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_stakeSpecialInvalidMaximumFreezingPeriod() external {
         uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = MAX_FREEZING_PERIOD_SPECIAL_CHEST + 1;
         uint32 vestingDuration = 1000;
@@ -806,7 +759,7 @@ contract ChestTest is Test {
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
         uint256 increaseAmountFor = 50;
-        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), increaseAmountFor);
@@ -874,7 +827,7 @@ contract ChestTest is Test {
         uint256 chestJellyBalanceBefore = jellyToken.balanceOf(address(chest));
 
         uint256 increaseAmountFor = 50;
-        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD;
 
         vm.prank(testAddress);
         chest.approve(approvedAddress, positionIndex);
@@ -1487,7 +1440,7 @@ contract ChestTest is Test {
             .getVestingPosition(positionIndex);
 
         uint256 increaseAmountFor = 1;
-        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 increaseFreezingPeriodFor = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
         jellyToken.approve(address(chest), increaseAmountFor);
@@ -2045,7 +1998,7 @@ contract ChestTest is Test {
 
     function test_calculateBooster() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD;
         uint32 freezingPeriodMaximum = MAX_FREEZING_PERIOD_REGULAR_CHEST;
         uint8 nerfParameter = MAX_NERF_PARAMETER;
         uint32 vestingDuration = 0;
@@ -2114,7 +2067,7 @@ contract ChestTest is Test {
 
     function test_calculateBoosterSpecialChest() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD;
         uint8 nerfParameter = 1;
 
         // Position with vesting duration > 0
@@ -2138,7 +2091,7 @@ contract ChestTest is Test {
 
     function test_calculatePowerChestWithMinimumFreezingPeriod() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD;
         uint8 nerfParameter = MAX_NERF_PARAMETER;
 
         // Regular chest position with minimum freezing period
@@ -2439,7 +2392,7 @@ contract ChestTest is Test {
     // Getter tests
     function test_getVotingPower() external {
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
 
@@ -2541,7 +2494,7 @@ contract ChestTest is Test {
         assertEq(vestingPosition.releasedAmount, 0);
         assertEq(
             vestingPosition.cliffTimestamp,
-            block.timestamp + MIN_FREEZING_PERIOD_REGULAR_CHEST
+            block.timestamp + MIN_FREEZING_PERIOD
         );
         assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 0);
@@ -2554,7 +2507,10 @@ contract ChestTest is Test {
 
         assertEq(vestingPosition.totalVestedAmount, MIN_STAKING_AMOUNT);
         assertEq(vestingPosition.releasedAmount, 0);
-        assertEq(vestingPosition.cliffTimestamp, block.timestamp + 1000);
+        assertEq(
+            vestingPosition.cliffTimestamp,
+            block.timestamp + MIN_FREEZING_PERIOD
+        );
         assertEq(vestingPosition.boosterTimestamp, block.timestamp);
         assertEq(vestingPosition.vestingDuration, 1000);
         assertEq(vestingPosition.accumulatedBooster, INITIAL_BOOSTER);
@@ -2575,7 +2531,7 @@ contract ChestTest is Test {
         assertEq(totalSupply, 1);
 
         uint256 amount = MIN_STAKING_AMOUNT;
-        uint32 freezingPeriod = MIN_FREEZING_PERIOD_REGULAR_CHEST;
+        uint32 freezingPeriod = MIN_FREEZING_PERIOD;
 
         vm.startPrank(testAddress);
 

@@ -17,7 +17,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
 
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
-    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MIN_FREEZING_PERIOD = 7 days;
     uint32 constant MIN_VESTING_DURATION = 1; // @dev need this to make difference between special and regular chest
     uint32 constant MAX_VESTING_DURATION = 3 * 365 days;
     uint8 constant MAX_NERF_PARAMETER = 10;
@@ -126,7 +126,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
         if (
             freezingPeriod > MAX_FREEZING_PERIOD_REGULAR_CHEST ||
-            freezingPeriod < MIN_FREEZING_PERIOD_REGULAR_CHEST
+            freezingPeriod < MIN_FREEZING_PERIOD
         ) {
             revert Chest__InvalidFreezingPeriod();
         }
@@ -185,7 +185,10 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     ) external nonReentrant {
         if (amount < MIN_STAKING_AMOUNT) revert Chest__InvalidStakingAmount();
         if (beneficiary == address(0)) revert Chest__ZeroAddress();
-        if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST) {
+        if (
+            freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST ||
+            freezingPeriod < MIN_FREEZING_PERIOD
+        ) {
             revert Chest__InvalidFreezingPeriod();
         }
         if (

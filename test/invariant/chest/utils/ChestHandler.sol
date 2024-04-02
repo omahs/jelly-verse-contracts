@@ -9,7 +9,7 @@ contract ChestHandler is Test {
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
     uint256 constant MIN_STAKING_AMOUNT = 1_000 ether;
 
-    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MIN_FREEZING_PERIOD = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_VESTING_DURATION = 1;
@@ -88,7 +88,7 @@ contract ChestHandler is Test {
         freezingPeriod = uint32(
             bound(
                 freezingPeriod,
-                MIN_FREEZING_PERIOD_REGULAR_CHEST,
+                MIN_FREEZING_PERIOD,
                 MAX_FREEZING_PERIOD_REGULAR_CHEST
             )
         );

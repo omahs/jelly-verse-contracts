@@ -42,7 +42,7 @@ contract ChestHarness is Chest {
 contract ChestBoosterCalculationDifferentialTest is Test {
     using Strings for *;
 
-    uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MIN_FREEZING_PERIOD = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint8 constant MAX_NERF_PARAMETER = 10;
     uint120 private constant DECIMALS = 1e18;
@@ -69,7 +69,7 @@ contract ChestBoosterCalculationDifferentialTest is Test {
         vm.assume(
             amount > MIN_STAKING_AMOUNT &&
                 freezingPeriod < MAX_FREEZING_PERIOD_REGULAR_CHEST &&
-                freezingPeriod > MIN_FREEZING_PERIOD_REGULAR_CHEST
+                freezingPeriod > MIN_FREEZING_PERIOD
         );
 
         uint8 nerfParameter = MAX_NERF_PARAMETER;
