@@ -10,7 +10,6 @@ contract ChestHarness is Chest {
     constructor(
         address jellyToken,
         uint128 fee_,
-        uint128 maxBooster_,
         address owner,
         address pendingOwner
     ) Chest(jellyToken, fee_, owner, pendingOwner) {}
@@ -45,6 +44,7 @@ contract ChestBoosterCalculationDifferentialTest is Test {
 
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
+    uint8 constant MAX_NERF_PARAMETER = 10;
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
     uint256 private constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
@@ -56,17 +56,10 @@ contract ChestBoosterCalculationDifferentialTest is Test {
 
     function setUp() public {
         uint128 fee = 10;
-        uint128 maxBooster = 2e18;
         address owner = msg.sender;
         address pendingOwner = makeAddr("pendingOwner");
 
-        chestHarness = new ChestHarness(
-            jellyToken,
-            fee,
-            maxBooster,
-            owner,
-            pendingOwner
-        );
+        chestHarness = new ChestHarness(jellyToken, fee, owner, pendingOwner);
     }
 
     function test_calculateBooster(
@@ -79,7 +72,7 @@ contract ChestBoosterCalculationDifferentialTest is Test {
                 freezingPeriod > MIN_FREEZING_PERIOD_REGULAR_CHEST
         );
 
-        uint8 nerfParameter = 10;
+        uint8 nerfParameter = MAX_NERF_PARAMETER;
         uint32 vestingDuration = 0;
 
         vestingPosition = chestHarness.exposed_createVestingPosition(

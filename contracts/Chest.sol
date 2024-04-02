@@ -19,6 +19,8 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
     uint32 constant MIN_VESTING_DURATION = 1; // @dev need this to make difference between special and regular chest
+    uint32 constant MAX_VESTING_DURATION = 3 * 365 days;
+    uint8 constant MAX_NERF_PARAMETER = 10;
     uint32 constant TIME_FACTOR = 7 days;
 
     uint120 private constant DECIMALS = 1e18;
@@ -75,6 +77,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
     error Chest__InvalidVestingDuration();
+    error Chest__InvalidNerfParameter();
     error Chest__CannotModifySpecial();
     error Chest__NonTransferrableToken();
     error Chest__NotAuthorizedForToken();
@@ -185,9 +188,14 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         if (freezingPeriod > MAX_FREEZING_PERIOD_SPECIAL_CHEST) {
             revert Chest__InvalidFreezingPeriod();
         }
-        if (vestingDuration < MIN_VESTING_DURATION) {
+        if (
+            vestingDuration < MIN_VESTING_DURATION ||
+            vestingDuration > MAX_VESTING_DURATION
+        ) {
             revert Chest__InvalidVestingDuration();
         }
+        if (nerfParameter > MAX_NERF_PARAMETER)
+            revert Chest__InvalidNerfParameter();
 
         uint256 currentTokenId = index;
         createVestingPosition(

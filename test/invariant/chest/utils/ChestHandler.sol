@@ -12,17 +12,16 @@ contract ChestHandler is Test {
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
-    
+    uint32 constant MIN_VESTING_DURATION = 1;
+    uint32 constant MAX_VESTING_DURATION = 3 * 365 days;
+    uint8 constant MAX_NERF_PARAMETER = 10;
+
     address immutable i_beneficiary;
 
     Chest private immutable i_chest;
     ERC20Token private immutable i_jellyToken;
 
-    constructor(
-        address beneficiary,
-        Chest chest,
-        ERC20Token jellyToken
-    ) {
+    constructor(address beneficiary, Chest chest, ERC20Token jellyToken) {
         i_beneficiary = beneficiary;
         i_chest = chest;
         i_jellyToken = jellyToken;
@@ -79,7 +78,11 @@ contract ChestHandler is Test {
         uint32 freezingPeriod,
         address caller
     ) external {
-        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
+        amount = bound(
+            amount,
+            MIN_STAKING_AMOUNT,
+            JELLY_MAX_SUPPLY - i_chest.fee()
+        ); // @dev substracting fee so it's not bigger than max supply
         vm.assume(beneficiary != address(0) && beneficiary != address(this));
         assumePayable(beneficiary);
         freezingPeriod = uint32(
@@ -107,16 +110,20 @@ contract ChestHandler is Test {
         uint32 vestingDuration,
         uint8 nerfParameter
     ) external {
-        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY - i_chest.fee()); // @dev substracting fee so it's not bigger than max supply
+        amount = bound(
+            amount,
+            MIN_STAKING_AMOUNT,
+            JELLY_MAX_SUPPLY - i_chest.fee()
+        ); // @dev substracting fee so it's not bigger than max supply
         vm.assume(beneficiary != address(0) && beneficiary != address(this));
         assumePayable(beneficiary);
         freezingPeriod = uint32(
             bound(freezingPeriod, 0, MAX_FREEZING_PERIOD_SPECIAL_CHEST)
         );
         vestingDuration = uint32(
-            bound(vestingDuration, 1, MAX_FREEZING_PERIOD_SPECIAL_CHEST / 3)
-        ); // 1,5 years
-        nerfParameter = uint8(bound(nerfParameter, 1, 10));
+            bound(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION)
+        );
+        nerfParameter = uint8(bound(nerfParameter, 1, MAX_NERF_PARAMETER));
 
         address sender = makeAddr("specialChestCreator");
 

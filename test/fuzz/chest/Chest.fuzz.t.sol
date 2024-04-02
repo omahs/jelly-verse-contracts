@@ -49,6 +49,9 @@ contract ChestFuzzTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MIN_VESTING_DURATION = 1;
+    uint32 constant MAX_VESTING_DURATION = 3 * 365 days;
+    uint8 constant MAX_NERF_PARAMETER = 10;
 
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
@@ -94,6 +97,7 @@ contract ChestFuzzTest is Test {
     error Chest__NothingToIncrease();
     error Chest__InvalidFreezingPeriod();
     error Chest__InvalidVestingDuration();
+    error Chest__InvalidNerfParameter();
     error Chest__CannotModifySpecial();
     error Chest__NonTransferrableToken();
     error Chest__NotAuthorizedForToken();
@@ -369,9 +373,9 @@ contract ChestFuzzTest is Test {
             bound(freezingPeriod, 0, MAX_FREEZING_PERIOD_SPECIAL_CHEST)
         );
         vestingDuration = uint32(
-            bound(vestingDuration, 1, MAX_FREEZING_PERIOD_SPECIAL_CHEST / 3)
-        ); // 1,5 years
-        nerfParameter = uint8(bound(nerfParameter, 1, 10));
+            bound(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION)
+        );
+        nerfParameter = uint8(bound(nerfParameter, 1, MAX_NERF_PARAMETER));
 
         uint256 totalFeesBefore = chest.totalFees();
         uint256 specialChestCreatorJellyBalanceBefore = jellyToken.balanceOf(
@@ -449,9 +453,9 @@ contract ChestFuzzTest is Test {
             bound(freezingPeriod, 0, MAX_FREEZING_PERIOD_SPECIAL_CHEST)
         );
         vestingDuration = uint32(
-            bound(vestingDuration, 1, MAX_FREEZING_PERIOD_SPECIAL_CHEST / 3)
+            bound(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION)
         );
-        nerfParameter = uint8(bound(nerfParameter, 1, 10));
+        nerfParameter = uint8(bound(nerfParameter, 1, MAX_NERF_PARAMETER));
 
         vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
@@ -479,9 +483,9 @@ contract ChestFuzzTest is Test {
             bound(freezingPeriod, 0, MAX_FREEZING_PERIOD_SPECIAL_CHEST)
         );
         vestingDuration = uint32(
-            bound(vestingDuration, 1, MAX_FREEZING_PERIOD_SPECIAL_CHEST / 3)
+            bound(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION)
         );
-        nerfParameter = uint8(bound(nerfParameter, 1, 10));
+        nerfParameter = uint8(bound(nerfParameter, 1, MAX_NERF_PARAMETER));
 
         vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
@@ -513,9 +517,9 @@ contract ChestFuzzTest is Test {
         );
         assumePayable(beneficiary);
         vestingDuration = uint32(
-            bound(vestingDuration, 1, MAX_FREEZING_PERIOD_SPECIAL_CHEST / 3)
+            bound(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION)
         );
-        nerfParameter = uint8(bound(nerfParameter, 1, 10));
+        nerfParameter = uint8(bound(nerfParameter, 1, MAX_NERF_PARAMETER));
 
         vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
@@ -530,7 +534,7 @@ contract ChestFuzzTest is Test {
         vm.stopPrank();
     }
 
-    function testFuzz_stakeSpecialInvalidVestingDuration(
+    function testFuzz_stakeSpecialInvalidMinimumVestingDuration(
         uint256 amount,
         address beneficiary,
         uint32 freezingPeriod,
@@ -552,12 +556,91 @@ contract ChestFuzzTest is Test {
                 beneficiary != address(chestHarness)
         );
         assumePayable(beneficiary);
-        vestingDuration = 0;
-        nerfParameter = uint8(bound(nerfParameter, 1, 10));
+        vestingDuration = MIN_VESTING_DURATION - 1;
+        nerfParameter = uint8(bound(nerfParameter, 1, MAX_NERF_PARAMETER));
 
         vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount + chest.fee());
         vm.expectRevert(Chest__InvalidVestingDuration.selector);
+        chest.stakeSpecial(
+            amount,
+            beneficiary,
+            freezingPeriod,
+            vestingDuration,
+            nerfParameter
+        );
+        vm.stopPrank();
+    }
+
+    function testFuzz_stakeSpecialInvalidMaximumVestingDuration(
+        uint256 amount,
+        address beneficiary,
+        uint32 freezingPeriod,
+        uint32 vestingDuration,
+        uint8 nerfParameter
+    ) external {
+        freezingPeriod = uint32(
+            bound(
+                freezingPeriod,
+                MIN_FREEZING_PERIOD_REGULAR_CHEST,
+                MAX_FREEZING_PERIOD_SPECIAL_CHEST
+            )
+        );
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
+        vm.assume(
+            beneficiary != address(0) &&
+                beneficiary != address(this) &&
+                beneficiary != address(jellyToken) &&
+                beneficiary != address(chestHarness)
+        );
+        assumePayable(beneficiary);
+        vestingDuration = MAX_VESTING_DURATION + 1;
+        nerfParameter = uint8(bound(nerfParameter, 1, MAX_NERF_PARAMETER));
+
+        vm.startPrank(specialChestCreator);
+        jellyToken.approve(address(chest), amount + chest.fee());
+        vm.expectRevert(Chest__InvalidVestingDuration.selector);
+        chest.stakeSpecial(
+            amount,
+            beneficiary,
+            freezingPeriod,
+            vestingDuration,
+            nerfParameter
+        );
+        vm.stopPrank();
+    }
+
+    function testFuzz_stakeSpecialInvalidNerfParameter(
+        uint256 amount,
+        address beneficiary,
+        uint32 freezingPeriod,
+        uint32 vestingDuration,
+        uint8 nerfParameter
+    ) external {
+        freezingPeriod = uint32(
+            bound(
+                freezingPeriod,
+                MIN_FREEZING_PERIOD_REGULAR_CHEST,
+                MAX_FREEZING_PERIOD_SPECIAL_CHEST
+            )
+        );
+        vestingDuration = uint32(
+            bound(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION)
+        );
+        amount = bound(amount, MIN_STAKING_AMOUNT, JELLY_MAX_SUPPLY);
+        vm.assume(
+            beneficiary != address(0) &&
+                beneficiary != address(this) &&
+                beneficiary != address(jellyToken) &&
+                beneficiary != address(chestHarness)
+        );
+        assumePayable(beneficiary);
+
+        nerfParameter = MAX_NERF_PARAMETER + 1;
+
+        vm.startPrank(specialChestCreator);
+        jellyToken.approve(address(chest), amount + chest.fee());
+        vm.expectRevert(Chest__InvalidNerfParameter.selector);
         chest.stakeSpecial(
             amount,
             beneficiary,

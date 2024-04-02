@@ -51,6 +51,10 @@ contract ChestTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
     uint32 constant MAX_FREEZING_PERIOD_SPECIAL_CHEST = 5 * 365 days;
     uint32 constant MIN_FREEZING_PERIOD_REGULAR_CHEST = 7 days;
+    uint32 constant MIN_VESTING_DURATION = 1;
+    uint32 constant MAX_VESTING_DURATION = 3 * 365 days;
+    uint8 constant MAX_NERF_PARAMETER = 10;
+    uint32 constant TIME_FACTOR = 7 days;
 
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
@@ -59,7 +63,6 @@ contract ChestTest is Test {
     uint256 constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
 
     address immutable i_deployerAddress;
-    uint32 immutable i_timeFactor;
 
     address testAddress = makeAddr("testAddress");
     address specialChestCreator = makeAddr("specialChestCreator");
@@ -95,7 +98,6 @@ contract ChestTest is Test {
     event SetFee(uint128 fee);
     event SetBoosterThreshold(uint256 boosterThreshold);
     event SetMinimalStakingPower(uint256 minimalStakingPower);
-    event SetMaxBooster(uint120 maxBooster);
     event FeeWithdrawn(address indexed beneficiary);
 
     error Chest__ZeroAddress();
@@ -108,6 +110,7 @@ contract ChestTest is Test {
     error Chest__NotAuthorizedForToken();
     error Chest__FreezingPeriodNotOver();
     error Chest__InvalidVestingDuration();
+    error Chest__InvalidNerfParameter();
     error Chest__CannotUnstakeMoreThanReleasable();
     error Chest__NothingToUnstake();
     error Chest__InvalidBoosterValue();
@@ -151,7 +154,6 @@ contract ChestTest is Test {
 
     constructor() {
         i_deployerAddress = msg.sender;
-        i_timeFactor = 7 days;
     }
 
     function setUp() public {
@@ -585,16 +587,58 @@ contract ChestTest is Test {
         vm.stopPrank();
     }
 
-    function test_stakeSpecialInvalidVestingDuration() external {
+    function test_stakeSpecialInvalidMinimumVestingDuration() external {
         uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriod = MAX_FREEZING_PERIOD_SPECIAL_CHEST;
-        uint32 vestingDuration = 0;
+        uint32 vestingDuration = MIN_VESTING_DURATION - 1;
         uint8 nerfParameter = 5;
 
         vm.startPrank(specialChestCreator);
         jellyToken.approve(address(chest), amount);
 
         vm.expectRevert(Chest__InvalidVestingDuration.selector);
+        chest.stakeSpecial(
+            amount,
+            testAddress,
+            freezingPeriod,
+            vestingDuration,
+            nerfParameter
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_stakeSpecialInvalidMaximumVestingDuration() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
+        uint32 freezingPeriod = MAX_FREEZING_PERIOD_SPECIAL_CHEST;
+        uint32 vestingDuration = MAX_VESTING_DURATION + 1;
+        uint8 nerfParameter = 5;
+
+        vm.startPrank(specialChestCreator);
+        jellyToken.approve(address(chest), amount);
+
+        vm.expectRevert(Chest__InvalidVestingDuration.selector);
+        chest.stakeSpecial(
+            amount,
+            testAddress,
+            freezingPeriod,
+            vestingDuration,
+            nerfParameter
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_stakeSpecialInvalidNerfParameter() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
+        uint32 freezingPeriod = MAX_FREEZING_PERIOD_SPECIAL_CHEST;
+        uint32 vestingDuration = MAX_VESTING_DURATION;
+        uint8 nerfParameter = MAX_NERF_PARAMETER + 1;
+
+        vm.startPrank(specialChestCreator);
+        jellyToken.approve(address(chest), amount);
+
+        vm.expectRevert(Chest__InvalidNerfParameter.selector);
         chest.stakeSpecial(
             amount,
             testAddress,
@@ -2003,7 +2047,7 @@ contract ChestTest is Test {
         uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD_REGULAR_CHEST;
         uint32 freezingPeriodMaximum = MAX_FREEZING_PERIOD_REGULAR_CHEST;
-        uint8 nerfParameter = 10;
+        uint8 nerfParameter = MAX_NERF_PARAMETER;
         uint32 vestingDuration = 0;
 
         // Position with minimum freezing period
@@ -2032,7 +2076,7 @@ contract ChestTest is Test {
             assertEq(
                 booster,
                 INITIAL_BOOSTER +
-                    Math.ceilDiv(i * 1 days, i_timeFactor) *
+                    Math.ceilDiv(i * 1 days, TIME_FACTOR) *
                     WEEKLY_BOOSTER_INCREMENT
             );
         }
@@ -2062,7 +2106,7 @@ contract ChestTest is Test {
             assertEq(
                 booster,
                 INITIAL_BOOSTER +
-                    Math.ceilDiv(i * 1 days, i_timeFactor) *
+                    Math.ceilDiv(i * 1 days, TIME_FACTOR) *
                     WEEKLY_BOOSTER_INCREMENT
             );
         }
@@ -2095,7 +2139,7 @@ contract ChestTest is Test {
     function test_calculatePowerChestWithMinimumFreezingPeriod() external {
         uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriodMinimum = MIN_FREEZING_PERIOD_REGULAR_CHEST;
-        uint8 nerfParameter = 10;
+        uint8 nerfParameter = MAX_NERF_PARAMETER;
 
         // Regular chest position with minimum freezing period
         uint32 vestingDuration = 0;
@@ -2179,7 +2223,7 @@ contract ChestTest is Test {
     function test_calculatePowerChestWithMaximumFreezingPeriod() external {
         uint256 amount = MIN_STAKING_AMOUNT;
         uint32 freezingPeriodMaximum = MAX_FREEZING_PERIOD_REGULAR_CHEST;
-        uint8 nerfParameter = 10;
+        uint8 nerfParameter = MAX_NERF_PARAMETER;
 
         // Regular chest position with maximum freezing period
         uint32 vestingDuration = 0;
