@@ -51,7 +51,7 @@ export function shouldCancelScheduledOperations(): void {
 			});
 
 			it('should revert if operation is already executed', async function () {
-				await mine(this.params.minTimelockDelay);
+				await time.increase(this.params.minTimelockDelay);
 
 				await this.jellyTimelock
 					.connect(this.signers.timelockExecutor)

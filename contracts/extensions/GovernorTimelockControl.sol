@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 
 import "../vendor/openzeppelin/v4.9.0/governance/extensions/IGovernorTimelock.sol";
 import "../Governor.sol";
-import "../TimelockController.sol";
+import "../vendor/openzeppelin/v4.9.0/governance/TimelockController.sol";
 
 /**
  * @dev Extension of {Governor} that binds the execution process to an instance of {TimelockController}. This adds a
@@ -101,7 +101,7 @@ abstract contract GovernorTimelockControl is IGovernorTimelock, Governor {
         _timelockIds[proposalId] = _timelock.hashOperationBatch(targets, values, calldatas, 0, descriptionHash);
         _timelock.scheduleBatch(targets, values, calldatas, 0, descriptionHash, delay);
 
-        emit ProposalQueued(proposalId, block.number + delay);
+        emit ProposalQueued(proposalId, block.timestamp + delay);
 
         return proposalId;
     }

@@ -51,7 +51,7 @@ export function shouldCancelProposals(): void {
 
 		describe('failure', async function () {
 			it('should revert if proposal passed is invalid', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.cancel(
 						proposalAddresses,
@@ -63,7 +63,7 @@ export function shouldCancelProposals(): void {
 			});
 
 			it('should revert if proposal voting has started', async function () {
-				await mine(this.params.votingDelay.add(constants.One));
+				await time.increase(this.params.votingDelay.add(constants.One));
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(

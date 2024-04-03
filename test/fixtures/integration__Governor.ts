@@ -55,8 +55,8 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
 
     const fee = BigNumber.from("10"); // 10 wei
 
-    const votingDelay = BigNumber.from("7200"); // 7200 blocks
-    const votingPeriod = BigNumber.from("50400"); // 1 week
+    const votingDelay = BigNumber.from("86400"); // 1 day
+    const votingPeriod = BigNumber.from("604800"); // 1 week
     const proposalThreshold = BigNumber.from("0"); // anyone can create a proposal
     const quorum = BigNumber.from("1001"); // 1001
     const minTimelockDelay = ONE_DAYS_IN_SOLIDITY;
