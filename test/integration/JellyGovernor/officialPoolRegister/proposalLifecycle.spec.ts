@@ -50,7 +50,7 @@ export function shouldFollowProposalLifeCycle(): void {
     });
 
     it('should be in active state', async function () {
-      await mine(this.params.votingDelay.add(constants.One));
+      await time.increase(this.params.votingDelay.add(constants.One));
 
       const proposalState = await this.jellyGovernor.state(proposalId);
 
@@ -61,7 +61,7 @@ export function shouldFollowProposalLifeCycle(): void {
     });
 
     it('should be in succeeded state', async function () {
-      await mine(this.params.votingDelay.add(constants.One));
+      await time.increase(this.params.votingDelay.add(constants.One));
 
       proposalParams = utils.defaultAbiCoder.encode(
         ['uint256[]'],
@@ -72,10 +72,10 @@ export function shouldFollowProposalLifeCycle(): void {
         .connect(this.signers.alice)
         .castVoteWithReasonAndParams(proposalId, VoteType.For, "", proposalParams);
 
-      await mine(this.params.votingPeriod.add(constants.One));
+      await time.increase(this.params.votingPeriod.add(constants.One));
 
       const proposalState = await this.jellyGovernor.state(proposalId);
-
+      console.log(proposalState, ProposalState.Succeeded);
       assert(
         proposalState === ProposalState.Succeeded,
         'Proposal should be in succeeded state'
@@ -83,7 +83,7 @@ export function shouldFollowProposalLifeCycle(): void {
     });
 
     it('should be in defeated state', async function () {
-      await mine(this.params.votingDelay.add(constants.One));
+      await time.increase(this.params.votingDelay.add(constants.One));
 
       proposalParams = utils.defaultAbiCoder.encode(
         ['uint256[]'],
@@ -94,7 +94,7 @@ export function shouldFollowProposalLifeCycle(): void {
         .connect(this.signers.alice)
         .castVoteWithReasonAndParams(proposalId, VoteType.Against, "", proposalParams);
 
-      await mine(this.params.votingPeriod.add(constants.One));
+      await time.increase(this.params.votingPeriod.add(constants.One));
 
       const proposalState = await this.jellyGovernor.state(proposalId);
 
@@ -105,7 +105,7 @@ export function shouldFollowProposalLifeCycle(): void {
     });
 
     it('should be in queued state', async function () {
-      await mine(this.params.votingDelay.add(constants.One));
+      await time.increase(this.params.votingDelay.add(constants.One));
 
       proposalParams = utils.defaultAbiCoder.encode(
         ['uint256[]'],
@@ -116,7 +116,7 @@ export function shouldFollowProposalLifeCycle(): void {
         .connect(this.signers.alice)
         .castVoteWithReasonAndParams(proposalId, VoteType.For, "", proposalParams);
 
-      await mine(this.params.votingPeriod.add(constants.One));
+      await time.increase(this.params.votingPeriod.add(constants.One));
 
       const proposalDescriptionHash = utils.id(proposalDescription);
 
@@ -140,7 +140,7 @@ export function shouldFollowProposalLifeCycle(): void {
       const officialPoolsRegisteredBefore = await this.officialPoolsRegister.getAllOfficialPools();
       const numberOfOfficialPoolsRegisteredBefore = officialPoolsRegisteredBefore.length;
 
-      await mine(this.params.votingDelay.add(constants.One));
+      await time.increase(this.params.votingDelay.add(constants.One));
 
       proposalParams = utils.defaultAbiCoder.encode(
         ['uint256[]'],
@@ -151,7 +151,7 @@ export function shouldFollowProposalLifeCycle(): void {
         .connect(this.signers.alice)
         .castVoteWithReasonAndParams(proposalId, VoteType.For, "", proposalParams);
 
-      await mine(this.params.votingPeriod.add(constants.One));
+      await time.increase(this.params.votingPeriod.add(constants.One));
 
       const proposalDescriptionHash = utils.id(proposalDescription);
 
@@ -164,7 +164,7 @@ export function shouldFollowProposalLifeCycle(): void {
           proposalDescriptionHash
         );
 
-      await mine(this.params.minTimelockDelay.add(constants.One));
+      await time.increase(this.params.minTimelockDelay.add(constants.One));
 
       await this.jellyGovernor
         .connect(this.signers.alice)

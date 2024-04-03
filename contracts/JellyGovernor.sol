@@ -10,8 +10,8 @@ import "./interfaces/IChest.sol";
 
 contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorTimelockControl {
     constructor(address _chest, TimelockController _timelock)
-        Governor("JellyGovernor", _chest, 300 /* 1 hour */, 7200 /* 1 day */) // minimum voting delay and period
-        GovernorSettings(7200 /* 1 day */, 50400 /* 1 week */, 0) // default voting delay, period and threshold
+        Governor("JellyGovernor", _chest, 3600 /* 1 hour */, 86400 /* 1 day */) // minimum voting delay and period
+        GovernorSettings(86400 /* 1 day */, 604800 /* 1 week */, 0) // default voting delay, period and threshold
         GovernorVotes(_chest)
         GovernorTimelockControl(_timelock)
     {}

@@ -21,8 +21,8 @@ type UnitJellyGovernorFixtureType = {
 export async function unitJellyGovernorFixture(): Promise<UnitJellyGovernorFixtureType> {
 	const { deployer, alice } = await getSigners();
 
-	const votingDelay = BigNumber.from('7200'); // 1 day
-	const votingPeriod = BigNumber.from('50400'); // 1 week
+	const votingDelay = BigNumber.from('86400'); // 1 day
+	const votingPeriod = BigNumber.from('604800'); // 1 week
 	const proposalThreshold = BigNumber.from('0'); // anyone can create a proposal
 	const quorum = BigNumber.from('424000'); // Chest power of 8_000_000 JELLY staked for a year
 	const lastChestId = BigNumber.from('9'); // 9 (chest.totalSupply() - 1)

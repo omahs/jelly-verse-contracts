@@ -104,7 +104,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set snapshot', async function () {
-				const latestBlockTime = BigNumber.from(await time.latestBlock());
+				const latestBlockTime = BigNumber.from(await time.latest());
 				const expectedSnapshot = latestBlockTime.add(this.params.votingDelay);
 				const actualSnapshot = await this.jellyGovernor.proposalSnapshot(
 					proposalId
@@ -140,7 +140,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set deadline', async function () {
-				const latestBlockTime = BigNumber.from(await time.latestBlock());
+				const latestBlockTime = BigNumber.from(await time.latest());
 				const expectedDeadline = latestBlockTime
 					.add(this.params.votingDelay)
 					.add(this.params.votingPeriod);
@@ -153,10 +153,10 @@ export function shouldCreateProposals(): void {
 
 			it('should emit ProposalCreated event', async function () {
 				const targetsLength = [''];
-				const nextBlockNumber = BigNumber.from(await time.latestBlock()).add(
+				const nextBlockNumberTimestamp = BigNumber.from(await time.latest()).add(
 					constants.One
 				);
-				const snapshot = nextBlockNumber.add(this.params.votingDelay);
+				const snapshot = nextBlockNumberTimestamp.add(this.params.votingDelay);
 				const deadline = snapshot.add(this.params.votingPeriod);
 
 				await expect(
@@ -206,8 +206,8 @@ export function shouldCreateProposals(): void {
 	describe('#proposeCustom', async function () {
 		const amountToMint = utils.parseEther('100');
 		const proposalDescription = 'Test Proposal #1: Mint 100 JLY tokens to Alice';
-		const minVotingDelay = 300 /* 1 hour */;
-		const minVotingPeriod =  7200 /* 1 day */
+		const minVotingDelay = 3600 /* 1 hour */;
+		const minVotingPeriod =  86400 /* 1 day */
 		let mintFunctionCalldata: string;
 
 		beforeEach(async function () {
@@ -342,7 +342,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set snapshot', async function () {
-				const latestBlockTime = BigNumber.from(await time.latestBlock());
+				const latestBlockTime = BigNumber.from(await time.latest());
 				const expectedSnapshot = latestBlockTime.add(minVotingDelay);
 				const actualSnapshot = await this.jellyGovernor.proposalSnapshot(
 					proposalId
@@ -378,7 +378,7 @@ export function shouldCreateProposals(): void {
 			});
 
 			it('should set deadline', async function () {
-				const latestBlockTime = BigNumber.from(await time.latestBlock());
+				const latestBlockTime = BigNumber.from(await time.latest());
 				const expectedDeadline = latestBlockTime
 					.add(minVotingDelay)
 					.add(minVotingPeriod);
@@ -391,10 +391,10 @@ export function shouldCreateProposals(): void {
 
 			it('should emit ProposalCreated event', async function () {
 				const targetsLength = [''];
-				const nextBlockNumber = BigNumber.from(await time.latestBlock()).add(
-					constants.One
+				const nextBlockNumberTimestamp = BigNumber.from(await time.latest()).add(
+					constants.Two
 				);
-				const snapshot = nextBlockNumber.add(minVotingDelay);
+				const snapshot = nextBlockNumberTimestamp.add(minVotingDelay);
 				const deadline = snapshot.add(minVotingPeriod);
 
 				await expect(

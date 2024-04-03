@@ -108,7 +108,7 @@ export async function deployMockJellyTimelock(
 
 	await mockJellyTimelock.mock.execute.returns();
 	await mockJellyTimelock.mock.scheduleBatch.returns();
-	await mockJellyTimelock.mock.getMinDelay.returns(BigNumber.from(7200)); // 1 day
+	await mockJellyTimelock.mock.getMinDelay.returns(BigNumber.from(86400)); // 1 day
 	await mockJellyTimelock.mock.hashOperationBatch.returns(hash);
 	await mockJellyTimelock.mock.executeBatch.returns();
 	await mockJellyTimelock.mock.isOperationDone.returns(operationDone);

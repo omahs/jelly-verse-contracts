@@ -45,14 +45,14 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because invalid proposal id', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVote(proposalId.add(1000), 0)
 				).to.be.revertedWith('Governor: unknown proposal id');
 			});
 
 			it('should revert always because no params (chestIds) have been passed', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVote(proposalId, 0)
 				).to.be.revertedWith('JellyGovernor: no params provided in voting weight query');
@@ -131,7 +131,7 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because invalid proposal id', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteBySig(proposalId.add(1000), 0, v, r, s)
 				).to.be.revertedWith('Governor: unknown proposal id');
@@ -144,7 +144,7 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert always because no params (chestIds) have been passed', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteBySig(proposalId, 0, v, r, s)
 				).to.be.revertedWith('JellyGovernor: no params provided in voting weight query');
@@ -189,14 +189,14 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because invalid proposal id', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteWithReason(proposalId.add(1000), 0, 'I like this proposal.')
 				).to.be.revertedWith('Governor: unknown proposal id');
 			});
 
 			it('should revert always because no params (chestIds) have been passed', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteWithReason(proposalId, 0, 'I like this proposal.')
 				).to.be.revertedWith('JellyGovernor: no params provided in voting weight query');
@@ -252,14 +252,14 @@ export function shouldVoteOnProposals(): void {
 			});
 			
 			it('should revert because invalid proposal id', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteWithReasonAndParams(proposalId.add(1000), 0, proposalReason, proposalParams)
 				).to.be.revertedWith('Governor: unknown proposal id');
 			});
 
 			it('should revert because no chestIds in enocoded params', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				const chestIDs: number[] = [];
 				const invalidProposalParams = utils.defaultAbiCoder.encode(
 				['uint256[]'],
@@ -271,7 +271,7 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because provided chestId is not viable for voting', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				const chestIDs: number[] = [10, 1];
 				const invalidProposalParams = utils.defaultAbiCoder.encode(
 				['uint256[]'],
@@ -283,14 +283,14 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because provided support parameter in invalid', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteWithReasonAndParams(proposalId, 3, proposalReason, proposalParams)
 				).to.be.revertedWith('GovernorVotingSimple: invalid value for enum VoteType');
 			});
 
 			it('should revert because user already voted', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await this.jellyGovernor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, 0, proposalReason, proposalParams);
 
 				await expect(
@@ -303,7 +303,7 @@ export function shouldVoteOnProposals(): void {
 			let alicesVotes: BigNumber;
 
 			beforeEach(async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				alicesVotes = await this.jellyGovernor.connect(this.signers.alice).getVotesWithParams(this.signers.alice.address, lastChestIdForProposal, proposalParams);
 				await this.jellyGovernor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, 0, proposalReason, proposalParams);
 			});
@@ -444,14 +444,14 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because invalid proposal id', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteWithReasonAndParamsBySig(proposalId.add(1000), support, proposalReason, proposalParams, v, r, s)
 				).to.be.revertedWith('Governor: unknown proposal id');
 			});
 
 			it('should revert because no chestIds in enocoded params', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				const chestIDs: number[] = [];
 				const invalidProposalParams = utils.defaultAbiCoder.encode(
 				['uint256[]'],
@@ -463,7 +463,7 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because provided chestId is not viable for voting', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				const chestIDs: number[] = [10, 1];
 				const invalidProposalParams = utils.defaultAbiCoder.encode(
 				['uint256[]'],
@@ -475,14 +475,14 @@ export function shouldVoteOnProposals(): void {
 			});
 
 			it('should revert because provided support parameter in invalid', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await expect(
 					this.jellyGovernor.castVoteWithReasonAndParamsBySig(proposalId, 8, proposalReason, proposalParams, v, r, s)
 				).to.be.revertedWith('GovernorVotingSimple: invalid value for enum VoteType');
 			});
 
 			it('should revert because user already voted', async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await this.jellyGovernor.castVoteWithReasonAndParamsBySig(proposalId, support, proposalReason, proposalParams, v, r, s)
 
 				await expect(
@@ -493,7 +493,7 @@ export function shouldVoteOnProposals(): void {
 
 		describe('success', async function () {
 			beforeEach(async function () {
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await this.jellyGovernor.castVoteWithReasonAndParamsBySig(proposalId, support, proposalReason, proposalParams, v, r, s)
 			});
 

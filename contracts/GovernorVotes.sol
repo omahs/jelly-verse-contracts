@@ -19,11 +19,10 @@ abstract contract GovernorVotes is Governor {
     }
 
     /**
-     * @dev Clock (as specified in EIP-6372) is set to match the token's clock. Fallback to block numbers if the token
-     * does not implement EIP-6372.
+     * @dev Block timestamp as a proxy for the current time.
      */
     function clock() public view virtual override returns (uint48) {
-        return SafeCast.toUint48(block.number);
+        return SafeCast.toUint48(block.timestamp);
     }
 
     /**
@@ -31,7 +30,7 @@ abstract contract GovernorVotes is Governor {
      */
     // solhint-disable-next-line func-name-mixedcase
     function CLOCK_MODE() public view virtual override returns (string memory) {
-        return "mode=blocknumber&from=default";
+        return "mode=timestamp&from=default";
     }
 
     /**
