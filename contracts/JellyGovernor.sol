@@ -16,7 +16,7 @@ contract JellyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Go
         GovernorTimelockControl(_timelock)
     {}
 
-    function quorum(uint256 blockNumber) public pure override returns (uint256) {
+    function quorum(uint256) public pure override returns (uint256) {
         return 424000; // Chest power of 8_000_000 JELLY staked for a year
     }
 

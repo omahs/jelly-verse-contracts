@@ -392,7 +392,7 @@ export function shouldCreateProposals(): void {
 			it('should emit ProposalCreated event', async function () {
 				const targetsLength = [''];
 				const nextBlockNumberTimestamp = BigNumber.from(await time.latest()).add(
-					constants.Two
+					constants.One
 				);
 				const snapshot = nextBlockNumberTimestamp.add(minVotingDelay);
 				const deadline = snapshot.add(minVotingPeriod);

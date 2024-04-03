@@ -331,8 +331,8 @@ abstract contract Governor is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description,
-        uint48 votingDelay,
-        uint48 votingPeriod
+        uint256 votingDelay,
+        uint256 votingPeriod
     ) public virtual returns (uint256) {
         require(
             votingDelay >= _minVotingDelay,
@@ -348,8 +348,6 @@ abstract contract Governor is
             "Governor: proposer restricted"
         );
 
-        uint256 currentTimepoint = clock();
-        uint256 lastChestId = _chest.totalSupply() - 1;
         uint256 proposalId = hashProposal(
             targets,
             values,
@@ -371,22 +369,20 @@ abstract contract Governor is
             "Governor: proposal already exists"
         );
 
-        uint64 snapshot = SafeCast.toUint64(currentTimepoint) +
-            SafeCast.toUint64(votingDelay);
-        uint64 deadline = SafeCast.toUint64(snapshot) +
-            SafeCast.toUint64(votingPeriod);
+        uint256 snapshot = clock() + votingDelay;
+        // @dev avoiding stack too deep error by not using deadline variable
 
         _proposals[proposalId] = ProposalCore({
             proposer: proposer,
-            finalChestId: lastChestId,
-            voteStart: snapshot,
-            voteEnd: deadline,
+            finalChestId: _chest.totalSupply() - 1,
+            voteStart: SafeCast.toUint64(snapshot),
+            voteEnd: SafeCast.toUint64(snapshot + votingPeriod),
             executed: false,
             canceled: false,
             __gap_unused0: 0,
             __gap_unused1: 0
         });
-        /*
+
         emit ProposalCreated(
             proposalId,
             proposer,
@@ -395,10 +391,9 @@ abstract contract Governor is
             new string[](targets.length),
             calldatas,
             snapshot,
-            deadline,
+            snapshot + votingPeriod,
             description
         );
-        */
 
         return proposalId;
     }
@@ -418,8 +413,6 @@ abstract contract Governor is
             "Governor: proposer restricted"
         );
 
-        uint256 currentTimepoint = clock();
-        uint256 lastChestId = _chest.totalSupply() - 1;
         uint256 proposalId = hashProposal(
             targets,
             values,
@@ -441,12 +434,12 @@ abstract contract Governor is
             "Governor: proposal already exists"
         );
 
-        uint256 snapshot = currentTimepoint + votingDelay();
+        uint256 snapshot = clock() + votingDelay();
         uint256 deadline = snapshot + votingPeriod();
 
         _proposals[proposalId] = ProposalCore({
             proposer: proposer,
-            finalChestId: lastChestId,
+            finalChestId: _chest.totalSupply() - 1,
             voteStart: SafeCast.toUint64(snapshot),
             voteEnd: SafeCast.toUint64(deadline),
             executed: false,
@@ -454,7 +447,7 @@ abstract contract Governor is
             __gap_unused0: 0,
             __gap_unused1: 0
         });
-        /*
+
         emit ProposalCreated(
             proposalId,
             proposer,
@@ -466,7 +459,6 @@ abstract contract Governor is
             deadline,
             description
         );
-        */
 
         return proposalId;
     }
