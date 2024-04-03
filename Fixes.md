@@ -12,7 +12,7 @@
 | [H-06] | Inaccurate Voting Power Calculation Due to Exclusion of `releasedAmount` in `calculatePower`   | High          | Fixed        |
 | [H-07] | Absence of `extendFreezingPeriod` Validation Enables Immediate Unstaking                       | High          | Fixed        |
 | [H-08] | Double Spending Vulnerability in `Governor`                                                    | High          |              |
-| [H-09] | Unrestricted Proposer Role in `Timelock` Enables Governance Disruption                         | High          |              |
+| [H-09] | Unrestricted Proposer Role in `Timelock` Enables Governance Disruption                         | High          | Fixed        |
 | [H-10] | Token Ratio Does Not Support a Realistic Price Range                                           | High          |              |
 | [M-01] | Minting of `JellyToken` is centralized                                                         | Medium        |              |
 | [M-02] | Burned Tokens Can Be Reissued by Minters                                                       | Medium        |              |
