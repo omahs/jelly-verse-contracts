@@ -11,7 +11,7 @@ context(`Governance Integration tests`, async function () {
             bob,
             allocator,
             investor,
-            newLpRewardsContractAddress
+            newStakingRewardsContractAddress
         } = await loadFixture(getSigners);
 
         this.signers = {} as Signers;
@@ -20,7 +20,7 @@ context(`Governance Integration tests`, async function () {
         this.signers.bob = bob;
         this.signers.allocator = allocator;
         this.signers.investor = investor;
-        this.signers.newLpRewardsContractAddress = newLpRewardsContractAddress;
+        this.signers.newStakingRewardsContractAddress = newStakingRewardsContractAddress;
 
     });
 

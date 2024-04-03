@@ -7,22 +7,22 @@ export function shouldCastVotes(): void {
     context(
         'Minter Preparing scenario: Creating proposal & Delegating tokens',
         async function () {
-            const proposalDescription = 'Test Proposal #1: Set new LP Rewards Distribution Contract';
-            let setLpRewardsContractFunctionCalldata: string;
+            const proposalDescription = 'Test Proposal #1: Set new Staking Rewards Distribution Contract';
+            let setStakingRewardsContractFunctionCalldata: string;
             let proposalId: BigNumber;
             let proposalParams: string;
             const chestIDs: number[] = [0, 1, 2];
             beforeEach(async function () {
-                setLpRewardsContractFunctionCalldata = this.minter.interface.encodeFunctionData(
-                    'setLpRewardsContract',
-                    [this.signers.newLpRewardsContractAddress.address]
+                setStakingRewardsContractFunctionCalldata = this.minter.interface.encodeFunctionData(
+                    'setStakingRewardsContract',
+                    [this.signers.newStakingRewardsContractAddress.address]
                 );
                 await this.jellyGovernor
                     .connect(this.signers.alice)
                     .propose(
                         [this.minter.address],
                         [0],
-                        [setLpRewardsContractFunctionCalldata],
+                        [setStakingRewardsContractFunctionCalldata],
                         proposalDescription
                     );
 
@@ -31,7 +31,7 @@ export function shouldCastVotes(): void {
                     [
                         [this.minter.address],
                         [0],
-                        [setLpRewardsContractFunctionCalldata],
+                        [setStakingRewardsContractFunctionCalldata],
                         utils.keccak256(utils.toUtf8Bytes(proposalDescription)),
                     ]
                 );

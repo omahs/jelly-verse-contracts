@@ -120,7 +120,7 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
     );
     const minter: Minter = await minterFactory
         .connect(deployer)
-        .deploy(jellyToken.address, liqiuidityRewardDistribution.address, stakingRewardDistribution.address, jellyTimelock.address, ADDRESS_ZERO);
+        .deploy(jellyToken.address, stakingRewardDistribution.address, jellyTimelock.address, ADDRESS_ZERO);
     await minter.deployed();
 
     const jellyGovernorFactory: JellyGovernor__factory =

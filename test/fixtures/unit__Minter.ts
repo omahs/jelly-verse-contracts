@@ -21,7 +21,6 @@ export async function unitMinterFixture(): Promise<UnitMinterFixtureType> {
     const MinterFactory: Minter__factory = await ethers.getContractFactory("Minter");
     const minter: Minter = await MinterFactory.deploy(
         jellyToken.address, 
-        lpRewardsContract.address, 
         stakingRewardsContract.address, 
         deployer.address, 
         otherAccount.address
