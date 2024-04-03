@@ -65,7 +65,7 @@ The following smart contracts were in scope of the audit:
 
 The following number of issues were found, categorized by their severity:
 
-- High: 10 issues
+- High: 9 issues
 - Medium: 7 issues
 - Low: 13 issues
 - Informational: 12 issues
@@ -83,7 +83,6 @@ The following number of issues were found, categorized by their severity:
 | [H-07] | Absence of `extendFreezingPeriod` Validation Enables Immediate Unstaking                       | High          |
 | [H-08] | Double Spending Vulnerability in `Governor`                                                    | High          |
 | [H-09] | Unrestricted Proposer Role in `Timelock` Enables Governance Disruption                         | High          |
-| [H-10] | Token Ratio Does Not Support a Realistic Price Range                                           | High          |
 | [M-01] | Minting of `JellyToken` is centralized                                                         | Medium        |
 | [M-02] | Burned Tokens Can Be Reissued by Minters                                                       | Medium        |
 | [M-03] | `timeFactor` Initialization Risks                                                              | Medium        |
@@ -291,22 +290,6 @@ The deployment script incorrectly sets the proposers array to include `address(0
 ## Recommendations
 
 Restrict the proposer role exclusively to the `Governor` contract to ensure only legitimate governance actions are executable. Remove `address(0)` from the proposers array to prevent unauthorized proposal management.
-
-# [H-10] Token Ratio Does Not Support a Realistic Price Range
-
-## Severity
-
-**Impact**: High, The current token ratio does not allow for an accurate price range coverage.
-
-**Likelihood**: High, The contract's utility is compromised under these conditions
-
-## Description
-
-The `usdToJellyRatio` is crucial as it determines the amount of tokens users receive during a `PoolParty`. Currently, the logic only accommodates ratios greater than one, leading to an FDV of $1 billion, which conflicts with the planned tokenomics.
-
-## Recommendations
-
-It's recommended to update the logic to include support for `usdToJellyRatio` values between 0 and 1, ensuring more realistic price range is achievable.
 
 # [M-01] Minting of `JellyToken` is centralized
 
