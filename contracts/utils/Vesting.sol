@@ -54,21 +54,21 @@ contract Vesting {
 
     function _releasableAmount(
         uint256 vestingIndex
-    ) internal view returns (uint256 vestedAmount) {
+    ) internal view returns (uint256 amount) {
         VestingPosition memory vestingPosition = vestingPositions[vestingIndex];
 
         if (block.timestamp < vestingPosition.cliffTimestamp) {
-            vestedAmount = 0; // @dev reassiging to zero for clarity & better code readability
+            amount = 0; // @dev reassiging to zero for clarity & better code readability
         } else if (
             block.timestamp >=
             vestingPosition.cliffTimestamp + vestingPosition.vestingDuration
         ) {
-            vestedAmount =
+            amount =
                 vestingPosition.totalVestedAmount -
                 vestingPosition.releasedAmount;
         } else {
             unchecked {
-                vestedAmount =
+                amount =
                     ((vestingPosition.totalVestedAmount -
                         vestingPosition.releasedAmount) *
                         (block.timestamp - vestingPosition.cliffTimestamp)) /
