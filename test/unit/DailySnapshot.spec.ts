@@ -35,37 +35,37 @@ describe('DailySnapshot', function () {
     });
   });
 
-  describe("#startSnapshoting", async function () {
+  describe("#startSnapshotting", async function () {
     describe("success", async () => {
       it("should set started to true", async () => {
-        await dailySnapshot.startSnapshoting();
+        await dailySnapshot.startSnapshotting();
         expect(await dailySnapshot.started()).to.be.true;
       });
 
       it("should set beginningOfTheNewDayBlocknumber to current blockNumber", async () => {
         const currentBlockNumber = await time.latestBlock();
-        await dailySnapshot.startSnapshoting();
+        await dailySnapshot.startSnapshotting();
         expect(await dailySnapshot.beginningOfTheNewDayBlocknumber()).to.equal(currentBlockNumber + 1);
       });
 
       it("should set beginningOfTheNewDayTimestamp to current block timestamp", async () => {
         const currentBlockTimestamp = await time.latest();
-        await dailySnapshot.startSnapshoting();
+        await dailySnapshot.startSnapshotting();
         expect(await dailySnapshot.beginningOfTheNewDayTimestamp()).to.equal(currentBlockTimestamp + 1);
       });
 
-      it("should emit SnapshotingStarted event", async () => {
-        await expect(dailySnapshot.startSnapshoting())
-        .to.emit(dailySnapshot, 'SnapshotingStarted')
+      it("should emit SnapshottingStarted event", async () => {
+        await expect(dailySnapshot.startSnapshotting())
+        .to.emit(dailySnapshot, 'SnapshottingStarted')
         .withArgs(owner.address);
       });
     })
 
     describe("failure", async () => {
       it("should revert if already started", async () => {
-        await dailySnapshot.startSnapshoting();
+        await dailySnapshot.startSnapshotting();
         await expect(
-          dailySnapshot.startSnapshoting(),
+          dailySnapshot.startSnapshotting(),
         ).to.be.revertedWithCustomError(
           dailySnapshot,
           "DailySnapshot_AlreadyStarted",
@@ -77,7 +77,7 @@ describe('DailySnapshot', function () {
   describe("#dailySnapshot", async function () {
     describe("success", async () => {
       beforeEach(async function () {
-        await dailySnapshot.startSnapshoting();
+        await dailySnapshot.startSnapshotting();
       });
 
       it("should increase epochDaysIndex by 1", async () => {
@@ -164,7 +164,7 @@ describe('DailySnapshot', function () {
       });
 
       it("should revert if snapshoting attempt was done too early (day not finished)", async () => {
-        await dailySnapshot.startSnapshoting();
+        await dailySnapshot.startSnapshotting();
         await expect(
           dailySnapshot.dailySnapshot(),
         ).to.be.revertedWithCustomError(
