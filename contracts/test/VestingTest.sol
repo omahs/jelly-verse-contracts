@@ -1,23 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {VestingLibChest} from "../utils/VestingLibChest.sol";
+import {Vesting} from "../utils/Vesting.sol";
 
-contract VestingLibChestTest is VestingLibChest {
+contract VestingTest is Vesting {
     function getVestingPosition(
         uint256 vestingIndex
     ) public view returns (VestingPosition memory) {
-        return VestingLibChest.vestingPositions[vestingIndex];
+        return Vesting.vestingPositions[vestingIndex];
     }
 
     function getVestingIndex() public view returns (uint256) {
-        return VestingLibChest.index;
-    }
-
-    function getVestedAmount(
-        uint256 vestingIndex
-    ) public view returns (uint256) {
-        return VestingLibChest.vestedAmount(vestingIndex);
+        return Vesting.index;
     }
 
     function createNewVestingPosition(
@@ -28,7 +22,7 @@ contract VestingLibChestTest is VestingLibChest {
         uint8 nerfParameter
     ) public returns (VestingPosition memory) {
         return
-            VestingLibChest.createVestingPosition(
+            Vesting._createVestingPosition(
                 amount,
                 cliffDuration,
                 vestingDuration,
@@ -37,10 +31,7 @@ contract VestingLibChestTest is VestingLibChest {
             );
     }
 
-    function updateReleasedAmount(
-        uint256 vestingIndex,
-        uint256 releaseAmount
-    ) public {
-        vestingPositions[vestingIndex].releasedAmount += releaseAmount;
+    function updateReleasedAmount(uint256 vestingIndex, uint256 amount) public {
+        Vesting.vestingPositions[vestingIndex].releasedAmount = amount;
     }
 }

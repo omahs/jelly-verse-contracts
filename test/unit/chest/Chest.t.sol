@@ -37,7 +37,7 @@ contract ChestHarness is Chest {
         uint8 nerfParameter
     ) external returns (VestingPosition memory) {
         return
-            createVestingPosition(
+            _createVestingPosition(
                 amount,
                 freezingPeriod,
                 vestingDuration,

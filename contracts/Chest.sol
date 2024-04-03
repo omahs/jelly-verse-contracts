@@ -9,9 +9,9 @@ import {Math} from "./vendor/openzeppelin/v4.9.0/utils/math/Math.sol";
 import {Strings} from "./vendor/openzeppelin/v4.9.0/utils/Strings.sol";
 import {Base64} from "./vendor/openzeppelin/v4.9.0/utils/Base64.sol";
 import {Ownable} from "./utils/Ownable.sol";
-import {VestingLibChest} from "./utils/VestingLibChest.sol";
+import {Vesting} from "./utils/Vesting.sol";
 
-contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
+contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
@@ -132,7 +132,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         }
 
         uint256 currentTokenId = index;
-        createVestingPosition(
+        _createVestingPosition(
             amount,
             freezingPeriod,
             0,
@@ -197,7 +197,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
             revert Chest__InvalidNerfParameter();
 
         uint256 currentTokenId = index;
-        createVestingPosition(
+        _createVestingPosition(
             amount,
             freezingPeriod,
             vestingDuration,
@@ -324,7 +324,7 @@ contract Chest is ERC721, Ownable, VestingLibChest, ReentrancyGuard {
         uint256 amount
     ) external onlyAuthorizedForToken(tokenId) nonReentrant {
         VestingPosition storage vestingPosition = vestingPositions[tokenId];
-        uint256 releasableAmount = releasableAmount(tokenId);
+        uint256 releasableAmount = _releasableAmount(tokenId);
         if (releasableAmount == 0 || amount == 0) {
             revert Chest__NothingToUnstake();
         }

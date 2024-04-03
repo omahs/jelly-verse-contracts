@@ -3,15 +3,15 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import {VestingLibChest} from "../../../contracts/utils/VestingLibChest.sol";
+import {Vesting} from "../../../contracts/utils/Vesting.sol";
 import {Strings} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/Strings.sol";
 import {SafeCast} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
-import {VestingLibChestTest} from "../../../contracts/test/VestingLibChestTest.sol";
+import {VestingTest} from "../../../contracts/test/VestingTest.sol";
 
-contract VestingLibChestFuzzTest is VestingLibChest, Test {
+contract VestingFuzzTest is Vesting, Test {
     using Strings for uint256;
 
-    VestingLibChestTest vestingLibChestTest;
+    VestingTest vestingTest;
     address beneficiary;
     uint256 amount;
     uint32 cliffDuration;
@@ -26,8 +26,8 @@ contract VestingLibChestFuzzTest is VestingLibChest, Test {
         vestingDuration = SafeCast.toUint32(44582400); // @dev 18 month Tuesday, 1 June 1971 00:00:00
         booster = SafeCast.toUint120(2 ether); // @dev max booster value
         nerfParameter = 10; // @dev no nerf
-        vestingLibChestTest = new VestingLibChestTest();
-        vestingPosition = vestingLibChestTest.createNewVestingPosition(
+        vestingTest = new VestingTest();
+        vestingPosition = vestingTest.createNewVestingPosition(
             amount,
             cliffDuration,
             vestingDuration,
@@ -49,7 +49,7 @@ contract VestingLibChestFuzzTest is VestingLibChest, Test {
         vm.assume(_booster > 0 && _booster <= 10 ether);
         vm.assume(_nerfParameter > 0 && _nerfParameter <= 10);
         uint256 beforeIndex = index;
-        createVestingPosition(
+        _createVestingPosition(
             _amount,
             _cliffDuration,
             _vestingDuration,
