@@ -27,7 +27,7 @@
 | [L-04] | Wasteful Pool Registration Logic                                                               | Low           |              |
 | [L-05] | Redundant Pool Struct                                                                          | Low           |              |
 | [L-06] | Redirecting `unstake` Withdrawals to Predefined Beneficiary                                    | Low           | Fixed        |
-| [L-07] | Removal of Redundant Functions                                                                 | Low           |              |
+| [L-07] | Removal of Redundant Functions                                                                 | Low           | Fixed        |
 | [L-08] | Missing Input Validation in `Minter` Constructor                                               | Low           |              |
 | [L-09] | Missing Input Validation in `Minter` set functions                                             | Low           |              |
 | [L-10] | Missing Input Validation in `Minter` for weight and beneficiary                                | Low           |              |
