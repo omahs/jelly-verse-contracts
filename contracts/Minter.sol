@@ -206,7 +206,6 @@ contract Minter is Ownable, ReentrancyGuard {
      *
      * @param beneficiaries_ to store
      */
-    /*
     function setBeneficiaries(
         Beneficiary[] memory beneficiaries_
     ) external onlyOwner {
@@ -217,5 +216,4 @@ contract Minter is Ownable, ReentrancyGuard {
 
         emit BeneficiariesChanged();
     }
-    */
 }
