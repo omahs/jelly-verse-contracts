@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./Governor.sol";
-import "./extensions/GovernorSettings.sol";
-import "./extensions/GovernorCountingSimple.sol";
-import "./GovernorVotes.sol";
-import "./extensions/GovernorTimelockControl.sol";
-import "./interfaces/IChest.sol";
+import {Governor, IGovernor} from "./Governor.sol";
+import {GovernorSettings} from "./extensions/GovernorSettings.sol";
+import {GovernorCountingSimple} from "./extensions/GovernorCountingSimple.sol";
+import {GovernorVotes} from "./GovernorVotes.sol";
+import {GovernorTimelockControl, TimelockController} from "./extensions/GovernorTimelockControl.sol";
+import {IChest} from "./interfaces/IChest.sol";
 
 contract JellyGovernor is
     Governor,

@@ -3,17 +3,17 @@
 
 pragma solidity ^0.8.0;
 
-import "./vendor/openzeppelin/v4.9.0/token/ERC721/IERC721Receiver.sol";
-import "./vendor/openzeppelin/v4.9.0/token/ERC1155/IERC1155Receiver.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/cryptography/ECDSA.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/cryptography/EIP712.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/introspection/ERC165.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/structs/DoubleEndedQueue.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/Address.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/Context.sol";
-import "./vendor/openzeppelin/v4.9.0/governance/IGovernor.sol";
-import "./interfaces/IChest.sol";
+import {IERC721Receiver} from "./vendor/openzeppelin/v4.9.0/token/ERC721/IERC721Receiver.sol";
+import {IERC1155Receiver} from "./vendor/openzeppelin/v4.9.0/token/ERC1155/IERC1155Receiver.sol";
+import {ECDSA} from "./vendor/openzeppelin/v4.9.0/utils/cryptography/ECDSA.sol";
+import {EIP712} from "./vendor/openzeppelin/v4.9.0/utils/cryptography/EIP712.sol";
+import {ERC165, IERC165} from "./vendor/openzeppelin/v4.9.0/utils/introspection/ERC165.sol";
+import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
+import {DoubleEndedQueue} from "./vendor/openzeppelin/v4.9.0/utils/structs/DoubleEndedQueue.sol";
+import {Address} from "./vendor/openzeppelin/v4.9.0/utils/Address.sol";
+import {Context} from "./vendor/openzeppelin/v4.9.0/utils/Context.sol";
+import {IGovernor, IERC6372} from "./vendor/openzeppelin/v4.9.0/governance/IGovernor.sol";
+import {IChest} from "./interfaces/IChest.sol";
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
