@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./utils/Ownable.sol";
+import {Ownable} from "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {RewardVesting} from "./RewardVesting.sol";
 import {IJellyToken} from "./interfaces/IJellyToken.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
+import {MerkleProof} from "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 /**
  * @title StakingRewardDistributioncontract
@@ -21,20 +21,20 @@ contract StakingRewardDistribution is Ownable {
     mapping(uint256 => mapping(IERC20 => mapping(address => bool)))
         public claimed;
     mapping(uint256 => mapping(IERC20 => uint256)) public tokensDeposited;
-    IJellyToken public jellyToken;
+    IJellyToken public  immutable jellyToken;
     address vestingContract;
 
-    uint256 public epoch;
+    uint96 public epoch;
 
     event Claimed(
         address claimant,
         uint256 balance,
         IERC20 token,
-        uint256 epoch
+        uint96 epoch
     );
-    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string ipfs);
-    event EpochRemoved(uint256 epoch);
-    event Deposited(IERC20 token, uint256 amount, uint256 epoch);
+    event EpochAdded(uint96 epoch, bytes32 merkleRoot, string ipfs);
+    event EpochRemoved(uint96 epoch);
+    event Deposited(IERC20 token, uint256 amount, uint96 epoch);
     event ContractChanged(address vestingContract);
 
     error Claim_LenMissmatch();
@@ -62,12 +62,12 @@ contract StakingRewardDistribution is Ownable {
     function createEpoch(
         bytes32 _merkleRoot,
         string memory _ipfs
-    ) public onlyOwner returns (uint256 epochId) {
+    ) public onlyOwner returns (uint96 epochId) {
         epochId = epoch;
 
         merkleRoots[epochId] = _merkleRoot;
 
-        epoch += 1;
+        epoch =epoch+1;
 
         emit EpochAdded(epochId, _merkleRoot, _ipfs);
     }
@@ -80,7 +80,7 @@ contract StakingRewardDistribution is Ownable {
      * No return only Owner can call
      */
 
-    function removeEpoch(uint256 _epochId) public onlyOwner {
+    function removeEpoch(uint96 _epochId) public onlyOwner {
         merkleRoots[_epochId] = bytes32(0);
 
         emit EpochRemoved(_epochId);
@@ -97,14 +97,15 @@ contract StakingRewardDistribution is Ownable {
      * No return only Owner can call
      */
 
-    function deposit(IERC20 _token, uint256 _amount) public returns (uint256) {
+    function deposit(IERC20 _token, uint256 _amount) public returns (uint96) {
+        uint96 _epoch=epoch;
         _token.safeTransferFrom(msg.sender, address(this), _amount);
 
-        tokensDeposited[epoch][_token] += _amount;
+        tokensDeposited[_epoch][_token] += _amount;
 
         emit Deposited(_token, _amount, epoch);
 
-        return epoch;
+        return _epoch;
     }
 
     /**
@@ -119,7 +120,7 @@ contract StakingRewardDistribution is Ownable {
      */
 
     function claimWeek(
-        uint256 _epochId,
+        uint96 _epochId,
         IERC20[] calldata _tokens,
         uint256 _relativeVotingPower,
         bytes32[] memory _merkleProof,
@@ -172,7 +173,7 @@ contract StakingRewardDistribution is Ownable {
      */
 
     function claimWeeks(
-        uint256[] memory _epochIds,
+        uint96[] memory _epochIds,
         IERC20[] calldata _tokens,
         uint256[] memory _relativeVotingPowers,
         bytes32[][] memory _merkleProofs,
@@ -267,7 +268,7 @@ contract StakingRewardDistribution is Ownable {
     }
 
     function _claim(
-        uint256 _epochId,
+        uint96 _epochId,
         IERC20 _token,
         uint256 _relativeVotingPower
     ) private returns (uint256 amount) {

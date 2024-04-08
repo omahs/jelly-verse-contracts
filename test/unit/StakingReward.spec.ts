@@ -4,13 +4,14 @@ import { Signer, constants } from "ethers";
 import { ethers } from "hardhat";
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 
+
 describe("StakingRewardDistribution", function () {
   async function deployUnitFixture() {
     const [deployer, user, ...otherSigners] = await ethers.getSigners();
 
     const ERC20Factory = await ethers.getContractFactory("JellyToken");
     const erc20 = await ERC20Factory.deploy(deployer.address);
-    erc20.mint(deployer.address,"100000");
+    erc20.mint(deployer.address, "100000");
     const StakingRewardDistributionFactory = await ethers.getContractFactory(
       "StakingRewardDistribution"
     );
@@ -22,8 +23,18 @@ describe("StakingRewardDistribution", function () {
       );
 
     await erc20.approve(StakingRewardDistribution.address, "100000");
+    const mockToken = await ERC20Factory.deploy(deployer.address);
+    mockToken.mint(deployer.address, "100000");
+    await mockToken.approve(StakingRewardDistribution.address, "100000");
 
-    return { StakingRewardDistribution, deployer, user, otherSigners, erc20 };
+    return {
+      StakingRewardDistribution,
+      deployer,
+      user,
+      otherSigners,
+      erc20,
+      mockToken,
+    };
   }
 
   let StakingRewardDistribution: any;
@@ -31,6 +42,7 @@ describe("StakingRewardDistribution", function () {
   let pendingOwner: Signer;
   let otherSigners: any[];
   let erc20: any;
+  let mockToken: any;
 
   beforeEach(async function () {
     const fixture = await loadFixture(deployUnitFixture);
@@ -39,6 +51,7 @@ describe("StakingRewardDistribution", function () {
     pendingOwner = fixture.user;
     otherSigners = fixture.otherSigners;
     erc20 = fixture.erc20;
+    mockToken = fixture.mockToken;
   });
 
   describe("Create Epoch", async function () {
@@ -83,7 +96,7 @@ describe("StakingRewardDistribution", function () {
     });
 
     describe("success", async () => {
-      it("should claim the amount", async () => {
+      it("should claim half the amount", async () => {
         const values = [[owner.address, ethers.utils.parseEther("1")]];
         const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
         const proof = tree.getProof(0);
@@ -105,6 +118,36 @@ describe("StakingRewardDistribution", function () {
           await StakingRewardDistribution.claimed(
             constants.Zero,
             erc20.address,
+            owner.address
+          )
+        ).eq(true);
+      });
+
+      it("should claim the amount", async () => {
+        const values = [[owner.address, ethers.utils.parseEther("1")]];
+        const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
+        const proof = tree.getProof(0);
+        await StakingRewardDistribution.deposit(mockToken.address, "100000");
+
+  
+        await StakingRewardDistribution.createEpoch(tree.root, "");
+
+        await expect(
+          StakingRewardDistribution.claimWeek(
+            constants.One,
+            [mockToken.address],
+            ethers.utils.parseEther("1"),
+            proof,
+            false
+          )
+        )
+          .to.emit(StakingRewardDistribution, "Claimed")
+          .withArgs(owner.address, "100000", mockToken.address, constants.One);
+
+        expect(
+          await StakingRewardDistribution.claimed(
+            constants.One,
+            mockToken.address,
             owner.address
           )
         ).eq(true);
@@ -339,7 +382,7 @@ describe("StakingRewardDistribution", function () {
     const values = [[owner.address, ethers.utils.parseEther("1")]];
     const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
     await StakingRewardDistribution.createEpoch(tree.root, "");
-    
+
     describe("success", async () => {
       it("should emit event", async () => {
         const values = [[owner.address, ethers.utils.parseEther("1")]];
@@ -355,7 +398,7 @@ describe("StakingRewardDistribution", function () {
         );
       });
     });
-    
+
     describe("failure", async () => {
       it("should not allow other users to remove epoch", async () => {
         await expect(
@@ -366,6 +409,19 @@ describe("StakingRewardDistribution", function () {
           StakingRewardDistribution,
           "Ownable__CallerIsNotOwner"
         );
+      });
+    });
+  });
+
+  describe("Set vesting contract", async function () {
+    describe("success", async () => {
+      it("should create an epoch", async () => {
+        await expect(
+          StakingRewardDistribution.setVestingContract(erc20.address)//random adress
+        )
+          .to.emit(StakingRewardDistribution, "ContractChanged")
+          .withArgs(erc20.address);
+       
       });
     });
   });

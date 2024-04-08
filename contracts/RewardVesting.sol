@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./utils/Ownable.sol";
+import {Ownable} from "./utils/Ownable.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {SafeCast} from "./vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 import {IJellyToken} from "./interfaces/IJellyToken.sol";
@@ -16,10 +16,10 @@ contract RewardVesting is Ownable {
 
     mapping(address => VestingPosition) public liquidityVestedPositions;
     mapping(address => VestingPosition) public stakingVestedPositions;
-    address public liquidityContract;
-    address public stakingContract;
-    IJellyToken public jellyToken;
-    uint48 public vestingPeriod = 30 days;
+    address public immutable liquidityContract;
+    address public immutable stakingContract;
+    IJellyToken public immutable jellyToken;
+    uint48 constant vestingPeriod = 30 days;
 
     error Vest__InvalidCaller();
     error Vest__ZeroAddress();
@@ -153,9 +153,12 @@ contract RewardVesting is Ownable {
             revert Vest__NothingToClaim();
 
         uint256 amount = vestedStakingAmount(msg.sender);
+        uint256 amountToBrun = stakingVestedPositions[msg.sender].vestedAmount -
+            amount;
 
         stakingVestedPositions[msg.sender].vestedAmount = 0;
         jellyToken.safeTransfer(msg.sender, amount);
+        if (amountToBrun > 0) jellyToken.burn(amountToBrun);
 
         emit VestingStakingClaimed(amount, msg.sender);
     }
