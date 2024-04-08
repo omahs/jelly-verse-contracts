@@ -21,7 +21,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
     bytes32 public immutable jellySwapPoolId;
     address public immutable jellySwapVault; // ───╮
     bool public isOver; // ────────────----------──╯
-    uint256 public  usdToJellyRatio;
+    uint88 public  usdToJellyRatio;
 
     event BuyWithUsd(uint256 usdAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
@@ -42,7 +42,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
     constructor(
         address _jellyToken,
         address _usdToken,
-        uint256 _usdToJellyRatio,
+        uint88 _usdToJellyRatio,
         address _jellySwapVault,
         bytes32 _jellySwapPoolId,
         address _owner,
@@ -155,7 +155,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
      *
      * No return, reverts on error.
      */
-    function setUSDToJellyRatio(uint256 _usdToJellyRatio) external onlyOwner {
+    function setUSDToJellyRatio(uint88 _usdToJellyRatio) external onlyOwner {
         if(_usdToJellyRatio==0) revert PoolParty__ZeroValue();
         usdToJellyRatio = _usdToJellyRatio;
 
