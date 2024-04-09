@@ -64,19 +64,6 @@ contract LiquidityRewardDistribution is Ownable {
         emit EpochAdded(epochId, _merkleRoot, _ipfs);
     }
 
-    /**
-     * @notice Removes an epoch
-     *
-     * @param _epochId - id of epoch to be removed
-     *
-     * No return only Owner can call
-     */
-
-    function removeEpoch(uint96 _epochId) public onlyOwner {
-        merkleRoots[_epochId] = bytes32(0);
-
-        emit EpochRemoved(_epochId);
-    }
 
     /**
      * @notice Claims a single week

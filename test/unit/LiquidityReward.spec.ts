@@ -311,23 +311,5 @@ describe("LiquidityRewardDistribution", function () {
       });
     });
   });
-  describe("Remove epoch", async function () {
-    const values = [[owner.address, "100000"]];
-    const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
-    await LiquidityRewardDistribution.createEpoch(tree.root, "");
 
-    it("should emit event", async () => {
-      const values = [[owner.address, "100000"]];
-      const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
-      await LiquidityRewardDistribution.createEpoch(tree.root, "");
-
-      await expect(LiquidityRewardDistribution.removeEpoch(constants.Zero))
-        .to.emit(LiquidityRewardDistribution, "EpochRemoved")
-        .withArgs(constants.Zero);
-    });
-
-    expect(await LiquidityRewardDistribution.epoch(constants.Zero)).eq(
-      constants.Zero
-    );
-  });
 });
