@@ -6,18 +6,22 @@ import {IVault, IAsset, IERC20} from "./vendor/balancer-labs/v2-interfaces/v0.4.
 import {WeightedPoolUserData} from "./vendor/balancer-labs/v2-interfaces/v0.4.0/pool-weighted/WeightedPoolUserData.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
 import {Ownable} from "./utils/Ownable.sol";
+import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title The PoolParty contract
  * @notice Contract for swapping native tokens for jelly tokens
  */
 contract PoolParty is ReentrancyGuard, Ownable {
+    using SafeERC20 for IJellyToken;
+ 
+
     address public immutable i_jellyToken;
     address public immutable usdToken;
-    uint256 public usdToJellyRatio;
-    bytes32 public jellySwapPoolId;
-    address public jellySwapVault; // ───╮
-    bool public isOver; // ──────────────╯
+    bytes32 public immutable jellySwapPoolId;
+    address public immutable jellySwapVault; // ───╮
+    bool public isOver; // ────────────----------──╯
+    uint88 public  usdToJellyRatio;
 
     event BuyWithUsd(uint256 usdAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
@@ -25,6 +29,8 @@ contract PoolParty is ReentrancyGuard, Ownable {
 
     error PoolParty__CannotBuy();
     error PoolParty__NoValueSent();
+    error PoolParty__AddressZero();
+    error PoolParty__ZeroValue();
 
     modifier canBuy() {
         if (isOver) {
@@ -36,12 +42,21 @@ contract PoolParty is ReentrancyGuard, Ownable {
     constructor(
         address _jellyToken,
         address _usdToken,
-        uint256 _usdToJellyRatio,
+        uint88 _usdToJellyRatio,
         address _jellySwapVault,
         bytes32 _jellySwapPoolId,
         address _owner,
         address _pendingOwner
     ) Ownable(_owner, _pendingOwner) {
+        if (
+            _jellyToken == address(0) ||
+            _jellySwapVault == address(0) ||
+            _jellySwapPoolId == 0 ||
+            _usdToken == address(0) ||
+            _usdToJellyRatio == 0
+        ) {
+            revert PoolParty__AddressZero();
+        }
         i_jellyToken = _jellyToken;
         usdToJellyRatio = _usdToJellyRatio;
         jellySwapVault = _jellySwapVault;
@@ -50,15 +65,20 @@ contract PoolParty is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Buys jelly tokens with USD pegged token.
+     * @notice Buys jelly tokens with USD pegged token
+     *
+     * @param _amount amount of usd to be sold
+     *
+     * No return value
      */
-    function buyWithUsd(uint256 amount) external payable nonReentrant canBuy {
-        if (amount == 0) {
+    function buyWithUsd(uint256 _amount) external payable nonReentrant canBuy {
+        if (_amount == 0) {
             revert PoolParty__NoValueSent();
         }
-        IERC20(usdToken).transferFrom(msg.sender, address(this), amount);
 
-        uint256 jellyAmount = amount * usdToJellyRatio;
+       IJellyToken(usdToken).safeTransferFrom(msg.sender, address(this), _amount);
+
+        uint256 jellyAmount = _amount * usdToJellyRatio;
 
         (IERC20[] memory tokens, , ) = IVault(jellySwapVault).getPoolTokens(
             jellySwapPoolId
@@ -71,7 +91,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
             if (tokens[i] == IERC20(i_jellyToken)) {
                 maxAmountsIn[i] = jellyAmount;
             } else {
-                maxAmountsIn[i] = amount;
+                maxAmountsIn[i] = _amount;
             }
 
             unchecked {
@@ -96,7 +116,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
         address recipient = address(0); // burning LP tokens
 
         //approve jelly tokens to be spent by jellySwapVault
-        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount); 
+        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount);
 
         IVault(jellySwapVault).joinPool(
             jellySwapPoolId,
@@ -105,9 +125,9 @@ contract PoolParty is ReentrancyGuard, Ownable {
             request
         );
 
-        IJellyToken(i_jellyToken).transfer(msg.sender, jellyAmount);
+        IJellyToken(i_jellyToken).safeTransfer(msg.sender, jellyAmount);
 
-        emit BuyWithUsd(amount, jellyAmount, msg.sender);
+        emit BuyWithUsd(_amount, jellyAmount, msg.sender);
     }
 
     /**
@@ -118,8 +138,10 @@ contract PoolParty is ReentrancyGuard, Ownable {
      */
     function endBuyingPeriod() external onlyOwner {
         isOver = true;
-        
-        uint256 remainingJelly = IJellyToken(i_jellyToken).balanceOf(address(this));
+
+        uint256 remainingJelly = IJellyToken(i_jellyToken).balanceOf(
+            address(this)
+        );
         IJellyToken(i_jellyToken).burn(remainingJelly); // burn remaining jelly tokens
 
         emit EndBuyingPeriod();
@@ -133,7 +155,8 @@ contract PoolParty is ReentrancyGuard, Ownable {
      *
      * No return, reverts on error.
      */
-    function setUSDToJellyRatio(uint256 _usdToJellyRatio) external onlyOwner {
+    function setUSDToJellyRatio(uint88 _usdToJellyRatio) external onlyOwner {
+        if(_usdToJellyRatio==0) revert PoolParty__ZeroValue();
         usdToJellyRatio = _usdToJellyRatio;
 
         emit NativeToJellyRatioSet(usdToJellyRatio);
