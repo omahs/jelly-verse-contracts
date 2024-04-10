@@ -116,7 +116,8 @@ contract PoolParty is ReentrancyGuard, Ownable {
         address recipient = address(0); // burning LP tokens
 
         //approve jelly tokens to be spent by jellySwapVault
-        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount);
+        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount); 
+        IERC20(usdToken).approve(jellySwapVault, amount); 
 
         IVault(jellySwapVault).joinPool(
             jellySwapPoolId,
