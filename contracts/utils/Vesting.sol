@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
 
 /**
- * @title VestingLibChest
- * @notice Vesting Library
+ * @title Vesting
+ * @notice Vesting Contract for token vesting
  *
  *  token amount
  *       ^
@@ -25,9 +25,7 @@ import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
  * @dev Total vested amount is stored as an immutable storage variable to prevent manipulations when calculating current releasable amount.
  */
 
-abstract contract VestingLibChest {
-    uint256 public index;
-
+contract Vesting {
     struct VestingPosition {
         uint256 totalVestedAmount;
         uint256 releasedAmount;
@@ -38,9 +36,10 @@ abstract contract VestingLibChest {
         uint8 nerfParameter;
     }
 
-    event NewVestingPosition(VestingPosition position, uint256 index);
-
+    uint256 public index;
     mapping(uint256 => VestingPosition) internal vestingPositions;
+
+    event NewVestingPosition(VestingPosition position, uint256 index);
 
     /**
      * @notice Calculates the amount that has already vested but hasn't been released yet
@@ -50,34 +49,35 @@ abstract contract VestingLibChest {
     function releasableAmount(
         uint256 vestingIndex
     ) public view returns (uint256) {
-        return vestedAmount(vestingIndex);
+        return _releasableAmount(vestingIndex);
     }
 
-    function vestedAmount(
+    function _releasableAmount(
         uint256 vestingIndex
-    ) internal view returns (uint256 vestedAmount_) {
-        VestingPosition memory vestingPosition_ = vestingPositions[
-            vestingIndex
-        ];
+    ) internal view returns (uint256 amount) {
+        VestingPosition memory vestingPosition = vestingPositions[vestingIndex];
 
-        if (block.timestamp < vestingPosition_.cliffTimestamp) {
-            vestedAmount_ = 0; // @dev reassiging to zero for clarity & better code readability
+        if (block.timestamp < vestingPosition.cliffTimestamp) {
+            amount = 0; // @dev reassiging to zero for clarity & better code readability
         } else if (
             block.timestamp >=
-            vestingPosition_.cliffTimestamp + vestingPosition_.vestingDuration
+            vestingPosition.cliffTimestamp + vestingPosition.vestingDuration
         ) {
-            vestedAmount_ = vestingPosition_.totalVestedAmount - vestingPosition_.releasedAmount;
+            amount =
+                vestingPosition.totalVestedAmount -
+                vestingPosition.releasedAmount;
         } else {
             unchecked {
-                vestedAmount_ =
-                    ((vestingPosition_.totalVestedAmount - vestingPosition_.releasedAmount) *
-                        (block.timestamp - vestingPosition_.cliffTimestamp)) /
-                    vestingPosition_.vestingDuration;
+                amount =
+                    ((vestingPosition.totalVestedAmount -
+                        vestingPosition.releasedAmount) *
+                        (block.timestamp - vestingPosition.cliffTimestamp)) /
+                    vestingPosition.vestingDuration;
             }
         }
     }
 
-    function createVestingPosition(
+    function _createVestingPosition(
         uint256 amount,
         uint32 cliffDuration,
         uint32 vestingDuration,

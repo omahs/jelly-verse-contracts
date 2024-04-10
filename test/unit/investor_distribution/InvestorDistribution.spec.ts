@@ -129,7 +129,7 @@ describe("InvestorDistribution", function () {
       it("should distribute jelly to investors in batches of 10", async function () {
         const FREEZING_PERIOD = 46_656_000; // 18 months
         const VESTING_DURATION = 15_552_000; // 6 months
-        const INITIAL_BOOSTER = ethers.utils.parseEther("1");
+        const ACCUMULATED_BOOSTER = 0; // 0 in special chest case
         const NERF_PARAMETER = BigNumber.from("10");
         let batchLen = 10;
         let timestamps: number[] = [];
@@ -401,7 +401,7 @@ describe("InvestorDistribution", function () {
           expect(vestingPosition[2]).to.equal(cliffTimestamp);
           expect(vestingPosition[3]).to.equal(boosterTimestamp);
           expect(vestingPosition[4]).to.equal(VESTING_DURATION);
-          expect(vestingPosition[5]).to.equal(INITIAL_BOOSTER);
+          expect(vestingPosition[5]).to.equal(ACCUMULATED_BOOSTER);
           expect(vestingPosition[6]).to.equal(NERF_PARAMETER);
         }
 

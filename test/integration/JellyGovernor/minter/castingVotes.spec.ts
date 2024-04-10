@@ -43,6 +43,10 @@ export function shouldCastVotes(): void {
                 describe('failure', async function () {
                     it('should revert if proposal is not currently active', async function () {
                         const proposalState = await this.jellyGovernor.state(proposalId);
+                        proposalParams = utils.defaultAbiCoder.encode(
+                            ['uint256[]'],
+                            [[chestIDs[0]]]
+                        );
 
                         assert(
                             proposalState === ProposalState.Pending,
@@ -51,7 +55,7 @@ export function shouldCastVotes(): void {
                         await expect(
                             this.jellyGovernor
                                 .connect(this.signers.alice)
-                                .castVote(proposalId, VoteType.For)
+                                .castVoteWithReasonAndParams(proposalId, VoteType.For, "", proposalParams)
                         ).to.be.revertedWith('Governor: vote not currently active');
                     });
 
