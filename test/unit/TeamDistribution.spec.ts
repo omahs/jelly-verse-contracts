@@ -29,7 +29,6 @@ describe("TeamDistribution", function () {
     const chest = await ChestFactory.deploy(
       erc20.address,
       0,
-      0,
       deployer.address,
       constants.AddressZero
     );

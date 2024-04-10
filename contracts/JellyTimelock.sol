@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "./vendor/openzeppelin/v4.9.0/governance/TimelockController.sol";
+import {TimelockController} from "./vendor/openzeppelin/v4.9.0/governance/TimelockController.sol";
 
 /**
  * @title The JellyTimelock smart contract
