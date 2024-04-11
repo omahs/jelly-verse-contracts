@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./utils/Ownable.sol";
-import "./JellyToken.sol";
+import {Ownable} from "./utils/Ownable.sol";
+import {IJellyToken} from "./interfaces/IJellyToken.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
@@ -18,31 +18,32 @@ import {SD59x18, convert, exp, mul, div, sd, intoUint256} from "./vendor/prb/mat
 contract Minter is Ownable, ReentrancyGuard {
     struct Beneficiary {
         address beneficiary;
-        uint256 weight; //BPS
+        uint96 weight; //BPS
     }
 
-    address public _jellyToken;
-    uint256 public _mintingStartedTimestamp;
-    address public _stakingRewardsContract;
-    uint256 public _lastMintedTimestamp;
-    uint256 public _mintingPeriod = 7 days;
+    address public immutable i_jellyToken;
+    uint32 public mintingStartedTimestamp;
+    address public stakingRewardsContract;
+    uint32 public lastMintedTimestamp;
+    uint32 public mintingPeriod = 7 days;
 
-    bool public _started;
 
-    Beneficiary[] public _beneficiaries;
+    bool public started;
+
+    Beneficiary[] public beneficiaries;
 
     int256 constant K = -15;
     uint256 constant DECIMALS = 1e18;
 
     modifier onlyStarted() {
-        if (_started == false) {
+        if (started == false) {
             revert Minter_MintingNotStarted();
         }
         _;
     }
 
     modifier onlyNotStarted() {
-        if (_started == true) {
+        if (started == true) {
             revert Minter_MintingAlreadyStarted();
         }
         _;
@@ -77,24 +78,30 @@ contract Minter is Ownable, ReentrancyGuard {
     error Minter_MintingNotStarted();
     error Minter_MintingAlreadyStarted();
     error Minter_MintTooSoon();
+    error Minter_ZeroAddress();
 
     constructor(
-        address jellyToken_,
-        address stakingRewardsContract_,
-        address newOwner_,
-        address pendingOwner_
-    ) Ownable(newOwner_, pendingOwner_) {
-        _jellyToken = jellyToken_;
-        _stakingRewardsContract = stakingRewardsContract_;
+        address _jellyToken,
+        address _stakingRewardsContract,
+        address _newOwner,
+        address _pendingOwner
+    ) Ownable(_newOwner, _pendingOwner) {
+        if (
+            _jellyToken == address(0) || _stakingRewardsContract == address(0)
+        ) {
+            revert Minter_ZeroAddress();
+        }
+        i_jellyToken = _jellyToken;
+        stakingRewardsContract = _stakingRewardsContract;
     }
 
     /**
      * @notice Starts minting process for jelly tokens, and sets last minted timestamp so that minting can start immediately
      */
     function startMinting() external onlyOwner onlyNotStarted {
-        _started = true;
-        _lastMintedTimestamp = block.timestamp - _mintingPeriod;
-        _mintingStartedTimestamp = block.timestamp;
+        started = true;
+        lastMintedTimestamp = uint32(block.timestamp) - mintingPeriod;
+        mintingStartedTimestamp = uint32(block.timestamp);
 
         emit MintingStarted(msg.sender, block.timestamp);
     }
@@ -103,38 +110,38 @@ contract Minter is Ownable, ReentrancyGuard {
      * @notice Mint new tokens based on exponential function, callable by anyone
      */
     function mint() external onlyStarted nonReentrant {
-        uint256 mintingPeriod = _mintingPeriod;
-        uint256 currentTimestamp = block.timestamp;
-        uint256 secondsSinceLastMint = currentTimestamp - _lastMintedTimestamp;
+        uint256 secondsSinceLastMint = block.timestamp - lastMintedTimestamp;
 
         if (secondsSinceLastMint < mintingPeriod) {
             revert Minter_MintTooSoon();
         }
 
-        _lastMintedTimestamp += mintingPeriod;
+        lastMintedTimestamp += mintingPeriod;
         int256 daysSinceMintingStarted = int256(
-            (block.timestamp - _mintingStartedTimestamp) / 1 days
+            (block.timestamp - mintingStartedTimestamp) / 1 days
         );
-        uint256 mintAmount = this.calculateMintAmount(daysSinceMintingStarted);
+        uint256 mintAmount = calculateMintAmount(daysSinceMintingStarted);
         uint256 mintAmountWithDecimals = mintAmount * DECIMALS;
 
         uint256 epochId;
 
-        for (uint16 i = 0; i < _beneficiaries.length; i++) {
-            uint256 weight = _beneficiaries[i].weight;
-            uint256 amount = (mintAmount * DECIMALS * weight) / 1000; //check to see why stack too deep
 
-            if (_beneficiaries[i].beneficiary == _stakingRewardsContract) {
-                JellyToken(_jellyToken).mint(address(this), amount);
-                JellyToken(_jellyToken).approve(
-                    _stakingRewardsContract,
+        for (uint16 i = 0; i < beneficiaries.length; i++) {
+            uint256 weight = beneficiaries[i].weight;
+            uint256 amount = (mintAmountWithDecimals * weight) / 1000;
+
+
+            if (beneficiaries[i].beneficiary == stakingRewardsContract) {
+                IJellyToken(i_jellyToken).mint(address(this), amount);
+                IJellyToken(i_jellyToken).approve(
+                    stakingRewardsContract,
                     amount
                 );
-                epochId = IStakingRewardDistribution(_stakingRewardsContract)
-                    .deposit(IERC20(_jellyToken), amount);
+                epochId = IStakingRewardDistribution(stakingRewardsContract)
+                    .deposit(IERC20(i_jellyToken), amount);
             } else {
-                JellyToken(_jellyToken).mint(
-                    _beneficiaries[i].beneficiary,
+                IJellyToken(i_jellyToken).mint(
+                    beneficiaries[i].beneficiary,
                     amount
                 );
             }
@@ -142,8 +149,8 @@ contract Minter is Ownable, ReentrancyGuard {
 
         emit JellyMinted(
             msg.sender,
-            _stakingRewardsContract,
-            _lastMintedTimestamp,
+            stakingRewardsContract,
+            lastMintedTimestamp,
             mintingPeriod,
             mintAmountWithDecimals,
             epochId
@@ -153,18 +160,18 @@ contract Minter is Ownable, ReentrancyGuard {
     /**
      * @notice Calculate mint amount based on exponential function
      *
-     * @param daysSinceMintingStarted - number of days since minting started
+     * @param _daysSinceMintingStarted - number of days since minting started
      *
      * @return mintAmount - amount of tokens to mint
      */
     function calculateMintAmount(
-        int256 daysSinceMintingStarted
-    ) external pure returns (uint256) {
+        int256 _daysSinceMintingStarted
+    ) public pure returns (uint256) {
         // 900_000 * e ^ (-0.0015 * n)
         SD59x18 exponentMultiplier = div(convert(K), convert(10000));
         SD59x18 exponent = mul(
             exponentMultiplier,
-            convert(daysSinceMintingStarted)
+            convert(_daysSinceMintingStarted)
         );
         uint256 mintAmount = intoUint256(mul(exp(exponent), sd(900_000)));
 
@@ -176,14 +183,18 @@ contract Minter is Ownable, ReentrancyGuard {
      *
      * @dev Only owner can call.
      *
-     * @param newStakingRewardsContract_ new staking rewards distribution contract
+     * @param _newStakingRewardsContract new staking rewards distribution contract
      */
     function setStakingRewardsContract(
-        address newStakingRewardsContract_
+        address _newStakingRewardsContract
     ) external onlyOwner {
-        _stakingRewardsContract = newStakingRewardsContract_;
+        if (_newStakingRewardsContract == address(0)) {
+            revert Minter_ZeroAddress();
+        }
 
-        emit StakingRewardsContractSet(msg.sender, newStakingRewardsContract_);
+        stakingRewardsContract = _newStakingRewardsContract;
+
+        emit StakingRewardsContractSet(msg.sender, _newStakingRewardsContract);
     }
 
     /**
@@ -191,12 +202,15 @@ contract Minter is Ownable, ReentrancyGuard {
      *
      * @dev Only owner can call.
      *
-     * @param mintingPeriod_ new minitng period
+     * @param _mintingPeriod new minitng period
      */
-    function setMintingPeriod(uint48 mintingPeriod_) external onlyOwner {
-        _mintingPeriod = mintingPeriod_;
+    function setMintingPeriod(uint32 _mintingPeriod) external onlyOwner {
+        if (_mintingPeriod == 0) {
+            revert Minter_ZeroAddress();
+        }
+        mintingPeriod = _mintingPeriod;
 
-        emit MintingPeriodSet(msg.sender, mintingPeriod_);
+        emit MintingPeriodSet(msg.sender, _mintingPeriod);
     }
 
     /**
@@ -204,16 +218,17 @@ contract Minter is Ownable, ReentrancyGuard {
      *
      * @dev Only owner can call.
      *
-     * @param beneficiaries_ to store
+     * @param _beneficiaries to store
      */
     function setBeneficiaries(
-        Beneficiary[] memory beneficiaries_
+        Beneficiary[] calldata _beneficiaries
     ) external onlyOwner {
-        delete _beneficiaries;
+        delete beneficiaries;
 
-        //maybe check size
-        _beneficiaries = beneficiaries_;
-
+        uint256 size = _beneficiaries.length;
+        for (uint256 i = 0; i < size; ++i) {
+            beneficiaries.push(_beneficiaries[i]);
+        }
         emit BeneficiariesChanged();
     }
 }

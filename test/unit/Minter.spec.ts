@@ -34,26 +34,26 @@ describe("Minter", function () {
     });
 
     it("should set the correct _jellyToken address", async function () {
-      expect(await minter._jellyToken()).to.equal(jellyToken.address);
+      expect(await minter.i_jellyToken()).to.equal(jellyToken.address);
     });
 
     it("should set the correct _jellyToken address", async function () {
-      expect(await minter._jellyToken()).to.equal(jellyToken.address);
+      expect(await minter.i_jellyToken()).to.equal(jellyToken.address);
     });
 
 
     it("should set the correct _stakingRewardsContract address", async function () {
-      expect(await minter._stakingRewardsContract()).to.equal(
+      expect(await minter.stakingRewardsContract()).to.equal(
         stakingRewardsContract.address
       );
     });
 
     it("should set the correct _lastMintedTimestamp", async function () {
-      expect(await minter._lastMintedTimestamp()).to.equal(0);
+      expect(await minter.lastMintedTimestamp()).to.equal(0);
     });
 
     it("should set the correct _mintingStartedTimestamp", async function () {
-      expect(await minter._mintingStartedTimestamp()).to.equal(0);
+      expect(await minter.mintingStartedTimestamp()).to.equal(0);
     });
   });
 
@@ -106,10 +106,10 @@ describe("Minter", function () {
       it("should emit JellyMinted event", async function () {
         await minter.startMinting();
         const epochId = 0; // defined in stakingRewardsContract mock
-        const mintingPeriod = await minter._mintingPeriod();
-        const lastMintedTimestampOld = await minter._lastMintedTimestamp();
+        const mintingPeriod = await minter.mintingPeriod();
+        const lastMintedTimestampOld = await minter.lastMintedTimestamp();
         const lastMintedTimestampNew =
-          lastMintedTimestampOld.add(mintingPeriod);
+          lastMintedTimestampOld + mintingPeriod;
         const mintAmount = BigNumber.from("900000000000000000000000");
         
 
@@ -169,16 +169,16 @@ describe("Minter", function () {
 
       it("should set started to true", async function () {
         await minter.startMinting();
-        expect(await minter._started()).to.equal(true);
+        expect(await minter.started()).to.equal(true);
       });
 
       it("should set lastMintedTimestamp corectlly", async function () {
         const currentTime = await time.latest();
         const lastMintedTimestamp = BigNumber.from(currentTime)
           .add(1)
-          .sub(await minter._mintingPeriod());
+          .sub(await minter.mintingPeriod());
         await minter.startMinting();
-        expect(await minter._lastMintedTimestamp()).to.equal(
+        expect(await minter.lastMintedTimestamp()).to.equal(
           lastMintedTimestamp
         );
       });
@@ -187,7 +187,7 @@ describe("Minter", function () {
         const currentTime = await time.latest();
         const mintingStartedTimestamp = BigNumber.from(currentTime).add(1);
         await minter.startMinting();
-        expect(await minter._mintingStartedTimestamp()).to.equal(
+        expect(await minter.mintingStartedTimestamp()).to.equal(
           mintingStartedTimestamp
         );
       });
@@ -224,7 +224,7 @@ describe("Minter", function () {
       it("should set new staking reward contract address", async function () {
         const newStakingRewardsContract = otherAccount.address;
         await minter.setStakingRewardsContract(newStakingRewardsContract);
-        expect(await minter._stakingRewardsContract()).to.equal(
+        expect(await minter.stakingRewardsContract()).to.equal(
           newStakingRewardsContract
         );
       });
@@ -247,7 +247,7 @@ describe("Minter", function () {
       it("should set new mintingPeriod", async function () {
         const newMintingPeriod = 7200;
         await minter.setMintingPeriod(newMintingPeriod);
-        expect(await minter._mintingPeriod()).to.equal(newMintingPeriod);
+        expect(await minter.mintingPeriod()).to.equal(newMintingPeriod);
       });
 
       it("should emit event", async function () {
@@ -285,7 +285,7 @@ describe("Minter", function () {
 
         await minter.setBeneficiaries(newBeneficiaries);
         for (let i = 0; i < newBeneficiaries.length; i++) {
-          const beneficiary = await minter._beneficiaries(i);
+          const beneficiary = await minter.beneficiaries(i);
           expect(beneficiary[0]).to.equal(newBeneficiaries[i].beneficiary);
           expect(beneficiary[1]).to.equal(newBeneficiaries[i].weight);
         }
