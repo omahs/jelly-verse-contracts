@@ -21,7 +21,7 @@ contract StakingRewardDistribution is Ownable {
     mapping(uint256 => mapping(IERC20 => mapping(address => bool)))
         public claimed;
     mapping(uint256 => mapping(IERC20 => uint256)) public tokensDeposited;
-    IJellyToken public  immutable jellyToken;
+    IJellyToken public immutable jellyToken;
     address vestingContract;
 
     uint96 public epoch;
@@ -33,7 +33,6 @@ contract StakingRewardDistribution is Ownable {
         uint96 epoch
     );
     event EpochAdded(uint96 epoch, bytes32 merkleRoot, string ipfs);
-    event EpochRemoved(uint96 epoch);
     event Deposited(IERC20 token, uint256 amount, uint96 epoch);
     event ContractChanged(address vestingContract);
 
@@ -67,11 +66,10 @@ contract StakingRewardDistribution is Ownable {
 
         merkleRoots[epochId] = _merkleRoot;
 
-        epoch =epochId+1;
+        epoch = epochId + 1;
 
         emit EpochAdded(epochId, _merkleRoot, _ipfs);
     }
-
 
     /**
      * @notice Deposit funds into contract
@@ -85,7 +83,7 @@ contract StakingRewardDistribution is Ownable {
      */
 
     function deposit(IERC20 _token, uint256 _amount) public returns (uint96) {
-        uint96 _epoch=epoch;
+        uint96 _epoch = epoch;
         _token.safeTransferFrom(msg.sender, address(this), _amount);
 
         tokensDeposited[_epoch][_token] += _amount;

@@ -16,7 +16,7 @@ import {MerkleProof} from "./vendor/openzeppelin/v4.9.0/utils/cryptography/Merkl
 contract LiquidityRewardDistribution is Ownable {
     using SafeERC20 for IJellyToken;
 
-    IJellyToken public token;
+    IJellyToken public immutable token;
 
     mapping(uint256 => bytes32) public merkleRoots;
     mapping(uint256 => mapping(address => bool)) public claimed;
@@ -26,7 +26,6 @@ contract LiquidityRewardDistribution is Ownable {
 
     event Claimed(address claimant, uint96 epoch, uint256 balance);
     event EpochAdded(uint96 epoch, bytes32 merkleRoot, string ipfs);
-    event EpochRemoved(uint96 epoch);
     event ContractChanged(address vestingContract);
 
     error Claim_LenMissmatch();
@@ -59,11 +58,10 @@ contract LiquidityRewardDistribution is Ownable {
 
         merkleRoots[epochId] = _merkleRoot;
 
-        epoch =epochId+ 1;
+        epoch = epochId + 1;
 
         emit EpochAdded(epochId, _merkleRoot, _ipfs);
     }
-
 
     /**
      * @notice Claims a single week
