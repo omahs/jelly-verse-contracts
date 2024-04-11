@@ -25,7 +25,7 @@ import {SafeCast} from "../vendor/openzeppelin/v4.9.0/utils/math/SafeCast.sol";
  * @dev Total vested amount is stored as an immutable storage variable to prevent manipulations when calculating current releasable amount.
  */
 
-contract Vesting {
+abstract contract Vesting {
     struct VestingPosition {
         uint256 totalVestedAmount;
         uint256 releasedAmount;
