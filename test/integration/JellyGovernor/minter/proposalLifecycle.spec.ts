@@ -171,7 +171,7 @@ export function shouldFollowProposalLifeCycle(): void {
         );
 
       const proposalState = await this.jellyGovernor.state(proposalId);
-      const stakingRewardsContract = await this.minter._stakingRewardsContract();
+      const stakingRewardsContract = await this.minter.stakingRewardsContract();
 
       assert(
         proposalState === ProposalState.Executed,

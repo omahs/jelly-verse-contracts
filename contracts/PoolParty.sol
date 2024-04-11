@@ -14,14 +14,13 @@ import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC2
  */
 contract PoolParty is ReentrancyGuard, Ownable {
     using SafeERC20 for IJellyToken;
- 
 
     address public immutable i_jellyToken;
     address public immutable usdToken;
     bytes32 public immutable jellySwapPoolId;
     address public immutable jellySwapVault; // ───╮
     bool public isOver; // ────────────----------──╯
-    uint88 public  usdToJellyRatio;
+    uint88 public usdToJellyRatio;
 
     event BuyWithUsd(uint256 usdAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
@@ -76,7 +75,11 @@ contract PoolParty is ReentrancyGuard, Ownable {
             revert PoolParty__NoValueSent();
         }
 
-       IJellyToken(usdToken).safeTransferFrom(msg.sender, address(this), _amount);
+        IJellyToken(usdToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
 
         uint256 jellyAmount = _amount * usdToJellyRatio;
 
@@ -116,8 +119,8 @@ contract PoolParty is ReentrancyGuard, Ownable {
         address recipient = address(0); // burning LP tokens
 
         //approve jelly tokens to be spent by jellySwapVault
-        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount); 
-        IERC20(usdToken).approve(jellySwapVault, amount); 
+        IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount);
+        IERC20(usdToken).approve(jellySwapVault, _amount);
 
         IVault(jellySwapVault).joinPool(
             jellySwapPoolId,
@@ -157,7 +160,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
      * No return, reverts on error.
      */
     function setUSDToJellyRatio(uint88 _usdToJellyRatio) external onlyOwner {
-        if(_usdToJellyRatio==0) revert PoolParty__ZeroValue();
+        if (_usdToJellyRatio == 0) revert PoolParty__ZeroValue();
         usdToJellyRatio = _usdToJellyRatio;
 
         emit NativeToJellyRatioSet(usdToJellyRatio);
