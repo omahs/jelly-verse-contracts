@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {Ownable} from  "./utils/Ownable.sol";
+import {Ownable} from "./utils/Ownable.sol";
 import {IJellyToken} from "./interfaces/IJellyToken.sol";
 import {ReentrancyGuard} from "./vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
@@ -222,8 +222,10 @@ contract Minter is Ownable, ReentrancyGuard {
     ) external onlyOwner {
         delete beneficiaries;
 
-        beneficiaries = _beneficiaries;
-
+        uint256 size = _beneficiaries.length;
+        for (uint256 i = 0; i < size; ++i) {
+            beneficiaries.push(_beneficiaries[i]);
+        }
         emit BeneficiariesChanged();
     }
 }
