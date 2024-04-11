@@ -59,177 +59,183 @@ forge test
 7. Get storage layout of contract
 
 ```shell
-docker run -v $PWD:/src ethereum/solc:0.8.19 --storage-layout /src/contracts/Chest.sol
+forge inspect --pretty ContractName storage
 ```
 
-## Usage
+## Smart contracts scope
 
 This project consists of the following smart contracts:
 
 - [JellyToken](./contracts/JellyToken.sol)
-- [Vesting](./contracts/Vesting.sol)
-- [VestingJelly](./contracts/VestingJelly.sol)
-- [Allocator](./contracts/Allocator.sol)
+- [JellyTokenDeployer](./contracts/JellyTokenDeployer)
+- [JellyGovernor](./contracts/JellyGovernor.sol)
+- [Governor](./contracts/Governor.sol)
+- [GovernorVotes](./contracts/GovernorVotes.sol)
+- [JellyTimelock](./contracts/JellyTimelock.sol)
 - [Chest](./contracts/Chest.sol)
+- [Minter](./contracts/Minter.sol)
+- [PoolParty](./contracts/PoolParty.sol)
+- [OfficialPoolsRegister](./contracts/OfficialPoolsRegister.sol)
+- [TeamDistribution](./contracts/TeamDistribution.sol)
+- [InvestorDistribution](./contracts/InvestorDistribution.sol)
+- [LiquidityRewardDistribution](./contracts/LiquidityRewardDistribution.sol)
+- [StakingRewardDistribution](./contracts/StakingRewardDistribution.sol)
+- [RewardVesting](./contracts/RewardVesting.sol)
+- [DailySnapshot](./contracts/DailySnapshot.sol)
 
-This is the UML dependency graph between these contracts:
+## JellyToken.sol
 
-![UML dependency graph](./docs/uml-dependency-graph.png)
+### Contract Overview
 
-### Sequence Diagrams
+JLY serves as the primary governance and utility token for the Jellyverse ecosystem.
 
-This is the overview of the functionalities of this project:
-
-#### Pre-minting of tokens
-
-```mermaid
-sequenceDiagram
-    actor MINTER_ROLE
-    MINTER_ROLE->>JellyToken.sol: premint()
-    activate JellyToken.sol
-    JellyToken.sol->>JellyToken.sol: _mint(vesting)
-    JellyToken.sol-->>Vesting.sol: Minted 133_000_000 JLY
-    JellyToken.sol->>JellyToken.sol: _mint(vestingJelly)
-    JellyToken.sol-->>VestingJelly.sol: Minted 133_000_000 JLY
-    JellyToken.sol->>JellyToken.sol: _mint(allocator)
-    JellyToken.sol-->>Allocator.sol: Minted 133_000_000 JLY
-    JellyToken.sol-->>MINTER_ROLE: emit Preminted() event
-    deactivate JellyToken.sol
-
-    MINTER_ROLE->>JellyToken.sol: premint()
-    activate JellyToken.sol
-    JellyToken.sol-->>MINTER_ROLE: revert JellyToken__AlreadyPreminted()
-    deactivate JellyToken.sol
-```
-
-#### Community members can buy JLY tokens with DUSD and DFI
-
-Buying JLY tokens with DFI locks tokens into the Chest NFT smart contract with a linear vesting schedule. Chest NFTs are non-transferable and give voting power to the holder.
-
-Buying JLY tokens with DUSD adds tokens to the JellyVerse DEX pool and gives JLY tokens back to the User instantly. There is no vesting schedule, but also no voting power through the Chest NFT.
-
-```mermaid
-sequenceDiagram
-    actor User
-    User->>Dusd.sol: approve(Allocator.sol, amount)
-    User->>Allocator.sol: buyWithDusd(amount, freezingPeriod)
-    activate Allocator.sol
-    alt canBuy
-        Allocator.sol->>Dusd.sol: transferFrom(User, address(0), amount)
-        Allocator.sol->>Allocator.sol: jellyAmount = amount * dusdToJellyRatio
-        Allocator.sol->>Chest.sol: fee()
-        Chest.sol-->>Allocator.sol: mintingFee
-        Allocator.sol->>JellyToken.sol: approve(Chest.sol, jellyAmount)
-        Allocator.sol->>Chest.sol: freeze(jellyAmount - mintingFee, freezingPeriod, User)
-        Allocator.sol-->>User: emit BuyWithDusd(amount, jellyAmount - mintingFee)
-    else
-        Allocator.sol-->>User: revert Allocator__CannotBuy()
-    end
-    deactivate Allocator.sol
-```
-
-#### Tokens for Team Members and Investors
-
-Tokens for Team members and Investors are linearly vested through Vesting and VestingJelly smart contract.
-
-
-
-There is a set of Differential tests to confirm that the calculation for the vesting schedule is correct.
-
-![vesting](./docs/VestingCliff.png)
-
-Team members and Investors can convert the portion or the whole amount of their vested tokens into Chest NFTs to gain voting power.
-
-The voting power is calculated using the following formula:
-
-$$ boosterCoefficient(t) = { maxBooster \over 1 + e^{(-k (t - tmid))}} $$
-​
-
-### JellyToken
+### Dependencies
 
 **Inherits:**
-[ERC20Capped](/contracts/vendor/openzeppelin/v4.9.0/token/ERC20/extensions/ERC20Capped.sol/abstract.ERC20Capped.md), [AccessControl](/contracts/vendor/openzeppelin/v4.9.0/access/AccessControl.sol/abstract.AccessControl.md), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol/abstract.ReentrancyGuard.md)
+[AccessControl](/contracts/vendor/openzeppelin/v4.9.0/access/AccessControl.sol/abstract.AccessControl.md), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol/abstract.ReentrancyGuard.md)
 
-#### State Variables
+### Constants
 
-##### MINTER_ROLE
-
-```solidity
-bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-```
-
-##### preminted
+#### MINTER_ROLE
 
 ```solidity
-bool internal preminted;
+bytes32 constant MINTER_ROLE;
 ```
 
-| Name          | Type                                              | Slot | Offset | Bytes | Contract                            |
-| ------------- | ------------------------------------------------- | ---- | ------ | ----- | ----------------------------------- |
-| \_balances    | mapping(address => uint256)                       | 0    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
-| \_allowances  | mapping(address => mapping(address => uint256))   | 1    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
-| \_totalSupply | uint256                                           | 2    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
-| \_name        | string                                            | 3    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
-| \_symbol      | string                                            | 4    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
-| \_roles       | mapping(bytes32 => struct AccessControl.RoleData) | 5    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
-| \_status      | uint256                                           | 6    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
-| preminted     | bool                                              | 7    | 0      | 1     | contracts/JellyToken.sol:JellyToken |
+#### \_cap
 
-#### Functions
+```solidity
+uint256 private immutable _cap;
+```
 
-##### onlyOnce
+### Storage Layout
+
+| Name           | Type                                              | Slot | Offset | Bytes | Contract                            |
+| -------------- | ------------------------------------------------- | ---- | ------ | ----- | ----------------------------------- |
+| \_balances     | mapping(address => uint256)                       | 0    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_allowances   | mapping(address => mapping(address => uint256))   | 1    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_totalSupply  | uint256                                           | 2    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_name         | string                                            | 3    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_symbol       | string                                            | 4    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_roles        | mapping(bytes32 => struct AccessControl.RoleData) | 5    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_status       | uint256                                           | 6    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_burnedSupply | uint256                                           | 7    | 0      | 32    | contracts/JellyToken.sol:JellyToken |
+| \_preminted    | bool                                              | 8    | 0      | 1     | contracts/JellyToken.sol:JellyToken |
+
+### Functions
+
+#### onlyOnce
 
 ```solidity
 modifier onlyOnce();
 ```
 
-##### constructor
+#### constructor
 
 ```solidity
-constructor(address _defaultAdminRole) ERC20("Jelly Token", "JLY") ERC20Capped(1_000_000_000 * 10 ** decimals());
+constructor(address _defaultAdminRole) ERC20("Jelly Token", "JLY");
 ```
 
-##### premint
+#### premint
 
 ```solidity
-function premint(address _vesting, address _vestingJelly, address _allocator, address _minterContract)
-    external
-    onlyRole(MINTER_ROLE)
-    onlyOnce
-    nonReentrant;
+function premint(
+        address _vestingTeam,
+        address _vestingInvestor,
+        address _allocator,
+        address _minterContract
+    ) external
+      onlyRole(MINTER_ROLE)
+      onlyOnce
+      nonReentrant
 ```
 
-##### mint
-
-Mints specified amount of tokens to address.
+_Premints tokens to specified addresses._
 
 _Only addresses with MINTER_ROLE can call._
 
+#### Parameters
+
+| Name              | Type    | Description                                        |
+| ----------------- | ------- | -------------------------------------------------- |
+| \_vestingTeam     | address | - address to mint tokens for the vesting team.     |
+| \_vestingInvestor | address | - address to mint tokens for the vesting investor. |
+| \_allocator       | address | - address to mint tokens for the allocator.        |
+| \_minterContract  | address | - address of the minter contract.                  |
+
+#### mint
+
 ```solidity
-function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE);
+function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE)
 ```
 
-**Parameters**
+_Mints specified amount of tokens to address._
 
-| Name     | Type      | Description                                              |
-| -------- | --------- | -------------------------------------------------------- |
-| `to`     | `address` | - address to mint tokens for.                            |
-| `amount` | `uint256` | - amount of tokens to mint. No return, reverts on error. |
+_Only addresses with MINTER_ROLE can call._
 
-#### Events
+#### Parameters
 
-##### Preminted
+| Name   | Type    | Description                   |
+| ------ | ------- | ----------------------------- |
+| to     | address | - address to mint tokens for. |
+| amount | uint256 | - amount of tokens to mint.   |
+
+#### burn
 
 ```solidity
-event Preminted(address indexed vesting, address indexed vestingJelly, address indexed allocator);
+function burn(uint256 value) external
 ```
 
-#### Errors
+_Destroys a `value` amount of tokens from the caller._
 
-##### JellyToken\_\_AlreadyPreminted
+#### Parameters
+
+| Name  | Type    | Description                     |
+| ----- | ------- | ------------------------------- |
+| value | uint256 | - the amount of tokens to burn. |
+
+#### burnedSupply
 
 ```solidity
-error JellyToken__AlreadyPreminted();
+function burnedSupply() external view returns (uint256)
+```
+
+_Returns the amount of burned tokens._
+
+#### cap
+
+```solidity
+function cap() external view virtual returns (uint256)
+```
+
+_Returns the cap on the token's total supply._
+
+### Events
+
+#### Preminted
+
+```solidity
+event Preminted(address vestingTeam, address vestingInvestor, address allocator)
+```
+
+### Errors
+
+#### JellyToken\_\_AlreadyPreminted
+
+```solidity
+error JellyToken__AlreadyPreminted()
+```
+
+#### JellyToken\_\_ZeroAddress
+
+```solidity
+error JellyToken__ZeroAddress()
+```
+
+#### JellyToken\_\_CapExceeded
+
+```solidity
+error JellyToken__CapExceeded()
 ```
 
 ### VestingLib
