@@ -51,7 +51,7 @@ export function shouldQueueProposals(): void {
 			['uint256[]'],
 			[chestIDs]     
 			);
-			await mine(this.params.votingDelay);
+			await time.increase(this.params.votingDelay);
 			await this.jellyGovernor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
 		});
 
@@ -81,7 +81,7 @@ export function shouldQueueProposals(): void {
 			});
 
 			it('should revert if proposal quorum hasn\'t been reached', async function () {
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(
@@ -97,7 +97,7 @@ export function shouldQueueProposals(): void {
 			it('should revert if proposal has same or more against votes', async function () {
 				await this.jellyGovernor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
 				await this.jellyGovernor.connect(this.signers.bob).castVoteWithReasonAndParams(proposalId, voteAgainst, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
 				await expect(
@@ -112,7 +112,7 @@ export function shouldQueueProposals(): void {
 
 			it('should revert if proposal already queued', async function () {
 				await this.jellyGovernor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
@@ -156,10 +156,10 @@ export function shouldQueueProposals(): void {
 					proposalCalldata,
 					proposalDescription
 				);
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await governor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
 				await governor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
@@ -203,10 +203,10 @@ export function shouldQueueProposals(): void {
 					proposalCalldata,
 					proposalDescription
 				);
-				await mine(this.params.votingDelay);
+				await time.increase(this.params.votingDelay);
 				await governor.connect(this.signers.alice).castVoteWithReasonAndParams(proposalId, voteFor, proposalReason, proposalParams);
 				await governor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				const hashedDescription = utils.keccak256(descriptionBytes);
@@ -233,7 +233,7 @@ export function shouldQueueProposals(): void {
 
 			beforeEach(async function () {
 				await this.jellyGovernor.connect(this.signers.deployer).castVoteWithReasonAndParams(proposalId, voteAbstain, proposalReason, proposalParams);
-				await mine(this.params.votingPeriod);
+				await time.increase(this.params.votingPeriod);
 				const descriptionBytes = utils.toUtf8Bytes(proposalDescription);
 				hashedDescription = utils.keccak256(descriptionBytes);
 
@@ -260,7 +260,7 @@ export function shouldQueueProposals(): void {
 			});
 
 			it('should emit ProposalQueued event', async function () {
-				const nextBlockTimestamp = BigNumber.from(await time.latestBlock()).add(
+				const nextBlockTimestamp = BigNumber.from(await time.latest()).add(
 					constants.One
 				);
 				const execTime = nextBlockTimestamp.add(this.params.votingDelay);

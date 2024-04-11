@@ -11,7 +11,7 @@ import { shouldCastVotes as shouldCastVotesStakingRewardDistribution } from "./s
 import { shouldFollowProposalLifeCycle as shouldFollowProposalLifeCycleStakingRewardDistribution } from "./stakingRewardDistribution/proposalLifecycle.spec";
 export function shouldBehaveLikeJellyGovernor() {
     describe("JellyGovernor", function () {
-        const quorumAmount = BigNumber.from(utils.parseEther("8000000"));
+        const quorumAmount = BigNumber.from(utils.parseEther("80000000"));
         const amountToStake = quorumAmount;
         let amountToMin: BigNumber;
         const freezingPeriod = BigNumber.from("31536000"); // 1 year

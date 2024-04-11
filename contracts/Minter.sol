@@ -27,6 +27,7 @@ contract Minter is Ownable, ReentrancyGuard {
     uint32 public lastMintedTimestamp;
     uint32 public mintingPeriod = 7 days;
 
+
     bool public started;
 
     Beneficiary[] public beneficiaries;
@@ -124,9 +125,11 @@ contract Minter is Ownable, ReentrancyGuard {
 
         uint256 epochId;
 
+
         for (uint16 i = 0; i < beneficiaries.length; i++) {
             uint256 weight = beneficiaries[i].weight;
             uint256 amount = (mintAmountWithDecimals * weight) / 1000;
+
 
             if (beneficiaries[i].beneficiary == stakingRewardsContract) {
                 IJellyToken(i_jellyToken).mint(address(this), amount);

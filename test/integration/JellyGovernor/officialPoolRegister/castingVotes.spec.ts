@@ -1,5 +1,5 @@
 import { assert, expect } from 'chai';
-import { mine } from '@nomicfoundation/hardhat-network-helpers';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { utils, BigNumber, constants } from 'ethers';
 import { ProposalState, VoteType } from '../../../shared/types';
 
@@ -7,14 +7,14 @@ export function shouldCastVotes(): void {
     context(
         'Official Pools Preparing scenario: Creating proposal & Delegating tokens',
         async function () {
-            const pool = {poolId: "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000", weight: 1};
+            const pool = { poolId: "0x7f65ce7eed9983ba6973da773ca9d574f285a24c000200000000000000000000", weight: 1 };
             const proposalDescription = 'Test Proposal #1: Register new Official Pool';
             let registerOfficialPoolFunctionCalldata: string;
             let proposalId: BigNumber;
             let proposalParams: string;
             const chestIDs: number[] = [0, 1, 2];
             beforeEach(async function () {
-              const pools: {poolId: string, weight: number}[] = [pool];
+                const pools: { poolId: string, weight: number }[] = [pool];
                 registerOfficialPoolFunctionCalldata = this.officialPoolsRegister.interface.encodeFunctionData(
                     'registerOfficialPool',
                     [pools]
@@ -45,6 +45,10 @@ export function shouldCastVotes(): void {
                 describe('failure', async function () {
                     it('should revert if proposal is not currently active', async function () {
                         const proposalState = await this.jellyGovernor.state(proposalId);
+                        proposalParams = utils.defaultAbiCoder.encode(
+                            ['uint256[]'],
+                            [[chestIDs[0]]]
+                        );
 
                         assert(
                             proposalState === ProposalState.Pending,
@@ -53,12 +57,12 @@ export function shouldCastVotes(): void {
                         await expect(
                             this.jellyGovernor
                                 .connect(this.signers.alice)
-                                .castVote(proposalId, VoteType.For)
+                                .castVoteWithReasonAndParams(proposalId, VoteType.For, "", proposalParams)
                         ).to.be.revertedWith('Governor: vote not currently active');
                     });
 
                     it('should revert if user has already voted', async function () {
-                        await mine(this.params.votingDelay.add(constants.One));
+                        await time.increase(this.params.votingDelay.add(constants.One));
 
                         proposalParams = utils.defaultAbiCoder.encode(
                             ['uint256[]'],
@@ -80,7 +84,7 @@ export function shouldCastVotes(): void {
 
                 describe('success', async function () {
                     beforeEach(async function () {
-                        await mine(this.params.votingDelay.add(constants.One));
+                        await time.increase(this.params.votingDelay.add(constants.One));
                     });
 
                     proposalParams = utils.defaultAbiCoder.encode(

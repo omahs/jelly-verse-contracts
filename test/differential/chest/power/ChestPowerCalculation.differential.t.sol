@@ -10,24 +10,15 @@ contract ChestHarness is Chest {
     constructor(
         address jellyToken,
         uint128 fee_,
-        uint32 timeFactor_,
         address owner,
         address pendingOwner
-    )
-        Chest(
-            jellyToken,
-            fee_,
-            timeFactor_,
-            owner,
-            pendingOwner
-        )
-    {}
+    ) Chest(jellyToken, fee_, owner, pendingOwner) {}
 
     function exposed_calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
-    ) external view returns (uint256) {
-        return calculatePower(timestamp, vestingPosition);
+    ) external pure returns (uint256) {
+        return _calculatePower(timestamp, vestingPosition);
     }
 
     function exposed_createVestingPosition(
@@ -38,7 +29,7 @@ contract ChestHarness is Chest {
         uint8 nerfParameter
     ) external returns (VestingPosition memory) {
         return
-            createVestingPosition(
+            _createVestingPosition(
                 amount,
                 freezingPeriod,
                 vestingDuration,
@@ -69,15 +60,8 @@ contract ChestPowerCalculationDifferentialTest is Test {
         uint128 fee = 10;
         address owner = msg.sender;
         address pendingOwner = makeAddr("pendingOwner");
-        uint32 timeFactor = 7 days;
 
-        chestHarness = new ChestHarness(
-            jellyToken,
-            fee,
-            timeFactor,
-            owner,
-            pendingOwner
-        );
+        chestHarness = new ChestHarness(jellyToken, fee, owner, pendingOwner);
     }
 
     function test_calculatePower(

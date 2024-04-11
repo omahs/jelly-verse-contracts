@@ -3,8 +3,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./Governor.sol";
-import "./interfaces/IChest.sol";
+import {Governor, SafeCast} from "./Governor.sol";
+import {IChest} from "./interfaces/IChest.sol";
 
 /**
  * @dev Extension of {Governor} for voting weight extraction from an {ERC20Votes} token, or since v4.5 an {ERC721Votes} token.
@@ -19,11 +19,10 @@ abstract contract GovernorVotes is Governor {
     }
 
     /**
-     * @dev Clock (as specified in EIP-6372) is set to match the token's clock. Fallback to block numbers if the token
-     * does not implement EIP-6372.
+     * @dev Block timestamp as a proxy for the current time.
      */
     function clock() public view virtual override returns (uint48) {
-        return SafeCast.toUint48(block.number);
+        return SafeCast.toUint48(block.timestamp);
     }
 
     /**
@@ -31,7 +30,7 @@ abstract contract GovernorVotes is Governor {
      */
     // solhint-disable-next-line func-name-mixedcase
     function CLOCK_MODE() public view virtual override returns (string memory) {
-        return "mode=blocknumber&from=default";
+        return "mode=timestamp&from=default";
     }
 
     /**
@@ -45,12 +44,18 @@ abstract contract GovernorVotes is Governor {
         uint256 timepoint,
         bytes memory params
     ) internal view virtual override returns (uint256) {
-        require(params.length > 0, "JellyGovernor: no params provided in voting weight query");
-        (uint256[] memory chestIDs) = abi.decode(params, (uint256[]));
+        require(
+            params.length > 0,
+            "JellyGovernor: no params provided in voting weight query"
+        );
+        uint256[] memory chestIDs = abi.decode(params, (uint256[]));
         require(chestIDs.length > 0, "JellyGovernor: no chest IDs provided");
 
         for (uint8 i = 0; i < chestIDs.length; i++) {
-            require(chestIDs[i] <= timepoint, "JellyGovernor: chest not viable for voting");
+            require(
+                chestIDs[i] <= timepoint,
+                "JellyGovernor: chest not viable for voting"
+            );
         }
         return chest.getVotingPower(account, chestIDs);
     }

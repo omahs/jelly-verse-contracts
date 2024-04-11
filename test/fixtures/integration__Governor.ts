@@ -54,10 +54,9 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
     } = await getSigners();
 
     const fee = BigNumber.from("10"); // 10 wei
-    const timeFactor = ONE_WEEK_IN_SOLIDITY; // 7 days in seconds
 
-    const votingDelay = BigNumber.from("7200"); // 7200 blocks
-    const votingPeriod = BigNumber.from("50400"); // 1 week
+    const votingDelay = BigNumber.from("86400"); // 1 day
+    const votingPeriod = BigNumber.from("604800"); // 1 week
     const proposalThreshold = BigNumber.from("0"); // anyone can create a proposal
     const quorum = BigNumber.from("1001"); // 1001
     const minTimelockDelay = ONE_DAYS_IN_SOLIDITY;
@@ -86,7 +85,6 @@ export async function integrationJellyGovernorFixture(): Promise<IntegrationJell
         .deploy(
             jellyToken.address,
             fee,
-            timeFactor,
             deployer.address,
             jellyTimelock.address
         );
