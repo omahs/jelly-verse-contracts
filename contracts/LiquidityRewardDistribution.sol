@@ -59,7 +59,7 @@ contract LiquidityRewardDistribution is Ownable {
 
         merkleRoots[epochId] = _merkleRoot;
 
-        epoch =epoch+ 1;
+        epoch =epochId+ 1;
 
         emit EpochAdded(epochId, _merkleRoot, _ipfs);
     }
