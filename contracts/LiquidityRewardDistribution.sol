@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./utils/Ownable.sol";
+import {Ownable} from "./utils/Ownable.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 import {SafeERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/utils/SafeERC20.sol";
 import {RewardVesting} from "./RewardVesting.sol";
-import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
+import {IJellyToken} from "./interfaces/IJellyToken.sol";
+import {MerkleProof} from "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
 
 /**
  * @title LiquidityRewardDistribution contract
@@ -13,19 +14,18 @@ import "./vendor/openzeppelin/v4.9.0/utils/cryptography/MerkleProof.sol";
  */
 
 contract LiquidityRewardDistribution is Ownable {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IJellyToken;
 
-    IERC20 public token;
+    IJellyToken public immutable token;
 
     mapping(uint256 => bytes32) public merkleRoots;
     mapping(uint256 => mapping(address => bool)) public claimed;
     address vestingContract;
 
-    uint256 public epoch;
+    uint96 public epoch;
 
-    event Claimed(address claimant, uint256 week, uint256 balance);
-    event EpochAdded(uint256 epoch, bytes32 merkleRoot, string ipfs);
-    event EpochRemoved(uint256 epoch);
+    event Claimed(address claimant, uint96 epoch, uint256 balance);
+    event EpochAdded(uint96 epoch, bytes32 merkleRoot, string ipfs);
     event ContractChanged(address vestingContract);
 
     error Claim_LenMissmatch();
@@ -35,7 +35,7 @@ contract LiquidityRewardDistribution is Ownable {
     error Claim_WrongProof();
 
     constructor(
-        IERC20 _token,
+        IJellyToken _token,
         address _owner,
         address _pendingOwner
     ) Ownable(_owner, _pendingOwner) {
@@ -53,32 +53,18 @@ contract LiquidityRewardDistribution is Ownable {
     function createEpoch(
         bytes32 _merkleRoot,
         string memory _ipfs
-    ) public onlyOwner returns (uint256 epochId) {
+    ) public onlyOwner returns (uint96 epochId) {
         epochId = epoch;
 
         merkleRoots[epochId] = _merkleRoot;
 
-        epoch += 1;
+        epoch = epochId + 1;
 
         emit EpochAdded(epochId, _merkleRoot, _ipfs);
     }
 
     /**
-     * @notice Removes an epoch
-     *
-     * @param _epochId - id of epoch to be removed
-     *
-     * No return only Owner can call
-     */
-
-    function removeEpoch(uint256 _epochId) public onlyOwner {
-        merkleRoots[_epochId] = bytes32(0);
-
-        emit EpochRemoved(_epochId);
-    }
-
-    /**
-     * @notice Removes an epoch
+     * @notice Claims a single week
      *
      * @param _epochId - id of epoch to be claimed
      * @param _amount - amount of tokens to be claimed
@@ -88,7 +74,7 @@ contract LiquidityRewardDistribution is Ownable {
      */
 
     function claimWeek(
-        uint256 _epochId,
+        uint96 _epochId,
         uint256 _amount,
         bytes32[] memory _merkleProof,
         bool _isVesting
@@ -100,11 +86,14 @@ contract LiquidityRewardDistribution is Ownable {
         if (_isVesting) {
             token.approve(vestingContract, _amount);
             RewardVesting(vestingContract).vestLiquidity(_amount, msg.sender);
-        } else token.safeTransfer(msg.sender, _amount / 2);
+        } else {
+            token.burn(_amount - _amount / 2);
+            token.safeTransfer(msg.sender, _amount / 2);
+        }
     }
 
     /**
-     * @notice Removes an epoch
+     * @notice Claims multiple weeks
      *
      * @param _epochIds - id sof epochs to be claimed
      * @param _amounts - amounts of tokens to be claimed
@@ -114,7 +103,7 @@ contract LiquidityRewardDistribution is Ownable {
      */
 
     function claimWeeks(
-        uint256[] memory _epochIds,
+        uint96[] memory _epochIds,
         uint256[] memory _amounts,
         bytes32[][] memory _merkleProofs,
         bool _isVesting
@@ -139,14 +128,17 @@ contract LiquidityRewardDistribution is Ownable {
                     totalBalance,
                     msg.sender
                 );
-            } else token.safeTransfer(msg.sender, totalBalance / 2);
+            } else {
+                token.burn(totalBalance - totalBalance / 2);
+                token.safeTransfer(msg.sender, totalBalance / 2);
+            }
         } else {
             revert Claim_ZeroAmount();
         }
     }
 
     /**
-     * @notice Removes an epoch
+     * @notice Verifies claim
      *
      * @param _reciver - address of user to claim
      * @param _epochId - id of epoch to be claimed
@@ -179,7 +171,7 @@ contract LiquidityRewardDistribution is Ownable {
     }
 
     function _claimWeek(
-        uint256 _epochId,
+        uint96 _epochId,
         uint256 _amount,
         bytes32[] memory _merkleProof
     ) private {

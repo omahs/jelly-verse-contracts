@@ -23,6 +23,11 @@ const DMC_TESTNET3_RPC_URL = process.env.DMC_TESTNET3_RPC_URL;
 const DMC_TESTNET3_API_URL = process.env.DMC_TESTNET3_API_URL;
 const DMC_TESTNET3_BROWSER_URL = process.env.DMC_TESTNET3_BROWSER_URL;
 
+const SEI_DEVNET_RPC_URL=process.env.SEI_DEVNET_RPC_URL;
+const SEI_DEVNET_BROWSER_URL=process.env.SEI_DEVNET_BROWSER_URL;
+const SEI_DEVNET_API_URL=process.env.SEI_DEVNET_API_URL;
+const SEI_API_KEY=process.env.SEI_API_KEY;
+
 const BLOCKSCOUT_DMC_API_KEY = process.env.BLOCKSCOUT_DMC_API_KEY;
 
 const config: HardhatUserConfig = {
@@ -62,12 +67,19 @@ const config: HardhatUserConfig = {
 				DMC_TESTNET3_RPC_URL !== undefined ? DMC_TESTNET3_RPC_URL : '',
 			accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
 			chainId: 1131,
-		}
+		},
+		devnet: {
+			url:
+				SEI_DEVNET_RPC_URL !== undefined ? SEI_DEVNET_RPC_URL : '',
+			accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+			chainId: 713715,
+		},
 	},
 	etherscan: {
 		// npx hardhat verify --network rinkeby {contractAddress} [{constructor arguments}]
 		apiKey: {
 			sepolia: ETHERSCAN_API_KEY !== undefined ? ETHERSCAN_API_KEY : '',
+			devnet:SEI_API_KEY !== undefined ? SEI_API_KEY : '',
 			
 		},
 		customChains: [
@@ -85,6 +97,14 @@ const config: HardhatUserConfig = {
 				urls: {
 					apiURL: DMC_TESTNET3_API_URL !== undefined ? DMC_TESTNET3_API_URL : '',
 					browserURL: DMC_TESTNET3_BROWSER_URL !== undefined ? DMC_TESTNET3_BROWSER_URL : '',
+				}
+			},
+			{
+				network: "devnet",
+				chainId: 713715,
+				urls: {
+					apiURL: SEI_DEVNET_API_URL !== undefined ? SEI_DEVNET_API_URL : '',
+					browserURL: SEI_DEVNET_BROWSER_URL !== undefined ? SEI_DEVNET_BROWSER_URL : '',
 				}
 			},
 		]
