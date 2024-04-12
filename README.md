@@ -1261,3 +1261,158 @@ error Minter_MintTooSoon()
 ```
 
 #### Minter_ZeroAddress
+
+## PoolParty.sol
+
+### Contract Overview
+
+PoolParty smart contract represent initial JELLY token offering.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol)
+
+### Constants
+
+#### i_jellyToken
+
+```solidity
+address i_jellyToken
+```
+
+#### usdToken
+
+```solidity
+address usdToken
+```
+
+#### jellySwapPoolId
+
+```solidity
+bytes32 jellySwapPoolId
+```
+
+#### jellySwapVault
+
+```solidity
+address jellySwapVault
+```
+
+### Storage Layout
+
+| Name            | Type    | Slot | Offset | Bytes | Contract                          |
+| --------------- | ------- | ---- | ------ | ----- | --------------------------------- |
+| \_status        | uint256 | 0    | 0      | 32    | contracts/PoolParty.sol:PoolParty |
+| \_owner         | address | 1    | 0      | 20    | contracts/PoolParty.sol:PoolParty |
+| \_pendingOwner  | address | 2    | 0      | 20    | contracts/PoolParty.sol:PoolParty |
+| isOver          | bool    | 2    | 20     | 1     | contracts/PoolParty.sol:PoolParty |
+| usdToJellyRatio | uint88  | 2    | 21     | 11    | contracts/PoolParty.sol:PoolParty |
+
+### Functions
+
+#### canBuy
+
+```solidity
+modifier canBuy()
+```
+
+#### constructor
+
+```solidity
+constructor(address _jellyToken, address _usdToken, uint88 _usdToJellyRatio, address _jellySwapVault, bytes32 _jellySwapPoolId, address _owner, address _pendingOwner)
+```
+
+public buyWithUsd
+
+```solidity
+function buyWithUsd(uint256 _amount) external payable
+```
+
+\_Buys jelly tokens with USD pegged token\_
+
+#### Parameters
+
+| Name     | Type    | Description              |
+| -------- | ------- | ------------------------ |
+| \_amount | uint256 | amount of usd to be sold |
+
+#### endBuyingPeriod
+
+```solidity
+function endBuyingPeriod() external onlyOwner
+```
+
+\_Ends buying period and burns remaining JellyTokens.\_
+
+\_Only owner can call.
+
+No return, reverts on error.\_
+
+#### setUSDToJellyRatio
+
+```solidity
+function setUSDToJellyRatio(uint88 _usdToJellyRatio) external onlyOwner
+```
+
+_Sets native to jelly ratio._
+
+_Only owner can call._
+
+#### Parameters
+
+| Name              | Type   | Description                        |
+| ----------------- | ------ | ---------------------------------- |
+| \_usdToJellyRatio | uint88 | - ratio of native to jelly tokens. |
+
+#### \_convertERC20sToAssets
+
+```solidity
+function _convertERC20sToAssets(contract IERC20[] tokens) internal pure returns (contract IAsset[] assets)
+```
+
+### Events
+
+#### BuyWithUsd
+
+```solidity
+event BuyWithUsd(uint256 usdAmount, uint256 jellyAmount, address buyer)
+```
+
+#### EndBuyingPeriod
+
+```solidity
+event EndBuyingPeriod()
+```
+
+#### NativeToJellyRatioSet
+
+```solidity
+event NativeToJellyRatioSet(uint256 usdToJellyRatio)
+```
+
+### Errors
+
+#### PoolParty\_\_CannotBuy
+
+```solidity
+error PoolParty__CannotBuy()
+```
+
+#### PoolParty\_\_NoValueSent
+
+```solidity
+error PoolParty__NoValueSent()
+```
+
+#### PoolParty\_\_AddressZero
+
+```solidity
+error PoolParty__AddressZero()
+```
+
+#### PoolParty\_\_ZeroValue
+
+```solidity
+error PoolParty__ZeroValue()
+```
