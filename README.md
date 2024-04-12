@@ -62,6 +62,14 @@ forge test
 docker run -v $PWD:/src ethereum/solc:0.8.19 --storage-layout /src/contracts/Chest.sol
 ```
 
+8. Get coverage
+
+```shell
+DISABLE_OPTIMIZER=true npx hardhat coverage
+
+forge coverage
+```
+
 ## Usage
 
 This project consists of the following smart contracts:
@@ -131,8 +139,6 @@ sequenceDiagram
 #### Tokens for Team Members and Investors
 
 Tokens for Team members and Investors are linearly vested through Vesting and VestingJelly smart contract.
-
-
 
 There is a set of Differential tests to confirm that the calculation for the vesting schedule is correct.
 
