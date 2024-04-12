@@ -83,16 +83,18 @@ This project consists of the following smart contracts:
 - [RewardVesting](./contracts/RewardVesting.sol)
 - [DailySnapshot](./contracts/DailySnapshot.sol)
 
+## Roles & Actors
+
 ## JellyToken.sol
 
 ### Contract Overview
 
-JLY serves as the primary governance and utility token for the Jellyverse ecosystem.
+JELLY serves as the primary governance and utility token for the Jellyverse ecosystem.
 
 ### Dependencies
 
 **Inherits:**
-[AccessControl](/contracts/vendor/openzeppelin/v4.9.0/access/AccessControl.sol/abstract.AccessControl.md), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol/abstract.ReentrancyGuard.md)
+[AccessControl](/contracts/vendor/openzeppelin/v4.9.0/access/AccessControl.sol), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol)
 
 ### Constants
 
@@ -238,1035 +240,800 @@ error JellyToken__ZeroAddress()
 error JellyToken__CapExceeded()
 ```
 
-### VestingLib
+## JellyTokenDeployer.sol
+
+### Contract Overview
+
+A contract for deploying JellyToken smart contract using CREATE2 opcode.
+
+### Functions
+
+#### getBytecode
+
+```solidity
+function getBytecode(address _defaultAdminRole) public pure returns (bytes)
+```
+
+_Returns the bytecode for deploying JellyToken smart contract_
+
+#### Parameters
+
+| Name               | Type    | Description                                                     |
+| ------------------ | ------- | --------------------------------------------------------------- |
+| \_defaultAdminRole | address | - The address of the Jelly Governance (Timelock) smart contract |
+
+#### computeAddress
+
+```solidity
+function computeAddress(bytes32 _salt, address _defaultAdminRole) public view returns (address)
+```
+
+_Computes the address of the JellyToken smart contract_
+
+#### Parameters
+
+| Name               | Type    | Description                                                     |
+| ------------------ | ------- | --------------------------------------------------------------- |
+| \_salt             | bytes32 |                                                                 |
+| \_defaultAdminRole | address | - The address of the Jelly Governance (Timelock) smart contract |
+
+#### Return Values
+
+| Name | Type    | Description                                            |
+| ---- | ------- | ------------------------------------------------------ |
+| [0]  | address | address - The address of the JellyToken smart contract |
+
+#### deployJellyToken
+
+```solidity
+function deployJellyToken(bytes32 _salt, address _defaultAdminRole) public payable returns (address JellyTokenAddress)
+```
+
+_Deploys JellyToken smart contract using CREATE2 opcode_
+
+#### Parameters
+
+| Name               | Type    | Description                                                     |
+| ------------------ | ------- | --------------------------------------------------------------- |
+| \_salt             | bytes32 |                                                                 |
+| \_defaultAdminRole | address | - The address of the Jelly Governance (Timelock) smart contract |
+
+#### Return Values
+
+| Name              | Type    | Description                                            |
+| ----------------- | ------- | ------------------------------------------------------ |
+| JellyTokenAddress | address | address - The address of the JellyToken smart contract |
+
+### Events
+
+#### Deployed
+
+```solidity
+event Deployed(address contractAddress, bytes32 salt)
+```
+
+## JellyGovernor.sol
+
+### Contract Overview
+
+JellyGovernor contract serves as the main governance mechanism for managing proposals and enforcing decision-making rules within Jellyverse.
+
+### Additional notes
+
+Read more about Jelly Governance model in [docs](/docs/Governance.md). Here you will also find more informations about `Governor` and `GovernorVotes` smart contracts which are OpenZeppelin forks with minor changes.
+
+### Dependencies
 
 **Inherits:**
-[Ownable](/contracts/utils/Ownable.sol/abstract.Ownable.md)
+[Governor](/contracts/Governor.sol), [GovernorSettings](/contracts/extensions/GovernorSettings.sol), [GovernorCountingSimple](/contracts/extensions/GovernorCountingSimple.sol), [GovernorVotes](/contracts/GovernorVotes.sol), [GovernorTimelockControl](/contracts/extensions/GovernorTimelockControl.sol)
 
-#### State Variables
+### Storage Layout
 
-##### vestingConfig
+| Name                | Type                                                           | Slot | Offset | Bytes | Contract                                  |
+| ------------------- | -------------------------------------------------------------- | ---- | ------ | ----- | ----------------------------------------- |
+| \_nameFallback      | string                                                         | 0    | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_versionFallback   | string                                                         | 1    | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_name              | string                                                         | 2    | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_minVotingDelay    | uint48                                                         | 3    | 0      | 6     | contracts/JellyGovernor.sol:JellyGovernor |
+| \_minVotingPeriod   | uint48                                                         | 3    | 6      | 6     | contracts/JellyGovernor.sol:JellyGovernor |
+| \_proposals         | mapping(uint256 => struct Governor.ProposalCore)               | 4    | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_governanceCall    | struct DoubleEndedQueue.Bytes32Deque                           | 5    | 0      | 64    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_votingDelay       | uint256                                                        | 7    | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_votingPeriod      | uint256                                                        | 8    | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_proposalThreshold | uint256                                                        | 9    | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_proposalVotes     | mapping(uint256 => struct GovernorCountingSimple.ProposalVote) | 10   | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_timelock          | contract TimelockController                                    | 11   | 0      | 20    | contracts/JellyGovernor.sol:JellyGovernor |
+| \_timelockIds       | mapping(uint256 => bytes32)                                    | 12   | 0      | 32    | contracts/JellyGovernor.sol:JellyGovernor |
 
-```solidity
-VestingConfig internal vestingConfig;
-```
+### Functions
 
-##### vestingPositions
-
-```solidity
-mapping(address => VestingPosition) internal vestingPositions;
-```
-
-| Name             | Type                                                  | Slot | Offset | Bytes | Contract                                  |
-| ---------------- | ----------------------------------------------------- | ---- | ------ | ----- | ----------------------------------------- |
-| \_owner          | address                                               | 0    | 0      | 20    | contracts/utils/VestingLib.sol:VestingLib |
-| \_pendingOwner   | address                                               | 1    | 0      | 20    | contracts/utils/VestingLib.sol:VestingLib |
-| vestingConfig    | struct VestingLib.VestingConfig                       | 2    | 0      | 32    | contracts/utils/VestingLib.sol:VestingLib |
-| vestingPositions | mapping(address => struct VestingLib.VestingPosition) | 3    | 0      | 32    | contracts/utils/VestingLib.sol:VestingLib |
-
-#### Functions
-
-##### constructor
+### constructor
 
 ```solidity
-constructor(
-    uint48 _startTimestamp,
-    uint32 _cliffDuration,
-    uint32 _vestingDuration,
-    address _owner,
-    address _pendingOwner
-) Ownable(_owner, _pendingOwner);
+constructor(address _chest, contract TimelockController _timelock)
 ```
 
-##### startVesting
+### quorum
 
 ```solidity
-function startVesting() external onlyOwner;
+function quorum(uint256) public pure returns (uint256)
 ```
 
-##### configureVestingSchedule
+### castVote
 
 ```solidity
-function configureVestingSchedule(uint48 startTimestamp, uint32 cliffDuration, uint32 vestingDuration)
-    external
-    onlyOwner;
+function castVote(uint256, uint8) public virtual returns (uint256)
 ```
 
-##### releasableAmount
+_JellyGovernor overrides but does not support below functions due to non-standard parameter requirements.
+Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
+To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
-Calculates the amount that has already vested but hasn't been released yet
+### castVoteWithReason
 
 ```solidity
-function releasableAmount(address account) public view returns (uint256);
+function castVoteWithReason(uint256, uint8, string) public virtual returns (uint256)
 ```
 
-**Returns**
+_JellyGovernor overrides but does not support below functions due to non-standard parameter requirements.
+Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
+To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
-| Name     | Type      | Description                                                     |
-| -------- | --------- | --------------------------------------------------------------- |
-| `<none>` | `uint256` | uint256 The amount that has vested but hasn't been released yet |
-
-##### vestedAmount
+### castVoteBySig
 
 ```solidity
-function vestedAmount(address account) internal view returns (uint256 vestedAmount_);
+function castVoteBySig(uint256, uint8, uint8, bytes32, bytes32) public virtual returns (uint256)
 ```
 
-##### \_configureVestingSchedule
+_JellyGovernor overrides but does not support below functions due to non-standard parameter requirements.
+Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
+To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
+
+### getVotes
 
 ```solidity
-function _configureVestingSchedule(uint48 startTimestamp, uint32 cliffDuration, uint32 vestingDuration) private;
+function getVotes(address, uint256) public view virtual returns (uint256)
 ```
 
-#### Events
+_JellyGovernor overrides but does not support below functions due to non-standard parameter requirements.
+Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
+To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
-##### VestingScheduleConfigured
+### votingDelay
 
 ```solidity
-event VestingScheduleConfigured(uint48 startTimestamp, uint48 cliffTimestamp, uint32 totalDuration);
+function votingDelay() public view returns (uint256)
 ```
 
-##### VestingStarted
+### votingPeriod
 
 ```solidity
-event VestingStarted();
+function votingPeriod() public view returns (uint256)
 ```
 
-#### Errors
-
-##### VestingLib\_\_VestingAlreadyStarted
+### state
 
 ```solidity
-error VestingLib__VestingAlreadyStarted();
+function state(uint256 proposalId) public view returns (enum IGovernor.ProposalState)
 ```
 
-##### VestingLib\_\_StartTimestampMustNotBeInThePast
+### getExecutor
 
 ```solidity
-error VestingLib__StartTimestampMustNotBeInThePast();
+function getExecutor() public view returns (address)
 ```
 
-##### VestingLib\_\_InvalidDuration
+### proposalThreshold
 
 ```solidity
-error VestingLib__InvalidDuration();
+function proposalThreshold() public view returns (uint256)
 ```
 
-#### Structs
-
-##### VestingPosition
+### \_cancel
 
 ```solidity
-struct VestingPosition {
-    uint256 totalVestedAmount;
-    uint256 releasedAmount;
-}
+function _cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal returns (uint256)
 ```
 
-##### VestingConfig
+### \_executor
 
 ```solidity
-struct VestingConfig {
-    uint48 startTimestamp;
-    uint48 cliffTimestamp;
-    uint32 totalDuration;
-    bool isVestingStarted;
-}
+function _executor() internal view returns (address)
 ```
 
-### VestingTeam
+### supportsInterface
+
+```solidity
+function supportsInterface(bytes4 interfaceId) public view returns (bool)
+```
+
+### \_execute
+
+```solidity
+function _execute(uint256 proposalId, address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal
+```
+
+### Errors
+
+#### JellyGovernor\_\_InvalidOperation
+
+```solidity
+error JellyGovernor__InvalidOperation()
+```
+
+## JellyTimelock.sol
+
+### Contract Overview
+
+Timelock Contract for Governance Proposal Execution.
+
+### Dependencies
 
 **Inherits:**
-[VestingLib](/contracts/utils/VestingLib.sol/abstract.VestingLib.md), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol/abstract.ReentrancyGuard.md)
+[TimelockController](/contracts/vendor/openzeppelin/v4.9.0/governance/TimelockController.sol)
 
-#### State Variables
+### Storage Layout
 
-##### i_beneficiary
+| Name         | Type                                              | Slot | Offset | Bytes | Contract                                  |
+| ------------ | ------------------------------------------------- | ---- | ------ | ----- | ----------------------------------------- |
+| \_roles      | mapping(bytes32 => struct AccessControl.RoleData) | 0    | 0      | 32    | contracts/JellyTimelock.sol:JellyTimelock |
+| \_timestamps | mapping(bytes32 => uint256)                       | 1    | 0      | 32    | contracts/JellyTimelock.sol:JellyTimelock |
+| \_minDelay   | uint256                                           | 2    | 0      | 32    | contracts/JellyTimelock.sol:JellyTimelock |
 
-```solidity
-address immutable i_beneficiary;
-```
+### Functions
 
-##### i_revoker
-
-```solidity
-address immutable i_revoker;
-```
-
-##### i_token
+### constructor
 
 ```solidity
-address immutable i_token;
+constructor(uint256 minDelay, address[] proposers, address[] executors, address admin)
 ```
 
-| Name             | Type                                                  | Slot | Offset | Bytes | Contract                              |
-| ---------------- | ----------------------------------------------------- | ---- | ------ | ----- | ------------------------------------- |
-| \_owner          | address                                               | 0    | 0      | 20    | contracts/VestingTeam.sol:VestingTeam |
-| \_pendingOwner   | address                                               | 1    | 0      | 20    | contracts/VestingTeam.sol:VestingTeam |
-| vestingConfig    | struct VestingLib.VestingConfig                       | 2    | 0      | 32    | contracts/VestingTeam.sol:VestingTeam |
-| vestingPositions | mapping(address => struct VestingLib.VestingPosition) | 3    | 0      | 32    | contracts/VestingTeam.sol:VestingTeam |
-| \_status         | uint256                                               | 4    | 0      | 32    | contracts/VestingTeam.sol:VestingTeam |
+## Chest.sol
 
-#### Functions
+### Contract Overview
 
-##### onlyRevoker
+Chest serves as the core for JellyStaking, where staked tokens are locked and positions are represented as soulbound NFTs. Users receive a voting power booster and various benefits, enhancing their influence and access within the ecosystem.
 
-```solidity
-modifier onlyRevoker();
-```
+### Additional notes
 
-##### constructor
+Read more about JellyStaking in [docs](/docs/Chest.md).
 
-```solidity
-constructor(
-    uint256 _amount,
-    address _beneficiary,
-    address _revoker,
-    address _token,
-    uint48 _startTimestamp,
-    uint32 _cliffDuration,
-    uint32 _vestingDuration,
-    address _owner,
-    address _pendingOwner
-) VestingLib(_startTimestamp, _cliffDuration, _vestingDuration, _owner, _pendingOwner);
-```
-
-##### release
-
-Release vested tokens
-No return, reverts on error
-
-```solidity
-function release() external onlyRevoker nonReentrant;
-```
-
-#### Events
-
-##### Release
-
-```solidity
-event Release(address indexed beneficiary, uint256 amount);
-```
-
-#### Errors
-
-##### VestingTeam\_\_OnlyRevokerCanCall
-
-```solidity
-error VestingTeam__OnlyRevokerCanCall(address caller);
-```
-
-##### VestingTeam\_\_ZeroAddress
-
-```solidity
-error VestingTeam__ZeroAddress(string variableName);
-```
-
-##### VestingTeam\_\_NothingToRelease
-
-```solidity
-error VestingTeam__NothingToRelease();
-```
-
-### VestingInvestor
+### Dependencies
 
 **Inherits:**
-[VestingLib](/contracts/utils/VestingLib.sol/abstract.VestingLib.md), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol/abstract.ReentrancyGuard.md)
+[ERC721](/contracts/vendor/openzeppelin/v4.9.0/token/ERC721/ERC721.sol), [Ownable](/contracts/utils/Ownable.sol), [Vesting](/contracts/utils/Vesting.sol), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol)
 
-Contract for vesting jelly tokens for investors
+### Constants
 
-#### State Variables
-
-##### i_jellyToken
+#### MAX_FREEZING_PERIOD_REGULAR_CHEST
 
 ```solidity
-address internal immutable i_jellyToken;
+uint32 MAX_FREEZING_PERIOD_REGULAR_CHEST
 ```
 
-##### i_chest
+#### MAX_FREEZING_PERIOD_SPECIAL_CHEST
 
 ```solidity
-address internal immutable i_chest;
+uint32 MAX_FREEZING_PERIOD_SPECIAL_CHEST
 ```
 
-| Name             | Type                                                  | Slot | Offset | Bytes | Contract                                      |
-| ---------------- | ----------------------------------------------------- | ---- | ------ | ----- | --------------------------------------------- |
-| \_owner          | address                                               | 0    | 0      | 20    | contracts/VestingInvestor.sol:VestingInvestor |
-| \_pendingOwner   | address                                               | 1    | 0      | 20    | contracts/VestingInvestor.sol:VestingInvestor |
-| vestingConfig    | struct VestingLib.VestingConfig                       | 2    | 0      | 32    | contracts/VestingInvestor.sol:VestingInvestor |
-| vestingPositions | mapping(address => struct VestingLib.VestingPosition) | 3    | 0      | 32    | contracts/VestingInvestor.sol:VestingInvestor |
-| \_status         | uint256                                               | 4    | 0      | 32    | contracts/VestingInvestor.sol:VestingInvestor |
-
-#### Functions
-
-##### onlyOwnerOrBeneficiary
+#### MIN_FREEZING_PERIOD
 
 ```solidity
-modifier onlyOwnerOrBeneficiary(address beneficiary);
+uint32 MIN_FREEZING_PERIOD
 ```
 
-##### constructor
+#### MIN_VESTING_DURATION
 
 ```solidity
-constructor(
-    address _jellyToken,
-    address _chest,
-    Beneficiary[] memory _beneficiaries,
-    uint48 _startTimestamp,
-    uint32 _cliffDuration,
-    uint32 _vestingDuration,
-    address _owner,
-    address _pendingOwner
-) VestingLib(_startTimestamp, _cliffDuration, _vestingDuration, _owner, _pendingOwner);
+uint32 MIN_VESTING_DURATION
 ```
 
-##### release
-
-Releases vested tokens to the beneficiary.
-No return, reverts on error.
+#### MAX_VESTING_DURATION
 
 ```solidity
-function release() external nonReentrant;
+uint32 MAX_VESTING_DURATION
 ```
 
-##### convertToChest
-
-Converts vested tokens to chest NFT.
+#### MAX_NERF_PARAMETER
 
 ```solidity
-function convertToChest(address beneficiary, uint256 amount, uint32 freezingPeriod)
-    external
-    onlyOwnerOrBeneficiary(beneficiary);
+uint8 MAX_NERF_PARAMETER
 ```
 
-**Parameters**
-
-| Name             | Type      | Description                                                           |
-| ---------------- | --------- | --------------------------------------------------------------------- |
-| `beneficiary`    | `address` | - address of beneficiary                                              |
-| `amount`         | `uint256` | - amount of vested tokens to convert                                  |
-| `freezingPeriod` | `uint32`  | - duration of freezing period in seconds No return, reverts on error. |
-
-#### Events
-
-##### Release
+#### NERF_NORMALIZATION_FACTOR
 
 ```solidity
-event Release(address indexed beneficiary, uint256 amount);
+uint8 NERF_NORMALIZATION_FACTOR
 ```
 
-##### ConvertToChest
+#### TIME_FACTOR
 
 ```solidity
-event ConvertToChest(address indexed beneficiary);
+uint32 TIME_FACTOR
 ```
 
-#### Errors
-
-##### VestingInvestor\_\_ZeroAddress
+#### MIN_STAKING_AMOUNT
 
 ```solidity
-error VestingInvestor__ZeroAddress();
+uint256 MIN_STAKING_AMOUNT
 ```
 
-##### VestingInvestor\_\_NothingToRelease
+#### MAX_BOOSTER
 
 ```solidity
-error VestingInvestor__NothingToRelease();
+uint120 MAX_BOOSTER
 ```
 
-##### VestingInvestor\_\_InsufficientFunds
+#### BASE_SVG
 
 ```solidity
-error VestingInvestor__InsufficientFunds();
+string BASE_SVG
 ```
 
-##### VestingInvestor\_\_OnlyOwnerOrBeneficiaryCanCall
+#### MIDDLE_PART_SVG
 
 ```solidity
-error VestingInvestor__OnlyOwnerOrBeneficiaryCanCall(address caller);
+string MIDDLE_PART_SVG
 ```
 
-#### Structs
-
-##### Beneficiary
+#### VESTING_PERIOD_SVG
 
 ```solidity
-struct Beneficiary {
-    address _address;
-    uint32 _amount;
-}
+string VESTING_PERIOD_SVG
 ```
 
-### Allocator
-
-**Inherits:**
-[ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol/abstract.ReentrancyGuard.md), [Ownable](/contracts/utils/Ownable.sol/abstract.Ownable.md)
-
-Contract for swapping dusd tokens for jelly tokens
-
-#### State Variables
-
-##### i_jellyToken
+#### END_SVG
 
 ```solidity
-address internal immutable i_jellyToken;
+string END_SVG
 ```
 
-##### i_chest
+#### i_jellyToken
 
 ```solidity
-address internal immutable i_chest;
+contract IERC20 i_jellyToken
 ```
 
-##### i_dusd
+### Storage Layout
+
+| Name                | Type                                               | Slot | Offset | Bytes | Contract                  |
+| ------------------- | -------------------------------------------------- | ---- | ------ | ----- | ------------------------- |
+| \_name              | string                                             | 0    | 0      | 32    | contracts/Chest.sol:Chest |
+| \_symbol            | string                                             | 1    | 0      | 32    | contracts/Chest.sol:Chest |
+| \_owners            | mapping(uint256 => address)                        | 2    | 0      | 32    | contracts/Chest.sol:Chest |
+| \_balances          | mapping(address => uint256)                        | 3    | 0      | 32    | contracts/Chest.sol:Chest |
+| \_tokenApprovals    | mapping(uint256 => address)                        | 4    | 0      | 32    | contracts/Chest.sol:Chest |
+| \_operatorApprovals | mapping(address => mapping(address => bool))       | 5    | 0      | 32    | contracts/Chest.sol:Chest |
+| \_owner             | address                                            | 6    | 0      | 20    | contracts/Chest.sol:Chest |
+| \_pendingOwner      | address                                            | 7    | 0      | 20    | contracts/Chest.sol:Chest |
+| index               | uint256                                            | 8    | 0      | 32    | contracts/Chest.sol:Chest |
+| vestingPositions    | mapping(uint256 => struct Vesting.VestingPosition) | 9    | 0      | 32    | contracts/Chest.sol:Chest |
+| \_status            | uint256                                            | 10   | 0      | 32    | contracts/Chest.sol:Chest |
+| fee                 | uint128                                            | 11   | 0      | 16    | contracts/Chest.sol:Chest |
+| totalFees           | uint128                                            | 11   | 16     | 16    | contracts/Chest.sol:Chest |
+
+### Functions
+
+#### onlyAuthorizedForToken
 
 ```solidity
-address internal immutable i_dusd;
+modifier onlyAuthorizedForToken(uint256 _tokenId)
 ```
 
-##### i_wdfi
+#### constructor
 
 ```solidity
-address internal immutable i_wdfi;
+constructor(address jellyToken, uint128 mintingFee, address owner, address pendingOwner)
 ```
 
-##### dusdToJellyRatio
+#### stake
 
 ```solidity
-uint256 internal dusdToJellyRatio;
+function stake(
+        uint256 amount,
+        address beneficiary,
+        uint32 freezingPeriod
+    ) external
+      nonReentrant
 ```
 
-##### wdfiToJellyRatio
+_Stakes tokens and freezes them for a period of time in regular chest._
+
+#### Parameters
+
+| Name           | Type    | Description                               |
+| -------------- | ------- | ----------------------------------------- |
+| amount         | uint256 | - amount of tokens to freeze.             |
+| beneficiary    | address | - address of the beneficiary.             |
+| freezingPeriod | uint32  | - duration of freezing period in seconds. |
+
+#### stakeSpecial
 
 ```solidity
-uint256 internal wdfiToJellyRatio;
+function stakeSpecial(
+        uint256 amount,
+        address beneficiary,
+        uint32 freezingPeriod,
+        uint32 vestingDuration,
+        uint8 nerfParameter
+    ) external
+      nonReentrant
+
 ```
 
-##### jellySwapPoolId
+_Stakes tokens and freezes them for a period of time in special chest._
+
+_Anyone can call this function, it's meant to be used by
+partners and investors because of vestingPeriod._
+
+#### Parameters
+
+| Name            | Type    | Description                               |
+| --------------- | ------- | ----------------------------------------- |
+| amount          | uint256 | - amount of tokens to freeze.             |
+| beneficiary     | address | - address of the beneficiary.             |
+| freezingPeriod  | uint32  | - duration of freezing period in seconds. |
+| vestingDuration | uint32  | - duration of vesting period in seconds.  |
+| nerfParameter   | uint8   |                                           |
+
+#### increaseStake
 
 ```solidity
-bytes32 internal jellySwapPoolId;
+function increaseStake(
+        uint256 tokenId,
+        uint256 amount,
+        uint32 extendFreezingPeriod
+    ) external
+      onlyAuthorizedForToken(tokenId)
+      nonReentrant
 ```
 
-##### jellySwapVault
+_Increases staked amount/freezingPeriod or both_.
+
+_Only addresses authorized for token can call._
+
+#### Parameters
+
+| Name                 | Type    | Description                                         |
+| -------------------- | ------- | --------------------------------------------------- |
+| tokenId              | uint256 | - id of the chest.                                  |
+| amount               | uint256 | - amount of tokens to stake.                        |
+| extendFreezingPeriod | uint32  | - duration of freezing period extension in seconds. |
+
+#### unstake
 
 ```solidity
-address internal jellySwapVault;
+function unstake(
+        uint256 tokenId,
+        uint256 amount
+    ) external
+      onlyAuthorizedForToken(tokenId)
+      nonReentrant
 ```
 
-##### isOver
+_Unstakes tokens._
+
+_Only addresses authorized for token can call._
+
+#### Parameters
+
+| Name    | Type    | Description                    |
+| ------- | ------- | ------------------------------ |
+| tokenId | uint256 | - id of the chest.             |
+| amount  | uint256 | - amount of tokens to unstake. |
+
+#### setFee
 
 ```solidity
-bool internal isOver;
+function setFee(uint128 fee_) external onlyOwner
 ```
 
-| Name             | Type    | Slot | Offset | Bytes | Contract                          |
-| ---------------- | ------- | ---- | ------ | ----- | --------------------------------- |
-| \_status         | uint256 | 0    | 0      | 32    | contracts/Allocator.sol:Allocator |
-| \_owner          | address | 1    | 0      | 20    | contracts/Allocator.sol:Allocator |
-| \_pendingOwner   | address | 2    | 0      | 20    | contracts/Allocator.sol:Allocator |
-| dusdToJellyRatio | uint256 | 3    | 0      | 32    | contracts/Allocator.sol:Allocator |
-| wdfiToJellyRatio | uint256 | 4    | 0      | 32    | contracts/Allocator.sol:Allocator |
-| jellySwapPoolId  | bytes32 | 5    | 0      | 32    | contracts/Allocator.sol:Allocator |
-| jellySwapVault   | address | 6    | 0      | 20    | contracts/Allocator.sol:Allocator |
-| isOver           | bool    | 6    | 20     | 1     | contracts/Allocator.sol:Allocator |
-
-#### Functions
-
-##### canBuy
-
-```solidity
-modifier canBuy();
-```
-
-##### constructor
-
-```solidity
-constructor(
-    address _jellyToken,
-    address _chest,
-    address _dusd,
-    address _wdfi,
-    uint256 _dusdToJellyRatio,
-    uint256 _wdfiToJellyRatio,
-    address _jellySwapVault,
-    bytes32 _jellySwapPoolId,
-    address _owner,
-    address _pendingOwner
-) Ownable(_owner, _pendingOwner);
-```
-
-##### buyWithDusd
-
-Buys jelly tokens with dusd.
-
-```solidity
-function buyWithDusd(uint256 amount, uint32 freezingPeriod) external nonReentrant canBuy;
-```
-
-**Parameters**
-
-| Name             | Type      | Description                                                            |
-| ---------------- | --------- | ---------------------------------------------------------------------- |
-| `amount`         | `uint256` | - amount of dusd tokens deposited.                                     |
-| `freezingPeriod` | `uint32`  | - duration of freezing period in seconds. No return, reverts on error. |
-
-##### buyWithDfi
-
-Buys jelly tokens with wdfi.
-
-```solidity
-function buyWithDfi(uint256 amount) external nonReentrant canBuy;
-```
-
-**Parameters**
-
-| Name     | Type      | Description                                                     |
-| -------- | --------- | --------------------------------------------------------------- |
-| `amount` | `uint256` | - amount of wdfi tokens deposited. No return, reverts on error. |
-
-##### endBuyingPeriod
-
-Ends buying period.
-
-_Only owner can call.
-No return, reverts on error._
-
-```solidity
-function endBuyingPeriod() external onlyOwner;
-```
-
-##### setDusdToJellyRatio
-
-Sets dusd to jelly ratio.
+_Sets fee in Jelly token for minting a chest._
 
 _Only owner can call._
 
+#### Parameters
+
+| Name  | Type    | Description |
+| ----- | ------- | ----------- |
+| fee\_ | uint128 | - new fee.  |
+
+#### withdrawFees
+
 ```solidity
-function setDusdToJellyRatio(uint256 _dusdToJellyRatio) external onlyOwner;
+function withdrawFees(address beneficiary) external onlyOwner
 ```
 
-**Parameters**
+_Withdraws accumulated fees to the specified beneficiary._
 
-| Name                | Type      | Description                                                   |
-| ------------------- | --------- | ------------------------------------------------------------- |
-| `_dusdToJellyRatio` | `uint256` | - ratio of dusd to jelly tokens. No return, reverts on error. |
+_Only the contract owner can call this function._
 
-##### setWdfiToJellyRatio
+#### Parameters
 
-Sets wdfi to jelly ratio.
+| Name        | Type    | Description                              |
+| ----------- | ------- | ---------------------------------------- |
+| beneficiary | address | - address to receive the withdrawn fees. |
 
-_Only owner can call._
+#### getVotingPower
 
 ```solidity
-function setWdfiToJellyRatio(uint256 _wdfiToJellyRatio) external onlyOwner;
+function getVotingPower(address account, uint256[] tokenIds) external view returns (uint256)
 ```
 
-**Parameters**
+_Calculates the voting power of all account's chests._
 
-| Name                | Type      | Description                                                   |
-| ------------------- | --------- | ------------------------------------------------------------- |
-| `_wdfiToJellyRatio` | `uint256` | - ratio of wdfi to jelly tokens. No return, reverts on error. |
+#### Parameters
 
-##### getRatios
+| Name     | Type      | Description              |
+| -------- | --------- | ------------------------ |
+| account  | address   | - address of the account |
+| tokenIds | uint256[] | - ids of the chests.     |
 
-Gets To Jelly Ratios.
+#### Return Values
+
+| Name | Type    | Description                    |
+| ---- | ------- | ------------------------------ |
+| [0]  | uint256 | - voting power of the account. |
+
+#### estimateChestPower
 
 ```solidity
-function getRatios() external view returns (uint256, uint256);
+function estimateChestPower(uint256 timestamp, struct Vesting.VestingPosition vestingPosition) external pure returns (uint256)
 ```
 
-**Returns**
+_Calculates the voting power of the chest for specific timestamp and position values._
 
-| Name     | Type      | Description                                       |
-| -------- | --------- | ------------------------------------------------- |
-| `<none>` | `uint256` | dusdToJellyRatio - ratio of dusd to jelly tokens. |
-| `<none>` | `uint256` | wdfiToJellyRatio - ratio of wdfi to jelly tokens. |
+#### Parameters
 
-##### \_convertERC20sToAssets
+| Name            | Type                           | Description                                    |
+| --------------- | ------------------------------ | ---------------------------------------------- |
+| timestamp       | uint256                        | - timestamp for which the power is calculated. |
+| vestingPosition | struct Vesting.VestingPosition | - vesting position of the chest.               |
+
+#### Return Values
+
+| Name | Type    | Description                  |
+| ---- | ------- | ---------------------------- |
+| [0]  | uint256 | - voting power of the chest. |
+
+#### getVestingPosition
 
 ```solidity
-function _convertERC20sToAssets(IERC20[] memory tokens) internal pure returns (IAsset[] memory assets);
+function getVestingPosition(uint256 tokenId) public view returns (struct Vesting.VestingPosition)
 ```
 
-#### Events
+_Retrieves the vesting position at the specified index._
 
-##### BuyWithDusd
+#### Parameters
+
+| Name    | Type    | Description                                    |
+| ------- | ------- | ---------------------------------------------- |
+| tokenId | uint256 | The index of the vesting position to retrieve. |
+
+#### Return Values
+
+| Name | Type                           | Description                                    |
+| ---- | ------------------------------ | ---------------------------------------------- |
+| [0]  | struct Vesting.VestingPosition | - The vesting position at the specified index. |
+
+#### getChestPower
 
 ```solidity
-event BuyWithDusd(uint256 dusdAmount, uint256 jellyAmount);
+function getChestPower(uint256 tokenId) public view returns (uint256)
 ```
 
-##### BuyWithDfi
+_Calculates the voting power of the chest for current block.timestamp._
+
+#### Parameters
+
+| Name    | Type    | Description        |
+| ------- | ------- | ------------------ |
+| tokenId | uint256 | - id of the chest. |
+
+#### Return Values
+
+| Name | Type    | Description                  |
+| ---- | ------- | ---------------------------- |
+| [0]  | uint256 | - voting power of the chest. |
+
+#### tokenURI
 
 ```solidity
-event BuyWithDfi(uint256 wdfiAmount, uint256 jellyAmount);
+function tokenURI(uint256 tokenId) public view virtual returns (string)
 ```
 
-##### EndBuyingPeriod
+_The URI is calculated based on the position values of the chest when called._
+
+_Returns the Uniform Resource Identifier (URI) for `tokenId` token._
+
+#### totalSupply
 
 ```solidity
-event EndBuyingPeriod();
+function totalSupply() public view returns (uint256)
 ```
 
-##### DusdToJellyRatioSet
+_Gets the total supply of tokens._
+
+#### Return Values
+
+| Name | Type    | Description                   |
+| ---- | ------- | ----------------------------- |
+| [0]  | uint256 | - The total supply of tokens. |
+
+#### \_beforeTokenTransfer
 
 ```solidity
-event DusdToJellyRatioSet(uint256 dusdToJellyRatio);
+function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual
 ```
 
-##### WdfiToJellyRatioSet
+_This hook disallows token transfers._
+
+_Hook that is called before token transfer.
+See {ERC721 - \_beforeTokenTransfer}._
+
+#### \_calculateBooster
 
 ```solidity
-event WdfiToJellyRatioSet(uint256 wdfiToJellyRatio);
+function _calculateBooster(struct Vesting.VestingPosition vestingPosition, uint48 timestamp) internal pure returns (uint120)
 ```
 
-#### Errors
+_Calculates the booster of the chest._
 
-##### Allocator\_\_CannotBuy
+#### Parameters
+
+| Name            | Type                           | Description               |
+| --------------- | ------------------------------ | ------------------------- |
+| vestingPosition | struct Vesting.VestingPosition | - chest vesting position. |
+| timestamp       | uint48                         |                           |
+
+#### Return Values
+
+| Name | Type    | Description             |
+| ---- | ------- | ----------------------- |
+| [0]  | uint120 | - booster of the chest. |
+
+#### \_calculatePower
 
 ```solidity
-error Allocator__CannotBuy();
+function _calculatePower(uint256 timestamp, struct Vesting.VestingPosition vestingPosition) internal pure returns (uint256)
 ```
 
-##### Allocator\_\_NothingToRelease
+_Calculates the voting power of the chest based on the timestamp and vesting position._
+
+#### Parameters
+
+| Name            | Type                           | Description                      |
+| --------------- | ------------------------------ | -------------------------------- |
+| timestamp       | uint256                        | - current timestamp.             |
+| vestingPosition | struct Vesting.VestingPosition | - vesting position of the chest. |
+
+#### Return Values
+
+| Name | Type    | Description                  |
+| ---- | ------- | ---------------------------- |
+| [0]  | uint256 | - voting power of the chest. |
+
+### Events
+
+#### Staked
 
 ```solidity
-error Allocator__NothingToRelease();
+event Staked(address user, uint256 tokenId, uint256 amount, uint256 freezedUntil, uint32 vestingDuration, uint120 booster, uint8 nerfParameter)
 ```
 
-##### Allocator\_\_InsufficientFunds
+#### IncreaseStake
 
 ```solidity
-error Allocator__InsufficientFunds();
+event IncreaseStake(uint256 tokenId, uint256 totalStaked, uint256 freezedUntil, uint120 booster)
 ```
 
-### Chest
-
-**Inherits:**
-ERC721URIStorage, [Ownable](/contracts/utils/Ownable.sol/abstract.Ownable.md), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol/abstract.ReentrancyGuard.md)
-
-#### State Variables
-
-##### BASE_SVG
+#### Unstake
 
 ```solidity
-string constant BASE_SVG =
-    "<svg id='jellys' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 300 100' shape-rendering='geometricPrecision' text-rendering='geometricPrecision'><defs><linearGradient id='ekns5QaWV3l2-fill' x1='0' y1='0.5' x2='1' y2='0.5' spreadMethod='pad' gradientUnits='objectBoundingBox' gradientTransform='translate(0 0)'><stop id='ekns5QaWV3l2-fill-0' offset='0%' stop-color='#9292ff'/><stop id='ekns5QaWV3l2-fill-1' offset='100%' stop-color='#fb42ff'/></linearGradient></defs><rect width='300' height='111.780203' rx='0' ry='0' transform='matrix(1 0 0 0.900963 0 0)' fill='url(#ekns5QaWV3l2-fill)'/><text dx='0' dy='0' font-family='&quot;jellys:::Montserrat&quot;' font-size='16' font-weight='400' transform='translate(15.979677 32.100672)' fill='#fff' stroke-width='0' xml:space='preserve'><tspan y='0' font-weight='400' stroke-width='0'><![CDATA[{]]></tspan><tspan x='0' y='16' font-weight='400' stroke-width='0'><![CDATA[    until:";
+event Unstake(uint256 tokenId, uint256 amount, uint256 totalStaked, uint120 booster)
 ```
 
-##### MIDDLE_PART_SVG
+#### SetFee
 
 ```solidity
-string constant MIDDLE_PART_SVG =
-    "]]></tspan><tspan x='0' y='32' font-weight='400' stroke-width='0'><![CDATA[    amount:";
+event SetFee(uint128 fee)
 ```
 
-##### END_SVG
+#### FeeWithdrawn
 
 ```solidity
-string constant END_SVG =
-    "]]></tspan><tspan x='0' y='48' font-weight='400' stroke-width='0'><![CDATA[}]]></tspan></text></svg>";
+event FeeWithdrawn(address beneficiary)
 ```
 
-##### i_jellyToken
+### Errors
+
+#### Chest\_\_ZeroAddress
 
 ```solidity
-address internal immutable i_jellyToken;
+error Chest__ZeroAddress()
 ```
 
-##### tokenId
+#### Chest\_\_InvalidStakingAmount
 
 ```solidity
-uint256 internal tokenId;
+error Chest__InvalidStakingAmount()
 ```
 
-##### fee
+#### Chest\_\_NonExistentToken
 
 ```solidity
-uint256 public fee;
+error Chest__NonExistentToken()
 ```
 
-##### boosterThreshold
+#### Chest\_\_NothingToIncrease
 
 ```solidity
-uint256 internal boosterThreshold;
+error Chest__NothingToIncrease()
 ```
 
-##### minimalStakingPower
+#### Chest\_\_InvalidFreezingPeriod
 
 ```solidity
-uint256 internal minimalStakingPower;
+error Chest__InvalidFreezingPeriod()
 ```
 
-##### maxBooster
+#### Chest\_\_InvalidVestingDuration
 
 ```solidity
-uint256 internal maxBooster;
+error Chest__InvalidVestingDuration()
 ```
 
-##### timeFactor
+#### Chest\_\_InvalidNerfParameter
 
 ```solidity
-uint256 internal timeFactor;
+error Chest__InvalidNerfParameter()
 ```
 
-##### startTimestamp
+#### Chest\_\_CannotModifySpecial
 
 ```solidity
-uint48 internal startTimestamp;
+error Chest__CannotModifySpecial()
 ```
 
-##### cliffTimestamp
+#### Chest\_\_NonTransferrableToken
 
 ```solidity
-uint48 internal cliffTimestamp;
+error Chest__NonTransferrableToken()
 ```
 
-##### isVestingStarted
+#### Chest\_\_NotAuthorizedForToken
 
 ```solidity
-bool public isVestingStarted;
+error Chest__NotAuthorizedForToken()
 ```
 
-##### positions
+#### Chest\_\_FreezingPeriodNotOver
 
 ```solidity
-mapping(uint256 => Metadata) internal positions;
+error Chest__FreezingPeriodNotOver()
 ```
 
-| Name                | Type                                         | Slot | Offset | Bytes | Contract                  |
-| ------------------- | -------------------------------------------- | ---- | ------ | ----- | ------------------------- |
-| \_name              | string                                       | 0    | 0      | 32    | contracts/Chest.sol:Chest |
-| \_symbol            | string                                       | 1    | 0      | 32    | contracts/Chest.sol:Chest |
-| \_owners            | mapping(uint256 => address)                  | 2    | 0      | 32    | contracts/Chest.sol:Chest |
-| \_balances          | mapping(address => uint256)                  | 3    | 0      | 32    | contracts/Chest.sol:Chest |
-| \_tokenApprovals    | mapping(uint256 => address)                  | 4    | 0      | 32    | contracts/Chest.sol:Chest |
-| \_operatorApprovals | mapping(address => mapping(address => bool)) | 5    | 0      | 32    | contracts/Chest.sol:Chest |
-| \_tokenURIs         | mapping(uint256 => string)                   | 6    | 0      | 32    | contracts/Chest.sol:Chest |
-| \_owner             | address                                      | 7    | 0      | 20    | contracts/Chest.sol:Chest |
-| \_pendingOwner      | address                                      | 8    | 0      | 20    | contracts/Chest.sol:Chest |
-| \_status            | uint256                                      | 9    | 0      | 32    | contracts/Chest.sol:Chest |
-| tokenId             | uint256                                      | 10   | 0      | 32    | contracts/Chest.sol:Chest |
-| fee                 | uint256                                      | 11   | 0      | 32    | contracts/Chest.sol:Chest |
-| boosterThreshold    | uint256                                      | 12   | 0      | 32    | contracts/Chest.sol:Chest |
-| minimalStakingPower | uint256                                      | 13   | 0      | 32    | contracts/Chest.sol:Chest |
-| maxBooster          | uint256                                      | 14   | 0      | 32    | contracts/Chest.sol:Chest |
-| timeFactor          | uint256                                      | 15   | 0      | 32    | contracts/Chest.sol:Chest |
-| startTimestamp      | uint48                                       | 16   | 0      | 6     | contracts/Chest.sol:Chest |
-| cliffTimestamp      | uint48                                       | 16   | 6      | 6     | contracts/Chest.sol:Chest |
-| isVestingStarted    | bool                                         | 16   | 12     | 1     | contracts/Chest.sol:Chest |
-| positions           | mapping(uint256 => struct Chest.Metadata)    | 17   | 0      | 32    | contracts/Chest.sol:Chest |
-
-#### Functions
-
-##### onlyAuthorizedForToken
+#### Chest\_\_CannotUnstakeMoreThanReleasable
 
 ```solidity
-modifier onlyAuthorizedForToken(uint256 _tokenId);
+error Chest__CannotUnstakeMoreThanReleasable()
 ```
 
-##### constructor
+#### Chest\_\_NothingToUnstake
 
 ```solidity
-constructor(
-    address _jellyToken,
-    uint256 _fee,
-    uint256 _boosterThreshold,
-    uint256 _minimalStakingPower,
-    uint256 _maxBooster,
-    uint256 _timeFactor,
-    uint48 _startTimestamp,
-    uint32 _cliffDuration,
-    address _owner,
-    address _pendingOwner
-) ERC721("Chest", "CHEST") Ownable(_owner, _pendingOwner);
+error Chest__NothingToUnstake()
 ```
 
-##### freeze
-
-Freezes tokens for vesting.
+#### Chest\_\_InvalidBoosterValue
 
 ```solidity
-function freeze(uint256 _amount, uint32 _freezingPeriod, address _to) external nonReentrant;
+error Chest__InvalidBoosterValue()
 ```
 
-**Parameters**
-
-| Name              | Type      | Description                                                |
-| ----------------- | --------- | ---------------------------------------------------------- |
-| `_amount`         | `uint256` | - amount of tokens to freeze.                              |
-| `_freezingPeriod` | `uint32`  | - duration of freezing period in seconds.                  |
-| `_to`             | `address` | - address of the beneficiary. No return, reverts on error. |
-
-##### increaseStake
-
-Increases stake.
+#### Chest\_\_NoFeesToWithdraw
 
 ```solidity
-function increaseStake(uint256 _tokenId, uint256 _amount, uint32 _freezingPeriod)
-    external
-    onlyAuthorizedForToken(_tokenId)
-    nonReentrant;
-```
-
-**Parameters**
-
-| Name              | Type      | Description                                                            |
-| ----------------- | --------- | ---------------------------------------------------------------------- |
-| `_tokenId`        | `uint256` | - id of the chest.                                                     |
-| `_amount`         | `uint256` | - amount of tokens to stake.                                           |
-| `_freezingPeriod` | `uint32`  | - duration of freezing period in seconds. No return, reverts on error. |
-
-##### unstake
-
-Unstakes tokens.
-
-```solidity
-function unstake(uint256 _tokenId, uint256 _amount) external onlyAuthorizedForToken(_tokenId) nonReentrant;
-```
-
-**Parameters**
-
-| Name       | Type      | Description                                                 |
-| ---------- | --------- | ----------------------------------------------------------- |
-| `_tokenId` | `uint256` | - id of the chest.                                          |
-| `_amount`  | `uint256` | - amount of tokens to unstake. No return, reverts on error. |
-
-##### releasableAmount
-
-Calculates amount of tokens that can be released at the moment.
-
-```solidity
-function releasableAmount(uint256 _tokenId) public view returns (uint256);
-```
-
-**Parameters**
-
-| Name       | Type      | Description        |
-| ---------- | --------- | ------------------ |
-| `_tokenId` | `uint256` | - id of the chest. |
-
-**Returns**
-
-| Name     | Type      | Description                                                    |
-| -------- | --------- | -------------------------------------------------------------- |
-| `<none>` | `uint256` | uint256 - Amount of tokens that can be released at the moment. |
-
-##### setFee
-
-Sets fee in Jelly token for minting a chest.
-
-_Only owner can call._
-
-```solidity
-function setFee(uint256 _fee) external onlyOwner;
-```
-
-**Parameters**
-
-| Name   | Type      | Description                             |
-| ------ | --------- | --------------------------------------- |
-| `_fee` | `uint256` | - new fee. No return, reverts on error. |
-
-##### setBoosterThreshold
-
-Sets booster threshold.
-
-_Only owner can call._
-
-```solidity
-function setBoosterThreshold(uint256 _boosterThreshold) external onlyOwner;
-```
-
-**Parameters**
-
-| Name                | Type      | Description                                           |
-| ------------------- | --------- | ----------------------------------------------------- |
-| `_boosterThreshold` | `uint256` | - new booster threshold. No return, reverts on error. |
-
-##### setMinimalStakingPower
-
-Sets minimal staking power.
-
-_Only owner can call._
-
-```solidity
-function setMinimalStakingPower(uint256 _minimalStakingPower) external onlyOwner;
-```
-
-**Parameters**
-
-| Name                   | Type      | Description                                               |
-| ---------------------- | --------- | --------------------------------------------------------- |
-| `_minimalStakingPower` | `uint256` | - new minimal staking power. No return, reverts on error. |
-
-##### setMaxBooster
-
-Sets maximal booster.
-
-_Only owner can call._
-
-```solidity
-function setMaxBooster(uint256 _maxBooster) external onlyOwner;
-```
-
-**Parameters**
-
-| Name          | Type      | Description                                         |
-| ------------- | --------- | --------------------------------------------------- |
-| `_maxBooster` | `uint256` | - new maximal booster. No return, reverts on error. |
-
-##### calculateBooster
-
-Calculates the booster of the chest.
-
-```solidity
-function calculateBooster(uint256 _tokenId) public view returns (uint256 booster);
-```
-
-**Parameters**
-
-| Name       | Type      | Description        |
-| ---------- | --------- | ------------------ |
-| `_tokenId` | `uint256` | - id of the chest. |
-
-**Returns**
-
-| Name      | Type      | Description             |
-| --------- | --------- | ----------------------- |
-| `booster` | `uint256` | - booster of the chest. |
-
-##### getChestPower
-
-Calculates the voting power of the chest.
-
-```solidity
-function getChestPower(uint256 _tokenId) external view returns (uint256 power);
-```
-
-**Parameters**
-
-| Name       | Type      | Description        |
-| ---------- | --------- | ------------------ |
-| `_tokenId` | `uint256` | - id of the chest. |
-
-**Returns**
-
-| Name    | Type      | Description                  |
-| ------- | --------- | ---------------------------- |
-| `power` | `uint256` | - voting power of the chest. |
-
-##### formatTokenUri
-
-```solidity
-function formatTokenUri(uint256 _amount, uint256 _freezedUntil) internal pure returns (string memory);
-```
-
-##### vestedAmount
-
-```solidity
-function vestedAmount(uint256 _tokenId) internal view returns (uint256 vestedAmount_);
-```
-
-##### \_beforeTokenTransfer
-
-```solidity
-function _beforeTokenTransfer(address from, address to, uint256, uint256) internal pure override;
-```
-
-#### Events
-
-##### Freeze
-
-```solidity
-event Freeze(address indexed user, uint256 indexed tokenId, uint256 amount, uint256 freezedUntil);
-```
-
-##### IncreaseStake
-
-```solidity
-event IncreaseStake(uint256 indexed tokenId, uint256 totalStaked, uint256 freezedUntil);
-```
-
-##### Unstake
-
-```solidity
-event Unstake(uint256 indexed tokenId, uint256 amount, uint256 totalStaked);
-```
-
-##### SetFee
-
-```solidity
-event SetFee(uint256 fee);
-```
-
-##### SetBoosterThreshold
-
-```solidity
-event SetBoosterThreshold(uint256 boosterThreshold);
-```
-
-##### SetMinimalStakingPower
-
-```solidity
-event SetMinimalStakingPower(uint256 minimalStakingPower);
-```
-
-##### SetMaxBooster
-
-```solidity
-event SetMaxBooster(uint256 maxBooster);
-```
-
-#### Errors
-
-##### Chest\_\_ZeroAddress
-
-```solidity
-error Chest__ZeroAddress();
-```
-
-##### Chest\_\_NonTransferrableToken
-
-```solidity
-error Chest__NonTransferrableToken();
-```
-
-##### Chest\_\_NotAuthorizedForToken
-
-```solidity
-error Chest__NotAuthorizedForToken();
-```
-
-##### Chest\_\_FreezingPeriodNotOver
-
-```solidity
-error Chest__FreezingPeriodNotOver();
-```
-
-##### Chest\_\_CannotUnstakeMoreThanReleasable
-
-```solidity
-error Chest__CannotUnstakeMoreThanReleasable();
-```
-
-##### Chest\_\_NothingToUnstake
-
-```solidity
-error Chest__NothingToUnstake();
-```
-
-#### Structs
-
-##### Metadata
-
-```solidity
-struct Metadata {
-    uint256 totalStaked;
-    uint256 unfrozen;
-    uint48 freezedUntil;
-    uint48 latestUnstake;
-}
+error Chest__NoFeesToWithdraw()
 ```
