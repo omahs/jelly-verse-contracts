@@ -1037,3 +1037,227 @@ error Chest__InvalidBoosterValue()
 ```solidity
 error Chest__NoFeesToWithdraw()
 ```
+
+## Minter.sol
+
+### Contract Overview
+
+Minter smart contract mints new JELLY tokens on a weekly basis for a reward distribution.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol), [ReentrancyGuard](/contracts/vendor/openzeppelin/v4.9.0/security/ReentrancyGuard.sol)
+
+### Constants
+
+#### MINTER_ROLE
+
+```solidity
+bytes32 MINTER_ROLE
+```
+
+#### i_jellyToken
+
+```solidity
+address public immutable i_jellyToken
+```
+
+### K
+
+```solidity
+int256 K
+```
+
+### DECIMALS
+
+```solidity
+uint256 DECIMALS
+```
+
+### Storage Layout
+
+| Name                    | Type                        | Slot | Offset | Bytes | Contract                    |
+| ----------------------- | --------------------------- | ---- | ------ | ----- | --------------------------- |
+| \_owner                 | address                     | 0    | 0      | 20    | contracts/Minter.sol:Minter |
+| \_pendingOwner          | address                     | 1    | 0      | 20    | contracts/Minter.sol:Minter |
+| \_status                | uint256                     | 2    | 0      | 32    | contracts/Minter.sol:Minter |
+| mintingStartedTimestamp | uint32                      | 3    | 0      | 4     | contracts/Minter.sol:Minter |
+| stakingRewardsContract  | address                     | 3    | 4      | 20    | contracts/Minter.sol:Minter |
+| lastMintedTimestamp     | uint32                      | 3    | 24     | 4     | contracts/Minter.sol:Minter |
+| mintingPeriod           | uint32                      | 3    | 28     | 4     | contracts/Minter.sol:Minter |
+| started                 | bool                        | 4    | 0      | 1     | contracts/Minter.sol:Minter |
+| beneficiaries           | struct Minter.Beneficiary[] | 5    | 0      | 32    | contracts/Minter.sol:Minter |
+
+### Functions
+
+#### onlyStarted
+
+```solidity
+modifier onlyStarted()
+```
+
+#### onlyNotStarted
+
+```solidity
+modifier onlyNotStarted()
+```
+
+#### constructor
+
+```solidity
+constructor(address _jellyToken, address _stakingRewardsContract, address _newOwner, address _pendingOwner)
+```
+
+### startMinting
+
+```solidity
+function startMinting() external onlyOwner onlyNotStarted
+```
+
+_Starts minting process for jelly tokens, and sets last minted timestamp so that minting can start immediately_
+
+#### mint
+
+```solidity
+  function mint() external onlyStarted nonReentrant
+```
+
+_Mint new tokens based on exponential function, callable by anyone_
+
+#### calculateMintAmount
+
+```solidity
+function calculateMintAmount(int256 _daysSinceMintingStarted) public pure returns (uint256)
+```
+
+_Calculate mint amount based on exponential function_
+
+#### Parameters
+
+| Name                      | Type   | Description                            |
+| ------------------------- | ------ | -------------------------------------- |
+| \_daysSinceMintingStarted | int256 | - number of days since minting started |
+
+#### Return Values
+
+| Name | Type    | Description                           |
+| ---- | ------- | ------------------------------------- |
+| [0]  | uint256 | mintAmount - amount of tokens to mint |
+
+#### setStakingRewardsContract
+
+```solidity
+  function setStakingRewardsContract(
+        address _newStakingRewardsContract
+    ) external
+      onlyOwner
+```
+
+_Set new Staking Rewards Distribution Contract_
+
+_Only owner can call._
+
+#### Parameters
+
+| Name                        | Type    | Description                               |
+| --------------------------- | ------- | ----------------------------------------- |
+| \_newStakingRewardsContract | address | new staking rewards distribution contract |
+
+#### setMintingPeriod
+
+```solidity
+  function setMintingPeriod(uint32 _mintingPeriod) external onlyOwner
+```
+
+_Set new minting period_
+
+_Only owner can call._
+
+#### Parameters
+
+| Name            | Type   | Description        |
+| --------------- | ------ | ------------------ |
+| \_mintingPeriod | uint32 | new minitng period |
+
+#### setBeneficiaries
+
+```solidity
+function setBeneficiaries(struct Minter.Beneficiary[] _beneficiaries) external onlyOwner
+```
+
+_Store array of beneficiaries to storage_
+
+_Only owner can call._
+
+#### Parameters
+
+| Name            | Type                        | Description |
+| --------------- | --------------------------- | ----------- |
+| \_beneficiaries | struct Minter.Beneficiary[] | to store    |
+
+### Events
+
+#### onlyStarted
+
+```solidity
+modifier onlyStarted()
+```
+
+#### onlyNotStarted
+
+```solidity
+modifier onlyNotStarted()
+```
+
+#### MintingStarted
+
+```solidity
+event MintingStarted(address sender, uint256 startTimestamp)
+```
+
+#### MintingPeriodSet
+
+```solidity
+event MintingPeriodSet(address sender, uint256 mintingPeriod)
+```
+
+#### StakingRewardsContractSet
+
+```solidity
+event StakingRewardsContractSet(address sender, address stakingRewardsContract)
+```
+
+#### JellyMinted
+
+```solidity
+event JellyMinted(address sender, address stakingRewardsContract, uint256 newLastMintedTimestamp, uint256 mintingPeriod, uint256 mintedAmount, uint256 epochId)
+```
+
+#### BeneficiariesChanged
+
+```solidity
+event BeneficiariesChanged()
+```
+
+### Errors
+
+#### Minter_MintingNotStarted
+
+```solidity
+error Minter_MintingNotStarted()
+```
+
+#### Minter_MintingAlreadyStarted
+
+```solidity
+error Minter_MintingAlreadyStarted()
+```
+
+#### Minter_MintTooSoon
+
+```solidity
+error Minter_MintTooSoon()
+```
+
+#### Minter_ZeroAddress
