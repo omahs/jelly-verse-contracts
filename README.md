@@ -345,7 +345,7 @@ JellyGovernor contract serves as the main governance mechanism for managing prop
 
 ### Additional notes
 
-Read more about Jelly Governance model in [docs](/docs/Governance.md). Here you will also find more informations about `Governor` and `GovernorVotes` smart contracts which are OpenZeppelin forks with minor changes.
+Read more about Jelly Governance model in [docs](/docs/Governance.md). Here you will also find more information about `Governor` and `GovernorVotes` smart contracts which are OpenZeppelin forks with minor changes.
 
 ### Dependencies
 
@@ -1088,13 +1088,13 @@ bytes32 MINTER_ROLE
 address public immutable i_jellyToken
 ```
 
-### K
+#### K
 
 ```solidity
 int256 K
 ```
 
-### DECIMALS
+#### DECIMALS
 
 ```solidity
 uint256 DECIMALS
@@ -1134,7 +1134,7 @@ modifier onlyNotStarted()
 constructor(address _jellyToken, address _stakingRewardsContract, address _newOwner, address _pendingOwner)
 ```
 
-### startMinting
+#### startMinting
 
 ```solidity
 function startMinting() external onlyOwner onlyNotStarted
@@ -1287,6 +1287,10 @@ error Minter_MintTooSoon()
 
 #### Minter_ZeroAddress
 
+```solidity
+error Minter_ZeroAddress()
+```
+
 ## PoolParty.sol
 
 ### Contract Overview
@@ -1368,11 +1372,11 @@ function buyWithUsd(uint256 _amount) external payable
 function endBuyingPeriod() external onlyOwner
 ```
 
-\_Ends buying period and burns remaining JellyTokens.\_
+_Ends buying period and burns remaining JellyTokens._
 
-\_Only owner can call.
+_Only owner can call._
 
-No return, reverts on error.\_
+_No return, reverts on error._
 
 #### setUSDToJellyRatio
 
@@ -1832,7 +1836,7 @@ _Creates epoch for distribtuin_
 function claimWeek(uint96 _epochId, uint256 _amount, bytes32[] _merkleProof, bool _isVesting) public
 ```
 
-Claims a single week
+_Claims a single week_
 
 #### Parameters
 
@@ -1943,25 +1947,6 @@ error Claim_AlreadyClaimed()
 error Claim_WrongProof()
 ```
 
-### Contract Overview
-
-OfficialPoolsRegister stores identifiers for all official pools.
-
-### Dependencies
-
-**Inherits:**
-[Ownable](/contracts/utils/Ownable.sol)
-
-### Constants
-
-### Storage Layout
-
-### Functions
-
-### Events
-
-### Errors
-
 ## StakingRewardDistribution.sol
 
 ### Contract Overview
@@ -2024,9 +2009,9 @@ function deposit(contract IERC20 _token, uint256 _amount) public returns (uint96
 
 _Deposit funds into contract_
 
-\_not using this function to deposit funds will lock the tokens
+_not using this function to deposit funds will lock the tokens_
 
-No return only Owner can call\_
+_No return only Owner can call_
 
 #### Parameters
 
@@ -2396,7 +2381,7 @@ constructor(address newOwner_, address pendingOwner_) public
 #### startSnapshotting
 
 ```solidity
-function startSnapshotting() external only Owner
+function startSnapshotting() external onlyOwner
 ```
 
 _Signals the contract to start_
