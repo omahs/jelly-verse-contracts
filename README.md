@@ -1551,7 +1551,7 @@ constructor(address _jellyTooken, address _owner, address _pendingOwner) public
 function distribute(uint32 batchLength) external onlyOwner
 ```
 
-\_Distributes tokens to team members in batches.\_
+_Distributes tokens to team members in batches._
 
 _Only the contract owner can call this function.
 The `batchLength` must be greater than 0 and within the bounds of the team list._
@@ -1664,14 +1664,13 @@ contract IERC20 i_jellyToken
 
 ### Storage Layout
 
-| Name | Type | Slot | Offset | Bytes | Contract |
-| -------------- | -------------------------------- | ---- | ------ | ----- | | Name | Type | Slot | Offset | Bytes | Contract |
-|---------------|------------------------------------------|------|--------|-------|---------------------------------------------------------|
-| \_owner | address | 0 | 0 | 20 | contracts/InvestorDistribution.sol:InvestorDistribution |
-| \_pendingOwner | address | 1 | 0 | 20 | contracts/InvestorDistribution.sol:InvestorDistribution |
-| index | uint32 | 1 | 20 | 4 | contracts/InvestorDistribution.sol:InvestorDistribution |
-| investors | struct InvestorDistribution.Investor[87] | 2 | 0 | 2784 | contracts/InvestorDistribution.sol:InvestorDistribution |
-| i_chest | contract IChest | 89 | 0 | 20 | contracts/InvestorDistribution.sol:InvestorDistribution |
+| Name           | Type                                     | Slot | Offset | Bytes | Contract                                                |
+| -------------- | ---------------------------------------- | ---- | ------ | ----- | ------------------------------------------------------- |
+| \_owner        | address                                  | 0    | 0      | 20    | contracts/InvestorDistribution.sol:InvestorDistribution |
+| \_pendingOwner | address                                  | 1    | 0      | 20    | contracts/InvestorDistribution.sol:InvestorDistribution |
+| index          | uint32                                   | 1    | 20     | 4     | contracts/InvestorDistribution.sol:InvestorDistribution |
+| investors      | struct InvestorDistribution.Investor[87] | 2    | 0      | 2784  | contracts/InvestorDistribution.sol:InvestorDistribution |
+| i_chest        | contract IChest                          | 89   | 0      | 20    | contracts/InvestorDistribution.sol:InvestorDistribution |
 
 ### Functions
 
@@ -1687,7 +1686,7 @@ constructor(address jellyToken, address owner, address pendingOwner) public
 function distribute(uint32 batchLength) external onlyOwner
 ```
 
-\_Distributes tokens to investors in batches.\_
+_Distributes tokens to investors in batches._
 
 _Only the contract owner can call this function.
 The `batchLength` must be greater than 0 and within the bounds of the investors list._
