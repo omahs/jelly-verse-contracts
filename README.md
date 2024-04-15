@@ -347,19 +347,19 @@ Read more about Jelly Governance model in [docs](/docs/Governance.md). Here you 
 
 ### Functions
 
-### constructor
+#### constructor
 
 ```solidity
 constructor(address _chest, contract TimelockController _timelock)
 ```
 
-### quorum
+#### quorum
 
 ```solidity
 function quorum(uint256) public pure returns (uint256)
 ```
 
-### castVote
+#### castVote
 
 ```solidity
 function castVote(uint256, uint8) public virtual returns (uint256)
@@ -369,7 +369,7 @@ _JellyGovernor overrides but does not support below functions due to non-standar
 Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
 To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
-### castVoteWithReason
+#### castVoteWithReason
 
 ```solidity
 function castVoteWithReason(uint256, uint8, string) public virtual returns (uint256)
@@ -379,7 +379,7 @@ _JellyGovernor overrides but does not support below functions due to non-standar
 Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
 To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
-### castVoteBySig
+#### castVoteBySig
 
 ```solidity
 function castVoteBySig(uint256, uint8, uint8, bytes32, bytes32) public virtual returns (uint256)
@@ -389,7 +389,7 @@ _JellyGovernor overrides but does not support below functions due to non-standar
 Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
 To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
-### getVotes
+#### getVotes
 
 ```solidity
 function getVotes(address, uint256) public view virtual returns (uint256)
@@ -399,55 +399,55 @@ _JellyGovernor overrides but does not support below functions due to non-standar
 Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
 To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
-### votingDelay
+#### votingDelay
 
 ```solidity
 function votingDelay() public view returns (uint256)
 ```
 
-### votingPeriod
+#### votingPeriod
 
 ```solidity
 function votingPeriod() public view returns (uint256)
 ```
 
-### state
+#### state
 
 ```solidity
 function state(uint256 proposalId) public view returns (enum IGovernor.ProposalState)
 ```
 
-### getExecutor
+#### getExecutor
 
 ```solidity
 function getExecutor() public view returns (address)
 ```
 
-### proposalThreshold
+#### proposalThreshold
 
 ```solidity
 function proposalThreshold() public view returns (uint256)
 ```
 
-### \_cancel
+#### \_cancel
 
 ```solidity
 function _cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal returns (uint256)
 ```
 
-### \_executor
+#### \_executor
 
 ```solidity
 function _executor() internal view returns (address)
 ```
 
-### supportsInterface
+#### supportsInterface
 
 ```solidity
 function supportsInterface(bytes4 interfaceId) public view returns (bool)
 ```
 
-### \_execute
+#### \_execute
 
 ```solidity
 function _execute(uint256 proposalId, address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal
@@ -465,7 +465,7 @@ error JellyGovernor__InvalidOperation()
 
 ### Contract Overview
 
-Timelock Contract for Governance Proposal Execution.
+Timelock contract for Governance Proposal Execution.
 
 ### Dependencies
 
@@ -482,7 +482,7 @@ Timelock Contract for Governance Proposal Execution.
 
 ### Functions
 
-### constructor
+#### constructor
 
 ```solidity
 constructor(uint256 minDelay, address[] proposers, address[] executors, address admin)
@@ -1748,7 +1748,175 @@ error InvestorDistribution__DistributionIndexOutOfBounds()
 error InvestorDistribution__ChestAlreadySet()
 ```
 
-## Draft.sol
+## LiquidityRewardDistribution.sol
+
+### Contract Overview
+
+LiquidityRewardDistribution contract distributes liquidty mining rewards.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Constants
+
+#### token
+
+```solidity
+contract IJellyToken token
+```
+
+### Storage Layout
+
+| Name            | Type                                         | Slot | Offset | Bytes | Contract                                                              |
+| --------------- | -------------------------------------------- | ---- | ------ | ----- | --------------------------------------------------------------------- |
+| \_owner         | address                                      | 0    | 0      | 20    | contracts/LiquidityRewardDistribution.sol:LiquidityRewardDistribution |
+| \_pendingOwner  | address                                      | 1    | 0      | 20    | contracts/LiquidityRewardDistribution.sol:LiquidityRewardDistribution |
+| merkleRoots     | mapping(uint256 => bytes32)                  | 2    | 0      | 32    | contracts/LiquidityRewardDistribution.sol:LiquidityRewardDistribution |
+| claimed         | mapping(uint256 => mapping(address => bool)) | 3    | 0      | 32    | contracts/LiquidityRewardDistribution.sol:LiquidityRewardDistribution |
+| vestingContract | address                                      | 4    | 0      | 20    | contracts/LiquidityRewardDistribution.sol:LiquidityRewardDistribution |
+| epoch           | uint96                                       | 4    | 20     | 12    | contracts/LiquidityRewardDistribution.sol:LiquidityRewardDistribution |
+
+### Functions
+
+#### constructor
+
+```solidity
+constructor(contract IJellyToken _token, address _owner, address _pendingOwner) public
+```
+
+#### createEpoch
+
+```solidity
+function createEpoch(bytes32 _merkleRoot, string _ipfs) public returns (uint96 epochId) onlyOwner
+```
+
+_Creates epoch for distribtuin_
+
+#### Parameters
+
+| Name         | Type    | Description            |
+| ------------ | ------- | ---------------------- |
+| \_merkleRoot | bytes32 | - root of merkle tree. |
+| \_ipfs       | string  |                        |
+
+#### claimWeek
+
+```solidity
+function claimWeek(uint96 _epochId, uint256 _amount, bytes32[] _merkleProof, bool _isVesting) public
+```
+
+Claims a single week
+
+#### Parameters
+
+| Name          | Type      | Description                      |
+| ------------- | --------- | -------------------------------- |
+| \_epochId     | uint96    | - id of epoch to be claimed      |
+| \_amount      | uint256   | - amount of tokens to be claimed |
+| \_merkleProof | bytes32[] | - merkle proof of claim          |
+| \_isVesting   | bool      |                                  |
+
+#### claimWeeks
+
+```solidity
+function claimWeeks(uint96[] _epochIds, uint256[] _amounts, bytes32[][] _merkleProofs, bool _isVesting) public
+```
+
+_Claims multiple weeks_
+
+#### Parameters
+
+| Name           | Type        | Description                       |
+| -------------- | ----------- | --------------------------------- |
+| \_epochIds     | uint96[]    | - id sof epochs to be claimed     |
+| \_amounts      | uint256[]   | - amounts of tokens to be claimed |
+| \_merkleProofs | bytes32[][] | - merkle proofs of claim          |
+| \_isVesting    | bool        |                                   |
+
+#### verifyClaim
+
+```solidity
+function verifyClaim(address _reciver, uint256 _epochId, uint256 _amount, bytes32[] _merkleProof) public view returns (bool valid)
+```
+
+_Verifies claim_
+
+#### Parameters
+
+| Name          | Type      | Description                      |
+| ------------- | --------- | -------------------------------- |
+| \_reciver     | address   | - address of user to claim       |
+| \_epochId     | uint256   | - id of epoch to be claimed      |
+| \_amount      | uint256   | - amount of tokens to be claimed |
+| \_merkleProof | bytes32[] | - merkle proof of claim          |
+
+#### setVestingContract
+
+```solidity
+function setVestingContract(address _vestingContract) public
+```
+
+_Changes the vesting contract_
+
+#### Parameters
+
+| Name              | Type    | Description                   |
+| ----------------- | ------- | ----------------------------- |
+| \_vestingContract | address | - address of vesting contract |
+
+### Events
+
+#### Claimed
+
+```solidity
+event Claimed(address claimant, uint96 epoch, uint256 balance)
+```
+
+#### EpochAdded
+
+```solidity
+event EpochAdded(uint96 epoch, bytes32 merkleRoot, string ipfs)
+```
+
+#### ContractChanged
+
+```solidity
+event ContractChanged(address vestingContract)
+```
+
+### Errors
+
+#### Claim_LenMissmatch
+
+```solidity
+error Claim_LenMissmatch()
+```
+
+#### Claim_ZeroAmount
+
+```solidity
+error Claim_ZeroAmount()
+```
+
+#### Claim_FutureEpoch
+
+```solidity
+error Claim_FutureEpoch()
+```
+
+#### Claim_AlreadyClaimed
+
+```solidity
+error Claim_AlreadyClaimed()
+```
+
+#### Claim_WrongProof
+
+```solidity
+error Claim_WrongProof()
+```
 
 ### Contract Overview
 
@@ -1759,6 +1927,8 @@ OfficialPoolsRegister stores identifiers for all official pools.
 **Inherits:**
 [Ownable](/contracts/utils/Ownable.sol)
 
+### Constants
+
 ### Storage Layout
 
 ### Functions
@@ -1766,3 +1936,510 @@ OfficialPoolsRegister stores identifiers for all official pools.
 ### Events
 
 ### Errors
+
+## StakingRewardDistribution.sol
+
+### Contract Overview
+
+StakingRewardDistribution contract distributes staking rewards.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Constants
+
+#### jellyToken
+
+```solidity
+contract IJellyToken jellyToken
+```
+
+### Storage Layout
+
+| Name            | Type                                                                     | Slot | Offset | Bytes | Contract                                                          |
+| --------------- | ------------------------------------------------------------------------ | ---- | ------ | ----- | ----------------------------------------------------------------- |
+| \_owner         | address                                                                  | 0    | 0      | 20    | contracts/StakingRewardDistribution.sol:StakingRewardDistribution |
+| \_pendingOwner  | address                                                                  | 1    | 0      | 20    | contracts/StakingRewardDistribution.sol:StakingRewardDistribution |
+| merkleRoots     | mapping(uint256 => bytes32)                                              | 2    | 0      | 32    | contracts/StakingRewardDistribution.sol:StakingRewardDistribution |
+| claimed         | mapping(uint256 => mapping(contract IERC20 => mapping(address => bool))) | 3    | 0      | 32    | contracts/StakingRewardDistribution.sol:StakingRewardDistribution |
+| tokensDeposited | mapping(uint256 => mapping(contract IERC20 => uint256))                  | 4    | 0      | 32    | contracts/StakingRewardDistribution.sol:StakingRewardDistribution |
+| vestingContract | address                                                                  | 5    | 0      | 20    | contracts/StakingRewardDistribution.sol:StakingRewardDistribution |
+| epoch           | uint96                                                                   | 5    | 20     | 12    | contracts/StakingRewardDistribution.sol:StakingRewardDistribution |
+
+### Functions
+
+#### constructor
+
+```solidity
+constructor(contract IJellyToken _jellyToken, address _owner, address _pendingOwner) public
+```
+
+#### createEpoch
+
+```solidity
+function createEpoch(bytes32 _merkleRoot, string _ipfs) public returns (uint96 epochId) onlyOwner
+```
+
+_Creates epoch for distribution_
+
+#### Parameters
+
+| Name         | Type    | Description            |
+| ------------ | ------- | ---------------------- |
+| \_merkleRoot | bytes32 | - root of merkle tree. |
+| \_ipfs       | string  |                        |
+
+#### deposit
+
+```solidity
+function deposit(contract IERC20 _token, uint256 _amount) public returns (uint96)
+```
+
+_Deposit funds into contract_
+
+\_not using this function to deposit funds will lock the tokens
+
+No return only Owner can call\_
+
+#### Parameters
+
+| Name     | Type            | Description                   |
+| -------- | --------------- | ----------------------------- |
+| \_token  | contract IERC20 | - token to deposit            |
+| \_amount | uint256         | - amount of tokens to deposit |
+
+#### claimWeek
+
+```solidity
+function claimWeek(uint96 _epochId, contract IERC20[] _tokens, uint256 _relativeVotingPower, bytes32[] _merkleProof, bool _isVesting) public
+```
+
+_Claim tokens for epoch_
+
+#### Parameters
+
+| Name                  | Type              | Description                     |
+| --------------------- | ----------------- | ------------------------------- |
+| \_epochId             | uint96            | - id of epoch to be claimed     |
+| \_tokens              | contract IERC20[] | - tokens to clam                |
+| \_relativeVotingPower | uint256           | - relative voting power of user |
+| \_merkleProof         | bytes32[]         | - merkle proof of claim         |
+| \_isVesting           | bool              |                                 |
+
+#### claimWeeks
+
+```solidity
+function claimWeeks(uint96[] _epochIds, contract IERC20[] _tokens, uint256[] _relativeVotingPowers, bytes32[][] _merkleProofs, bool _isVesting) public
+```
+
+_Claims multiple epochs_
+
+#### Parameters
+
+| Name                   | Type              | Description                               |
+| ---------------------- | ----------------- | ----------------------------------------- |
+| \_epochIds             | uint96[]          | - ids of epochs to be claimed             |
+| \_tokens               | contract IERC20[] | - tokens to clam                          |
+| \_relativeVotingPowers | uint256[]         | - relative voting power per epoch of user |
+| \_merkleProofs         | bytes32[][]       | - merkle proofs of claim                  |
+| \_isVesting            | bool              |                                           |
+
+#### verifyClaim
+
+```solidity
+function verifyClaim(address _reciver, uint256 _epochId, uint256 _relativeVotingPower, bytes32[] _merkleProof) public view returns (bool valid)
+```
+
+_Verifies a claim_
+
+#### Parameters
+
+| Name                  | Type      | Description                     |
+| --------------------- | --------- | ------------------------------- |
+| \_reciver             | address   | - address of user to verify     |
+| \_epochId             | uint256   | - id of epoch to be verified    |
+| \_relativeVotingPower | uint256   | - relative voting power of user |
+| \_merkleProof         | bytes32[] | - merkle proof of claim         |
+
+#### setVestingContract
+
+```solidity
+function setVestingContract(address _vestingContract) public
+```
+
+_Changes the vesting contract_
+
+#### Parameters
+
+| Name              | Type    | Description                   |
+| ----------------- | ------- | ----------------------------- |
+| \_vestingContract | address | - address of vesting contract |
+
+### Events
+
+#### Claimed
+
+```solidity
+event Claimed(address claimant, uint256 balance, contract IERC20 token, uint96 epoch)
+```
+
+#### EpochAdded
+
+```solidity
+event EpochAdded(uint96 epoch, bytes32 merkleRoot, string ipfs)
+```
+
+#### Deposited
+
+```solidity
+event Deposited(contract IERC20 token, uint256 amount, uint96 epoch)
+```
+
+#### ContractChanged
+
+```solidity
+event ContractChanged(address vestingContract)
+```
+
+### Errors
+
+#### Claim_LenMissmatch
+
+```solidity
+error Claim_LenMissmatch()
+```
+
+#### Claim_ZeroAmount
+
+```solidity
+error Claim_ZeroAmount()
+```
+
+#### Claim_FutureEpoch
+
+```solidity
+error Claim_FutureEpoch()
+```
+
+#### Claim_AlreadyClaimed
+
+```solidity
+error Claim_AlreadyClaimed()
+```
+
+#### Claim_WrongProof
+
+```solidity
+error Claim_WrongProof()
+```
+
+## RewardVesting.sol
+
+### Contract Overview
+
+RewardVesting contract is used to vest rewards from staking and liquidty mining.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Constants
+
+#### liquidityContract
+
+```solidity
+address liquidityContract
+```
+
+#### stakingContract
+
+```solidity
+address stakingContract
+```
+
+#### jellyToken
+
+```solidity
+contract IJellyToken jellyToken
+```
+
+#### vestingPeriod
+
+```solidity
+uint48 vestingPeriod
+```
+
+### Storage Layout
+
+| Name                     | Type                                                     | Slot | Offset | Bytes | Contract                                  |
+| ------------------------ | -------------------------------------------------------- | ---- | ------ | ----- | ----------------------------------------- |
+| \_owner                  | address                                                  | 0    | 0      | 20    | contracts/RewardVesting.sol:RewardVesting |
+| \_pendingOwner           | address                                                  | 1    | 0      | 20    | contracts/RewardVesting.sol:RewardVesting |
+| liquidityVestedPositions | mapping(address => struct RewardVesting.VestingPosition) | 2    | 0      | 32    | contracts/RewardVesting.sol:RewardVesting |
+| stakingVestedPositions   | mapping(address => struct RewardVesting.VestingPosition) | 3    | 0      | 32    | contracts/RewardVesting.sol:RewardVesting |
+
+### Functions
+
+#### constructor
+
+```solidity
+constructor(address _owner, address _pendingOwner, address _liquidityContract, address _stakingContract, address _jellyToken) public
+```
+
+#### vestLiquidity
+
+```solidity
+function vestLiquidity(uint256 _amount, address _beneficiary) public
+```
+
+_Vest liquidity_
+
+#### Parameters
+
+| Name          | Type    | Description                   |
+| ------------- | ------- | ----------------------------- |
+| \_amount      | uint256 | - amount of tokens to deposit |
+| \_beneficiary | address | - address of beneficiary      |
+
+#### claimLiquidity
+
+```solidity
+function claimLiquidity() public
+```
+
+_Claim vested liqidty_
+
+#### vestedLiquidityAmount
+
+```solidity
+function vestedLiquidityAmount(address _beneficiary) public view returns (uint256 amount)
+```
+
+_Calculates vested tokens_
+
+#### Parameters
+
+| Name          | Type    | Description                                             |
+| ------------- | ------- | ------------------------------------------------------- |
+| \_beneficiary | address | - address of beneficiary Return amount of tokens vested |
+
+#### vestStaking
+
+```solidity
+function vestStaking(uint256 _amount, address _beneficiary) public
+```
+
+_Vest staking_
+
+#### Parameters
+
+| Name          | Type    | Description                   |
+| ------------- | ------- | ----------------------------- |
+| \_amount      | uint256 | - amount of tokens to deposit |
+| \_beneficiary | address | - address of beneficiary      |
+
+#### claimStaking
+
+```solidity
+function claimStaking() public
+```
+
+_Claim vested staking_
+
+#### vestedStakingAmount
+
+```solidity
+function vestedStakingAmount(address _beneficiary) public view returns (uint256 amount)
+```
+
+_Calculates vested tokens_
+
+#### Parameters
+
+| Name          | Type    | Description                                             |
+| ------------- | ------- | ------------------------------------------------------- |
+| \_beneficiary | address | - address of beneficiary Return amount of tokens vested |
+
+### Events
+
+#### VestedLiqidty
+
+```solidity
+event VestedLiqidty(uint256 amount, address beneficiary)
+```
+
+#### VestingLiquidityClaimed
+
+```solidity
+event VestingLiquidityClaimed(uint256 amount, address beneficiary)
+```
+
+#### VestedStaking
+
+```solidity
+event VestedStaking(uint256 amount, address beneficiary)
+```
+
+#### VestingStakingClaimed
+
+```solidity
+event VestingStakingClaimed(uint256 amount, address beneficiary)
+```
+
+### Errors
+
+#### Vest\_\_InvalidCaller
+
+```solidity
+error Vest__InvalidCaller()
+```
+
+#### Vest\_\_ZeroAddress
+
+```solidity
+error Vest__ZeroAddress()
+```
+
+#### Vest\_\_InvalidVestingAmount
+
+```solidity
+error Vest__InvalidVestingAmount()
+```
+
+#### Vest\_\_AlreadyVested
+
+```solidity
+error Vest__AlreadyVested()
+```
+
+#### Vest\_\_NothingToClaim
+
+```solidity
+error Vest__NothingToClaim()
+```
+
+## DailySnapshot.sol
+
+### Contract Overview
+
+DailySnapshot allows for the storage and retrieval of daily snapshots block numbers per epoch.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Constants
+
+### ONE_DAY_SECONDS
+
+```solidity
+uint40 ONE_DAY_SECONDS
+```
+
+### Storage Layout
+
+| Name                            | Type                         | Slot | Offset | Bytes | Contract                                  |
+| ------------------------------- | ---------------------------- | ---- | ------ | ----- | ----------------------------------------- |
+| \_owner                         | address                      | 0    | 0      | 20    | contracts/DailySnapshot.sol:DailySnapshot |
+| \_pendingOwner                  | address                      | 1    | 0      | 20    | contracts/DailySnapshot.sol:DailySnapshot |
+| started                         | bool                         | 1    | 20     | 1     | contracts/DailySnapshot.sol:DailySnapshot |
+| epochDaysIndex                  | uint8                        | 1    | 21     | 1     | contracts/DailySnapshot.sol:DailySnapshot |
+| epoch                           | uint40                       | 1    | 22     | 5     | contracts/DailySnapshot.sol:DailySnapshot |
+| beginningOfTheNewDayTimestamp   | uint40                       | 1    | 27     | 5     | contracts/DailySnapshot.sol:DailySnapshot |
+| beginningOfTheNewDayBlocknumber | uint48                       | 2    | 0      | 6     | contracts/DailySnapshot.sol:DailySnapshot |
+| oneDayBlocks                    | uint48                       | 2    | 6      | 6     | contracts/DailySnapshot.sol:DailySnapshot |
+| dailySnapshotsPerEpoch          | mapping(uint48 => uint48[7]) | 3    | 0      | 32    | contracts/DailySnapshot.sol:DailySnapshot |
+
+### Functions
+
+#### onlyStarted
+
+```solidity
+modifier onlyStarted()
+```
+
+#### constructor
+
+```solidity
+constructor(address newOwner_, address pendingOwner_) public
+```
+
+#### startSnapshotting
+
+```solidity
+function startSnapshotting() external only Owner
+```
+
+_Signals the contract to start_
+
+_No return only Owner can call_
+
+#### dailySnapshot
+
+```solidity
+function dailySnapshot() external onlyStarted
+```
+
+_Store random daily snapshot block number_
+
+_Only callable when snapshoting has already started_
+
+#### setBlockTime
+
+```solidity
+function setBlockTime(uint48 _oneDayBlocks) external onlyOwner
+```
+
+_Changes the block time_
+
+_No return only Owner can call_
+
+### Events
+
+#### SnapshottingStarted
+
+```solidity
+event SnapshottingStarted(address sender)
+```
+
+#### DailySnapshotAdded
+
+```solidity
+event DailySnapshotAdded(address sender, uint48 epoch, uint48 randomDayBlocknumber, uint8 epochDaysIndex)
+```
+
+#### BlockTimeChanged
+
+```solidity
+event BlockTimeChanged(uint48 newBlockTime)
+```
+
+### Errors
+
+#### DailySnapshot_AlreadyStarted
+
+```solidity
+error DailySnapshot_AlreadyStarted()
+```
+
+#### DailySnapshot_NotStarted
+
+```solidity
+error DailySnapshot_NotStarted()
+```
+
+#### DailySnapshot_TooEarly
+
+```solidity
+error DailySnapshot_TooEarly()
+```
+
+#### DailySnapshot_ZeroBlockTime
+
+```solidity
+error DailySnapshot_ZeroBlockTime()
+```
