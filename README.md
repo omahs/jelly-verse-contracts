@@ -1416,3 +1416,101 @@ error PoolParty__AddressZero()
 ```solidity
 error PoolParty__ZeroValue()
 ```
+
+## OfficialPoolsRegister.sol
+
+### Contract Overview
+
+OfficialPoolsRegister stores identifiers for all official pools.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Storage Layout
+
+| Name           | Type      | Slot | Offset | Bytes | Contract                                                  |
+| -------------- | --------- | ---- | ------ | ----- | --------------------------------------------------------- |
+| \_owner        | address   | 0    | 0      | 20    | contracts/OfficialPoolsRegister.sol:OfficialPoolsRegister |
+| \_pendingOwner | address   | 1    | 0      | 20    | contracts/OfficialPoolsRegister.sol:OfficialPoolsRegister |
+| poolIds        | bytes32[] | 2    | 0      | 32    | contracts/OfficialPoolsRegister.sol:OfficialPoolsRegister |
+
+### Functions
+
+### constructor
+
+```solidity
+constructor(address newOwner_, address pendingOwner_) public
+```
+
+### registerOfficialPool
+
+```solidity
+function registerOfficialPool(struct OfficialPoolsRegister.Pool[] pools_) external onlyOwner
+```
+
+_Store array of poolId in official pools array_
+
+_Only owner can call._
+
+#### Parameters
+
+| Name    | Type                                | Description    |
+| ------- | ----------------------------------- | -------------- |
+| pools\_ | struct OfficialPoolsRegister.Pool[] | pools to store |
+
+### getAllOfficialPools
+
+```solidity
+function getAllOfficialPools() public view returns (bytes32[])
+```
+
+_Return all official pools ids_
+
+#### Return Values
+
+| Name | Type      | Description   |
+| ---- | --------- | ------------- |
+| [0]  | bytes32[] | all 'poolIds' |
+
+### Events
+
+#### OfficialPoolRegistered
+
+```solidity
+event OfficialPoolRegistered(bytes32 poolId, uint32 weight)
+```
+
+#### OfficialPoolDeregistered
+
+```solidity
+event OfficialPoolDeregistered(bytes32 poolId)
+```
+
+### Errors
+
+#### OfficialPoolsRegister_MaxPools50
+
+```solidity
+error OfficialPoolsRegister_MaxPools50()
+```
+
+## Draft.sol
+
+### Contract Overview
+
+OfficialPoolsRegister stores identifiers for all official pools.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Storage Layout
+
+### Functions
+
+### Events
+
+### Errors
