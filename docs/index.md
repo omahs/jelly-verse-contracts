@@ -1,5 +1,453 @@
 # Solidity API
 
+## InvestorDistribution
+
+### Investor
+
+```solidity
+struct Investor {
+  address beneficiary;
+  uint96 amount;
+}
+```
+
+### NUMBER_OF_INVESTORS
+
+```solidity
+uint256 NUMBER_OF_INVESTORS
+```
+
+### JELLY_AMOUNT
+
+```solidity
+uint256 JELLY_AMOUNT
+```
+
+### FREEZING_PERIOD
+
+```solidity
+uint32 FREEZING_PERIOD
+```
+
+### VESTING_DURATION
+
+```solidity
+uint32 VESTING_DURATION
+```
+
+### NERF_PARAMETER
+
+```solidity
+uint8 NERF_PARAMETER
+```
+
+### i_jellyToken
+
+```solidity
+contract IERC20 i_jellyToken
+```
+
+### index
+
+```solidity
+uint32 index
+```
+
+### investors
+
+```solidity
+struct InvestorDistribution.Investor[87] investors
+```
+
+### i_chest
+
+```solidity
+contract IChest i_chest
+```
+
+### ChestSet
+
+```solidity
+event ChestSet(address chest)
+```
+
+### BatchDistributed
+
+```solidity
+event BatchDistributed(uint256 startIndex, uint256 batchLength)
+```
+
+### InvestorDistribution__InvalidBatchLength
+
+```solidity
+error InvestorDistribution__InvalidBatchLength()
+```
+
+### InvestorDistribution__DistributionIndexOutOfBounds
+
+```solidity
+error InvestorDistribution__DistributionIndexOutOfBounds()
+```
+
+### InvestorDistribution__ChestAlreadySet
+
+```solidity
+error InvestorDistribution__ChestAlreadySet()
+```
+
+### constructor
+
+```solidity
+constructor(address jellyToken, address owner, address pendingOwner) public
+```
+
+### distribute
+
+```solidity
+function distribute(uint32 batchLength) external
+```
+
+Distributes tokens to team members in batches.
+
+_Only the contract owner can call this function.
+The `batchLength` must be greater than 0 and within the bounds of the team list._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| batchLength | uint32 | The number of team members to distribute tokens to. |
+
+### setChest
+
+```solidity
+function setChest(address chest) external
+```
+
+Sets the chest contract address.
+
+_Only the contract owner can call this function.
+The chest contract address must not be already set._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| chest | address | The address of the chest contract. |
+
+## IChest
+
+_Common interface for {ERC20Votes}, {ERC721Votes}, and other {Votes}-enabled contracts.
+
+_Available since v4.5.__
+
+### DelegateChanged
+
+```solidity
+event DelegateChanged(address delegator, address fromDelegate, address toDelegate)
+```
+
+_Emitted when an account changes their delegate._
+
+### DelegateVotesChanged
+
+```solidity
+event DelegateVotesChanged(address delegate, uint256 previousBalance, uint256 newBalance)
+```
+
+_Emitted when a token transfer or delegate change results in changes to a delegate's number of votes._
+
+### getVotingPower
+
+```solidity
+function getVotingPower(address account, uint256[] tokenIds) external view returns (uint256)
+```
+
+_Returns the current amount of votes that `account` has._
+
+### totalSupply
+
+```solidity
+function totalSupply() external view returns (uint256)
+```
+
+_Returns the amount of votes that `account` had at a specific moment in the past. If the `clock()` is
+configured to use block numbers, this will return the value at the end of the corresponding block._
+
+### getPastTotalSupply
+
+```solidity
+function getPastTotalSupply(uint256 timepoint) external view returns (uint256)
+```
+
+_Returns the total supply of votes available at a specific moment in the past. If the `clock()` is
+configured to use block numbers, this will return the value at the end of the corresponding block.
+
+NOTE: This value is the sum of all available votes, which is not necessarily the sum of all delegated votes.
+Votes that have not been delegated are still part of total supply, even though they would not participate in a
+vote._
+
+### delegates
+
+```solidity
+function delegates(address account) external view returns (address)
+```
+
+_Returns the delegate that `account` has chosen._
+
+### delegate
+
+```solidity
+function delegate(address delegatee) external
+```
+
+_Delegates votes from the sender to `delegatee`._
+
+### delegateBySig
+
+```solidity
+function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) external
+```
+
+_Delegates votes from signer to `delegatee`._
+
+### stakeSpecial
+
+```solidity
+function stakeSpecial(uint256 amount, address beneficiary, uint32 freezingPeriod, uint32 vestingDuration, uint8 nerfParameter) external
+```
+
+_Mints special chest._
+
+### fee
+
+```solidity
+function fee() external view returns (uint256)
+```
+
+## Ownable
+
+An abstract contract for ownership managment
+
+### OwnershipTransferRequested
+
+```solidity
+event OwnershipTransferRequested(address from, address to)
+```
+
+### OwnershipTransferred
+
+```solidity
+event OwnershipTransferred(address from, address to)
+```
+
+### OwnershipTransferCanceled
+
+```solidity
+event OwnershipTransferCanceled(address from, address to)
+```
+
+### Ownable__CannotSetOwnerToZeroAddress
+
+```solidity
+error Ownable__CannotSetOwnerToZeroAddress()
+```
+
+### Ownable__MustBeProposedOwner
+
+```solidity
+error Ownable__MustBeProposedOwner()
+```
+
+### Ownable__CallerIsNotOwner
+
+```solidity
+error Ownable__CallerIsNotOwner()
+```
+
+### Ownable__CannotTransferToSelf
+
+```solidity
+error Ownable__CannotTransferToSelf()
+```
+
+### onlyOwner
+
+```solidity
+modifier onlyOwner()
+```
+
+### constructor
+
+```solidity
+constructor(address newOwner, address pendingOwner) internal
+```
+
+### transferOwnership
+
+```solidity
+function transferOwnership(address newOwner) external
+```
+
+Requests ownership transfer to the new address which needs to accept it.
+
+_Only owner can call._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newOwner | address | - address of proposed new owner No return, reverts on error. |
+
+### acceptOwnership
+
+```solidity
+function acceptOwnership() external
+```
+
+Accepts pending ownership transfer request.
+
+_Only proposed new owner can call.
+
+No return, revets on error._
+
+### cancelOwnershipTransfer
+
+```solidity
+function cancelOwnershipTransfer() external
+```
+
+Cancels ownership request transfer.
+
+_Only owner can call.
+
+No return, reverts on error._
+
+### owner
+
+```solidity
+function owner() public view returns (address)
+```
+
+Gets current owner address.
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | address | owner |
+
+### getPendingOwner
+
+```solidity
+function getPendingOwner() public view returns (address)
+```
+
+Gets pending owner address.
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | address | pendingOwner |
+
+## IERC20
+
+_Interface of the ERC20 standard as defined in the EIP._
+
+### Transfer
+
+```solidity
+event Transfer(address from, address to, uint256 value)
+```
+
+_Emitted when `value` tokens are moved from one account (`from`) to
+another (`to`).
+
+Note that `value` may be zero._
+
+### Approval
+
+```solidity
+event Approval(address owner, address spender, uint256 value)
+```
+
+_Emitted when the allowance of a `spender` for an `owner` is set by
+a call to {approve}. `value` is the new allowance._
+
+### totalSupply
+
+```solidity
+function totalSupply() external view returns (uint256)
+```
+
+_Returns the amount of tokens in existence._
+
+### balanceOf
+
+```solidity
+function balanceOf(address account) external view returns (uint256)
+```
+
+_Returns the amount of tokens owned by `account`._
+
+### transfer
+
+```solidity
+function transfer(address to, uint256 amount) external returns (bool)
+```
+
+_Moves `amount` tokens from the caller's account to `to`.
+
+Returns a boolean value indicating whether the operation succeeded.
+
+Emits a {Transfer} event._
+
+### allowance
+
+```solidity
+function allowance(address owner, address spender) external view returns (uint256)
+```
+
+_Returns the remaining number of tokens that `spender` will be
+allowed to spend on behalf of `owner` through {transferFrom}. This is
+zero by default.
+
+This value changes when {approve} or {transferFrom} are called._
+
+### approve
+
+```solidity
+function approve(address spender, uint256 amount) external returns (bool)
+```
+
+_Sets `amount` as the allowance of `spender` over the caller's tokens.
+
+Returns a boolean value indicating whether the operation succeeded.
+
+IMPORTANT: Beware that changing an allowance with this method brings the risk
+that someone may use both the old and the new allowance by unfortunate
+transaction ordering. One possible solution to mitigate this race
+condition is to first reduce the spender's allowance to 0 and set the
+desired value afterwards:
+https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+
+Emits an {Approval} event._
+
+### transferFrom
+
+```solidity
+function transferFrom(address from, address to, uint256 amount) external returns (bool)
+```
+
+_Moves `amount` tokens from `from` to `to` using the
+allowance mechanism. `amount` is then deducted from the caller's
+allowance.
+
+Returns a boolean value indicating whether the operation succeeded.
+
+Emits a {Transfer} event._
+
 ## Chest
 
 ### MAX_FREEZING_PERIOD_REGULAR_CHEST
@@ -134,91 +582,91 @@ event SetFee(uint128 fee)
 event FeeWithdrawn(address beneficiary)
 ```
 
-### Chest\_\_ZeroAddress
+### Chest__ZeroAddress
 
 ```solidity
 error Chest__ZeroAddress()
 ```
 
-### Chest\_\_InvalidStakingAmount
+### Chest__InvalidStakingAmount
 
 ```solidity
 error Chest__InvalidStakingAmount()
 ```
 
-### Chest\_\_NonExistentToken
+### Chest__NonExistentToken
 
 ```solidity
 error Chest__NonExistentToken()
 ```
 
-### Chest\_\_NothingToIncrease
+### Chest__NothingToIncrease
 
 ```solidity
 error Chest__NothingToIncrease()
 ```
 
-### Chest\_\_InvalidFreezingPeriod
+### Chest__InvalidFreezingPeriod
 
 ```solidity
 error Chest__InvalidFreezingPeriod()
 ```
 
-### Chest\_\_InvalidVestingDuration
+### Chest__InvalidVestingDuration
 
 ```solidity
 error Chest__InvalidVestingDuration()
 ```
 
-### Chest\_\_InvalidNerfParameter
+### Chest__InvalidNerfParameter
 
 ```solidity
 error Chest__InvalidNerfParameter()
 ```
 
-### Chest\_\_CannotModifySpecial
+### Chest__CannotModifySpecial
 
 ```solidity
 error Chest__CannotModifySpecial()
 ```
 
-### Chest\_\_NonTransferrableToken
+### Chest__NonTransferrableToken
 
 ```solidity
 error Chest__NonTransferrableToken()
 ```
 
-### Chest\_\_NotAuthorizedForToken
+### Chest__NotAuthorizedForToken
 
 ```solidity
 error Chest__NotAuthorizedForToken()
 ```
 
-### Chest\_\_FreezingPeriodNotOver
+### Chest__FreezingPeriodNotOver
 
 ```solidity
 error Chest__FreezingPeriodNotOver()
 ```
 
-### Chest\_\_CannotUnstakeMoreThanReleasable
+### Chest__CannotUnstakeMoreThanReleasable
 
 ```solidity
 error Chest__CannotUnstakeMoreThanReleasable()
 ```
 
-### Chest\_\_NothingToUnstake
+### Chest__NothingToUnstake
 
 ```solidity
 error Chest__NothingToUnstake()
 ```
 
-### Chest\_\_InvalidBoosterValue
+### Chest__InvalidBoosterValue
 
 ```solidity
 error Chest__InvalidBoosterValue()
 ```
 
-### Chest\_\_NoFeesToWithdraw
+### Chest__NoFeesToWithdraw
 
 ```solidity
 error Chest__NoFeesToWithdraw()
@@ -246,11 +694,11 @@ Stakes tokens and freezes them for a period of time in regular chest.
 
 #### Parameters
 
-| Name           | Type    | Description                                                            |
-| -------------- | ------- | ---------------------------------------------------------------------- |
-| amount         | uint256 | - amount of tokens to freeze.                                          |
-| beneficiary    | address | - address of the beneficiary.                                          |
-| freezingPeriod | uint32  | - duration of freezing period in seconds. No return, reverts on error. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| amount | uint256 | - amount of tokens to freeze. |
+| beneficiary | address | - address of the beneficiary. |
+| freezingPeriod | uint32 | - duration of freezing period in seconds. No return, reverts on error. |
 
 ### stakeSpecial
 
@@ -261,17 +709,17 @@ function stakeSpecial(uint256 amount, address beneficiary, uint32 freezingPeriod
 Stakes tokens and freezes them for a period of time in special chest.
 
 _Anyone can call this function, it's meant to be used by
-partners and investors because of vestingPeriod._
+     partners and investors because of vestingPeriod._
 
 #### Parameters
 
-| Name            | Type    | Description                                                           |
-| --------------- | ------- | --------------------------------------------------------------------- |
-| amount          | uint256 | - amount of tokens to freeze.                                         |
-| beneficiary     | address | - address of the beneficiary.                                         |
-| freezingPeriod  | uint32  | - duration of freezing period in seconds.                             |
-| vestingDuration | uint32  | - duration of vesting period in seconds. No return, reverts on error. |
-| nerfParameter   | uint8   |                                                                       |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| amount | uint256 | - amount of tokens to freeze. |
+| beneficiary | address | - address of the beneficiary. |
+| freezingPeriod | uint32 | - duration of freezing period in seconds. |
+| vestingDuration | uint32 | - duration of vesting period in seconds. No return, reverts on error. |
+| nerfParameter | uint8 |  |
 
 ### increaseStake
 
@@ -283,11 +731,11 @@ Increases stake.
 
 #### Parameters
 
-| Name                 | Type    | Description                                                                      |
-| -------------------- | ------- | -------------------------------------------------------------------------------- |
-| tokenId              | uint256 | - id of the chest.                                                               |
-| amount               | uint256 | - amount of tokens to stake.                                                     |
-| extendFreezingPeriod | uint32  | - duration of freezing period extension in seconds. No return, reverts on error. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenId | uint256 | - id of the chest. |
+| amount | uint256 | - amount of tokens to stake. |
+| extendFreezingPeriod | uint32 | - duration of freezing period extension in seconds. No return, reverts on error. |
 
 ### unstake
 
@@ -299,10 +747,10 @@ Unstakes tokens.
 
 #### Parameters
 
-| Name    | Type    | Description                                                 |
-| ------- | ------- | ----------------------------------------------------------- |
-| tokenId | uint256 | - id of the chest.                                          |
-| amount  | uint256 | - amount of tokens to unstake. No return, reverts on error. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenId | uint256 | - id of the chest. |
+| amount | uint256 | - amount of tokens to unstake. No return, reverts on error. |
 
 ### setFee
 
@@ -316,9 +764,9 @@ _Only owner can call._
 
 #### Parameters
 
-| Name  | Type    | Description                             |
-| ----- | ------- | --------------------------------------- |
-| fee\_ | uint128 | - new fee. No return, reverts on error. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| fee_ | uint128 | - new fee. No return, reverts on error. |
 
 ### withdrawFees
 
@@ -332,8 +780,8 @@ _Only the contract owner can call this function._
 
 #### Parameters
 
-| Name        | Type    | Description                                                           |
-| ----------- | ------- | --------------------------------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | beneficiary | address | - address to receive the withdrawn fees. No return, reverts on error. |
 
 ### getVotingPower
@@ -346,16 +794,16 @@ Calculates the voting power of all account's chests.
 
 #### Parameters
 
-| Name     | Type      | Description              |
-| -------- | --------- | ------------------------ |
-| account  | address   | - address of the account |
-| tokenIds | uint256[] | - ids of the chests.     |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | - address of the account |
+| tokenIds | uint256[] | - ids of the chests. |
 
 #### Return Values
 
-| Name | Type    | Description                    |
-| ---- | ------- | ------------------------------ |
-| [0]  | uint256 | - voting power of the account. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | - voting power of the account. |
 
 ### estimateChestPower
 
@@ -367,16 +815,16 @@ Calculates the voting power of the chest for specific timestamp and position val
 
 #### Parameters
 
-| Name            | Type                           | Description                                    |
-| --------------- | ------------------------------ | ---------------------------------------------- |
-| timestamp       | uint256                        | - timestamp for which the power is calculated. |
-| vestingPosition | struct Vesting.VestingPosition | - vesting position of the chest.               |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| timestamp | uint256 | - timestamp for which the power is calculated. |
+| vestingPosition | struct Vesting.VestingPosition | - vesting position of the chest. |
 
 #### Return Values
 
-| Name | Type    | Description                  |
-| ---- | ------- | ---------------------------- |
-| [0]  | uint256 | - voting power of the chest. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | - voting power of the chest. |
 
 ### getVestingPosition
 
@@ -388,15 +836,15 @@ _Retrieves the vesting position at the specified index._
 
 #### Parameters
 
-| Name    | Type    | Description                                    |
-| ------- | ------- | ---------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | tokenId | uint256 | The index of the vesting position to retrieve. |
 
 #### Return Values
 
-| Name | Type                           | Description                                    |
-| ---- | ------------------------------ | ---------------------------------------------- |
-| [0]  | struct Vesting.VestingPosition | - The vesting position at the specified index. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | struct Vesting.VestingPosition | - The vesting position at the specified index. |
 
 ### getChestPower
 
@@ -408,15 +856,15 @@ Calculates the voting power of the chest for current block.timestamp.
 
 #### Parameters
 
-| Name    | Type    | Description        |
-| ------- | ------- | ------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | tokenId | uint256 | - id of the chest. |
 
 #### Return Values
 
-| Name | Type    | Description                  |
-| ---- | ------- | ---------------------------- |
-| [0]  | uint256 | - voting power of the chest. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | - voting power of the chest. |
 
 ### tokenURI
 
@@ -438,11 +886,11 @@ Gets the total supply of tokens.
 
 #### Return Values
 
-| Name | Type    | Description                   |
-| ---- | ------- | ----------------------------- |
-| [0]  | uint256 | - The total supply of tokens. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | - The total supply of tokens. |
 
-### \_beforeTokenTransfer
+### _beforeTokenTransfer
 
 ```solidity
 function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual
@@ -451,9 +899,9 @@ function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, ui
 This hook disallows token transfers.
 
 _Hook that is called before token transfer.
-See {ERC721 - \_beforeTokenTransfer}._
+     See {ERC721 - _beforeTokenTransfer}._
 
-### \_calculateBooster
+### _calculateBooster
 
 ```solidity
 function _calculateBooster(struct Vesting.VestingPosition vestingPosition, uint48 timestamp) internal pure returns (uint120)
@@ -463,18 +911,18 @@ Calculates the booster of the chest.
 
 #### Parameters
 
-| Name            | Type                           | Description               |
-| --------------- | ------------------------------ | ------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | vestingPosition | struct Vesting.VestingPosition | - chest vesting position. |
-| timestamp       | uint48                         |                           |
+| timestamp | uint48 |  |
 
 #### Return Values
 
-| Name | Type    | Description             |
-| ---- | ------- | ----------------------- |
-| [0]  | uint120 | - booster of the chest. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint120 | - booster of the chest. |
 
-### \_calculatePower
+### _calculatePower
 
 ```solidity
 function _calculatePower(uint256 timestamp, struct Vesting.VestingPosition vestingPosition) internal pure returns (uint256)
@@ -484,16 +932,16 @@ Calculates the voting power of the chest based on the timestamp and vesting posi
 
 #### Parameters
 
-| Name            | Type                           | Description                      |
-| --------------- | ------------------------------ | -------------------------------- |
-| timestamp       | uint256                        | - current timestamp.             |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| timestamp | uint256 | - current timestamp. |
 | vestingPosition | struct Vesting.VestingPosition | - vesting position of the chest. |
 
 #### Return Values
 
-| Name | Type    | Description                  |
-| ---- | ------- | ---------------------------- |
-| [0]  | uint256 | - voting power of the chest. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | - voting power of the chest. |
 
 ## DailySnapshot
 
@@ -633,15 +1081,15 @@ No return only Owner can call
 
 ## Governor
 
-\_Core of the governance system, designed to be extended though various modules.
+_Core of the governance system, designed to be extended though various modules.
 
 This contract is abstract and requires several functions to be implemented in various modules:
 
-- A counting module must implement {quorum}, {\_quorumReached}, {\_voteSucceeded} and {\_countVote}
-- A voting module must implement {\_getVotes}
+- A counting module must implement {quorum}, {_quorumReached}, {_voteSucceeded} and {_countVote}
+- A voting module must implement {_getVotes}
 - Additionally, {votingPeriod} must also be implemented
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### BALLOT_TYPEHASH
 
@@ -676,7 +1124,7 @@ struct ProposalCore {
 modifier onlyGovernance()
 ```
 
-\_Restricts a function so it can only be executed through governance proposals. For example, governance
+_Restricts a function so it can only be executed through governance proposals. For example, governance
 parameter setters in {GovernorSettings} are protected using this modifier.
 
 The governance executing address may be different from the Governor's own address, for example it could be a
@@ -731,7 +1179,7 @@ _See {IGovernor-version}._
 function hashProposal(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) public pure virtual returns (uint256)
 ```
 
-\_See {IGovernor-hashProposal}.
+_See {IGovernor-hashProposal}.
 
 The proposal id is produced by hashing the ABI encoded `targets` array, the `values` array, the `calldatas` array
 and the descriptionHash (bytes32 which itself is the keccak256 hash of the description string). This proposal id
@@ -741,7 +1189,7 @@ advance, before the proposal is submitted.
 Note that the chainId and the governor address are not part of the proposal id computation. Consequently, the
 same proposal (with same operation and same description) will have the same id if submitted on multiple governors
 across multiple networks. This also means that in order to execute the same operation twice (on the same
-governor) the proposer will have to change the description in order to avoid proposal id conflicts.\_
+governor) the proposer will have to change the description in order to avoid proposal id conflicts._
 
 ### state
 
@@ -791,7 +1239,7 @@ function proposalProposer(uint256 proposalId) public view virtual returns (addre
 
 _Returns the account that created a given proposal._
 
-### \_quorumReached
+### _quorumReached
 
 ```solidity
 function _quorumReached(uint256 proposalId) internal view virtual returns (bool)
@@ -799,7 +1247,7 @@ function _quorumReached(uint256 proposalId) internal view virtual returns (bool)
 
 _Amount of votes already cast passes the threshold limit._
 
-### \_voteSucceeded
+### _voteSucceeded
 
 ```solidity
 function _voteSucceeded(uint256 proposalId) internal view virtual returns (bool)
@@ -807,7 +1255,7 @@ function _voteSucceeded(uint256 proposalId) internal view virtual returns (bool)
 
 _Is the proposal successful or not._
 
-### \_getVotes
+### _getVotes
 
 ```solidity
 function _getVotes(address account, uint256 timepoint, bytes params) internal view virtual returns (uint256)
@@ -815,26 +1263,26 @@ function _getVotes(address account, uint256 timepoint, bytes params) internal vi
 
 _Get the voting weight of `account` at a specific `timepoint`, for a vote as described by `params`._
 
-### \_countVote
+### _countVote
 
 ```solidity
 function _countVote(uint256 proposalId, address account, uint8 support, uint256 weight, bytes params) internal virtual
 ```
 
-\_Register a vote for `proposalId` by `account` with a given `support`, voting `weight` and voting `params`.
+_Register a vote for `proposalId` by `account` with a given `support`, voting `weight` and voting `params`.
 
-Note: Support is generic and can represent various things depending on the voting system used.\_
+Note: Support is generic and can represent various things depending on the voting system used._
 
-### \_defaultParams
+### _defaultParams
 
 ```solidity
 function _defaultParams() internal view virtual returns (bytes)
 ```
 
-\_Default additional encoded parameters used by castVote methods that don't include them
+_Default additional encoded parameters used by castVote methods that don't include them
 
 Note: Should be overridden by specific implementations to use an appropriate value, the
-meaning of the additional params, in the context of that implementation\_
+meaning of the additional params, in the context of that implementation_
 
 ### proposeCustom
 
@@ -842,7 +1290,7 @@ meaning of the additional params, in the context of that implementation\_
 function proposeCustom(address[] targets, uint256[] values, bytes[] calldatas, string description, uint256 votingDelay, uint256 votingPeriod) public virtual returns (uint256)
 ```
 
-_See {IGovernor-propose}. This function has opt-in frontrunning protection, described in {\_isValidDescriptionForProposer}._
+_See {IGovernor-propose}. This function has opt-in frontrunning protection, described in {_isValidDescriptionForProposer}._
 
 ### propose
 
@@ -850,7 +1298,7 @@ _See {IGovernor-propose}. This function has opt-in frontrunning protection, desc
 function propose(address[] targets, uint256[] values, bytes[] calldatas, string description) public virtual returns (uint256)
 ```
 
-_See {IGovernor-propose}. This function has opt-in frontrunning protection, described in {\_isValidDescriptionForProposer}._
+_See {IGovernor-propose}. This function has opt-in frontrunning protection, described in {_isValidDescriptionForProposer}._
 
 ### execute
 
@@ -868,7 +1316,7 @@ function cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 
 
 _See {IGovernor-cancel}._
 
-### \_execute
+### _execute
 
 ```solidity
 function _execute(uint256, address[] targets, uint256[] values, bytes[] calldatas, bytes32) internal virtual
@@ -876,7 +1324,7 @@ function _execute(uint256, address[] targets, uint256[] values, bytes[] calldata
 
 _Internal execution mechanism. Can be overridden to implement different execution mechanism_
 
-### \_beforeExecute
+### _beforeExecute
 
 ```solidity
 function _beforeExecute(uint256, address[] targets, uint256[], bytes[] calldatas, bytes32) internal virtual
@@ -884,7 +1332,7 @@ function _beforeExecute(uint256, address[] targets, uint256[], bytes[] calldatas
 
 _Hook before execution is triggered._
 
-### \_afterExecute
+### _afterExecute
 
 ```solidity
 function _afterExecute(uint256, address[], uint256[], bytes[], bytes32) internal virtual
@@ -892,16 +1340,16 @@ function _afterExecute(uint256, address[], uint256[], bytes[], bytes32) internal
 
 _Hook after execution is triggered._
 
-### \_cancel
+### _cancel
 
 ```solidity
 function _cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal virtual returns (uint256)
 ```
 
-\_Internal cancel mechanism: locks up the proposal timer, preventing it from being re-submitted. Marks it as
+_Internal cancel mechanism: locks up the proposal timer, preventing it from being re-submitted. Marks it as
 canceled to allow distinguishing it from executed proposals.
 
-Emits a {IGovernor-ProposalCanceled} event.\_
+Emits a {IGovernor-ProposalCanceled} event._
 
 ### getVotes
 
@@ -959,27 +1407,27 @@ function castVoteWithReasonAndParamsBySig(uint256 proposalId, uint8 support, str
 
 _See {IGovernor-castVoteWithReasonAndParamsBySig}._
 
-### \_castVote
+### _castVote
 
 ```solidity
 function _castVote(uint256 proposalId, address account, uint8 support, string reason) internal virtual returns (uint256)
 ```
 
-\_Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet, retrieve
-voting weight using {IGovernor-getVotes} and call the {\_countVote} internal function. Uses the \_defaultParams().
+_Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet, retrieve
+voting weight using {IGovernor-getVotes} and call the {_countVote} internal function. Uses the _defaultParams().
 
-Emits a {IGovernor-VoteCast} event.\_
+Emits a {IGovernor-VoteCast} event._
 
-### \_castVote
+### _castVote
 
 ```solidity
 function _castVote(uint256 proposalId, address account, uint8 support, string reason, bytes params) internal virtual returns (uint256)
 ```
 
-\_Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet, retrieve
-voting weight using {IGovernor-getVotes} and call the {\_countVote} internal function.
+_Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet, retrieve
+voting weight using {IGovernor-getVotes} and call the {_countVote} internal function.
 
-Emits a {IGovernor-VoteCast} event.\_
+Emits a {IGovernor-VoteCast} event._
 
 ### relay
 
@@ -992,7 +1440,7 @@ is some contract other than the governor itself, like when using a timelock, thi
 in a governance proposal to recover tokens or Ether that was sent to the governor contract by mistake.
 Note that if the executor is simply the governor itself, use of `relay` is redundant._
 
-### \_executor
+### _executor
 
 ```solidity
 function _executor() internal view virtual returns (address)
@@ -1025,13 +1473,13 @@ function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) p
 
 _See {IERC1155Receiver-onERC1155BatchReceived}._
 
-### \_isValidDescriptionForProposer
+### _isValidDescriptionForProposer
 
 ```solidity
 function _isValidDescriptionForProposer(address proposer, string description) internal view virtual returns (bool)
 ```
 
-\_Check if the proposer is authorized to submit a proposal with the given description.
+_Check if the proposer is authorized to submit a proposal with the given description.
 
 If the proposal description ends with `#proposer=0x???`, where `0x???` is an address written as a hex string
 (case insensitive), then the submission of this proposal will only be authorized to said address.
@@ -1041,18 +1489,17 @@ that no other address can submit the same proposal. An attacker would have to ei
 which would result in a different proposal id.
 
 If the description does not match this pattern, it is unrestricted and anyone can submit it. This includes:
-
 - If the `0x???` part is not a valid hex string.
 - If the `0x???` part is a valid hex string, but does not contain exactly 40 hex digits.
 - If it ends with the expected suffix followed by newlines or other whitespace.
 - If it ends with some other similar suffix, e.g. `#other=abc`.
-- If it does not end with any such suffix.\_
+- If it does not end with any such suffix._
 
 ## GovernorVotes
 
-\_Extension of {Governor} for voting weight extraction from an {ERC20Votes} token, or since v4.5 an {ERC721Votes} token.
+_Extension of {Governor} for voting weight extraction from an {ERC20Votes} token, or since v4.5 an {ERC721Votes} token.
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### chest
 
@@ -1082,134 +1529,21 @@ function CLOCK_MODE() public view virtual returns (string)
 
 _Machine-readable description of the clock as specified in EIP-6372._
 
-### \_getVotes
+### _getVotes
 
 ```solidity
 function _getVotes(address account, uint256 timepoint, bytes params) internal view virtual returns (uint256)
 ```
 
-Read the voting weight from the token's built in snapshot mechanism (see {Governor-\_getVotes}).
+Read the voting weight from the token's built in snapshot mechanism (see {Governor-_getVotes}).
 
 _timepoint parameter is not actually timpoint of the vote, but it's
-the last chest ID that is viable for voting.
-It's left for compatibility with the Governor Votes mechanism._
-
-## InvestorDistribution
-
-### Investor
-
-```solidity
-struct Investor {
-  address beneficiary;
-  uint96 amount;
-}
-```
-
-### NUMBER_OF_INVESTORS
-
-```solidity
-uint256 NUMBER_OF_INVESTORS
-```
-
-### JELLY_AMOUNT
-
-```solidity
-uint256 JELLY_AMOUNT
-```
-
-### FREEZING_PERIOD
-
-```solidity
-uint32 FREEZING_PERIOD
-```
-
-### VESTING_DURATION
-
-```solidity
-uint32 VESTING_DURATION
-```
-
-### NERF_PARAMETER
-
-```solidity
-uint8 NERF_PARAMETER
-```
-
-### i_jellyToken
-
-```solidity
-contract IERC20 i_jellyToken
-```
-
-### index
-
-```solidity
-uint32 index
-```
-
-### investors
-
-```solidity
-struct InvestorDistribution.Investor[87] investors
-```
-
-### i_chest
-
-```solidity
-contract IChest i_chest
-```
-
-### ChestSet
-
-```solidity
-event ChestSet(address chest)
-```
-
-### BatchDistributed
-
-```solidity
-event BatchDistributed(uint256 startIndex, uint256 batchLength)
-```
-
-### InvestorDistribution\_\_InvalidBatchLength
-
-```solidity
-error InvestorDistribution__InvalidBatchLength()
-```
-
-### InvestorDistribution\_\_DistributionIndexOutOfBounds
-
-```solidity
-error InvestorDistribution__DistributionIndexOutOfBounds()
-```
-
-### InvestorDistribution\_\_ChestAlreadySet
-
-```solidity
-error InvestorDistribution__ChestAlreadySet()
-```
-
-### constructor
-
-```solidity
-constructor(address jellyToken, address owner, address pendingOwner) public
-```
-
-### distribute
-
-```solidity
-function distribute(uint32 batchLength) external
-```
-
-### setChest
-
-```solidity
-function setChest(address chest) external
-```
+     the last chest ID that is viable for voting.
+     It's left for compatibility with the Governor Votes mechanism._
 
 ## JellyGovernor
 
-### JellyGovernor\_\_InvalidOperation
+### JellyGovernor__InvalidOperation
 
 ```solidity
 error JellyGovernor__InvalidOperation()
@@ -1234,8 +1568,8 @@ function castVote(uint256, uint8) public virtual returns (uint256)
 ```
 
 _JellyGovernor overrides but does not support below functions due to non-standard parameter requirements.
-Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
-To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
+     Removing these methods would necessitate altering the Governor interface, affecting many dependent contracts.
+     To preserve interface compatibility while indicating non-support, these functions are explicitly reverted._
 
 ### castVoteWithReason
 
@@ -1285,13 +1619,13 @@ function getExecutor() public view returns (address)
 function proposalThreshold() public view returns (uint256)
 ```
 
-### \_cancel
+### _cancel
 
 ```solidity
 function _cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal returns (uint256)
 ```
 
-### \_executor
+### _executor
 
 ```solidity
 function _executor() internal view returns (address)
@@ -1303,7 +1637,7 @@ function _executor() internal view returns (address)
 function supportsInterface(bytes4 interfaceId) public view returns (bool)
 ```
 
-### \_execute
+### _execute
 
 ```solidity
 function _execute(uint256 proposalId, address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal
@@ -1333,19 +1667,19 @@ bytes32 MINTER_ROLE
 event Preminted(address vestingTeam, address vestingInvestor, address allocator)
 ```
 
-### JellyToken\_\_AlreadyPreminted
+### JellyToken__AlreadyPreminted
 
 ```solidity
 error JellyToken__AlreadyPreminted()
 ```
 
-### JellyToken\_\_ZeroAddress
+### JellyToken__ZeroAddress
 
 ```solidity
 error JellyToken__ZeroAddress()
 ```
 
-### JellyToken\_\_CapExceeded
+### JellyToken__CapExceeded
 
 ```solidity
 error JellyToken__CapExceeded()
@@ -1375,12 +1709,12 @@ _Only addresses with MINTER_ROLE can call._
 
 #### Parameters
 
-| Name              | Type    | Description                                                    |
-| ----------------- | ------- | -------------------------------------------------------------- |
-| \_vestingTeam     | address | - address to mint tokens for the vesting team.                 |
-| \_vestingInvestor | address | - address to mint tokens for the vesting investor.             |
-| \_allocator       | address | - address to mint tokens for the allocator.                    |
-| \_minterContract  | address | - address of the minter contract. No return, reverts on error. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _vestingTeam | address | - address to mint tokens for the vesting team. |
+| _vestingInvestor | address | - address to mint tokens for the vesting investor. |
+| _allocator | address | - address to mint tokens for the allocator. |
+| _minterContract | address | - address of the minter contract. No return, reverts on error. |
 
 ### mint
 
@@ -1394,9 +1728,9 @@ _Only addresses with MINTER_ROLE can call._
 
 #### Parameters
 
-| Name   | Type    | Description                                              |
-| ------ | ------- | -------------------------------------------------------- |
-| to     | address | - address to mint tokens for.                            |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| to | address | - address to mint tokens for. |
 | amount | uint256 | - amount of tokens to mint. No return, reverts on error. |
 
 ### burn
@@ -1409,9 +1743,9 @@ _Destroys a `value` amount of tokens from the caller._
 
 #### Parameters
 
-| Name  | Type    | Description                                                                      |
-| ----- | ------- | -------------------------------------------------------------------------------- |
-| value | uint256 | - the amount of tokens to burn. No return, reverts on error. See {ERC20-\_burn}. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| value | uint256 | - the amount of tokens to burn. No return, reverts on error. See {ERC20-_burn}. |
 
 ### burnedSupply
 
@@ -1429,13 +1763,13 @@ function cap() external view virtual returns (uint256)
 
 _Returns the cap on the token's total supply._
 
-### \_mint
+### _mint
 
 ```solidity
 function _mint(address account, uint256 amount) internal virtual
 ```
 
-_See {ERC20-\_mint}._
+_See {ERC20-_mint}._
 
 ## JellyTokenDeployer
 
@@ -1457,15 +1791,15 @@ Returns the bytecode for deploying JellyToken smart contract
 
 #### Parameters
 
-| Name               | Type    | Description                                                     |
-| ------------------ | ------- | --------------------------------------------------------------- |
-| \_defaultAdminRole | address | - The address of the Jelly Governance (Timelock) smart contract |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _defaultAdminRole | address | - The address of the Jelly Governance (Timelock) smart contract |
 
 #### Return Values
 
-| Name | Type  | Description                                                  |
-| ---- | ----- | ------------------------------------------------------------ |
-| [0]  | bytes | bytes - The bytecode for deploying JellyToken smart contract |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes | bytes - The bytecode for deploying JellyToken smart contract |
 
 ### computeAddress
 
@@ -1477,16 +1811,16 @@ Computes the address of the JellyToken smart contract
 
 #### Parameters
 
-| Name               | Type    | Description                                                     |
-| ------------------ | ------- | --------------------------------------------------------------- |
-| \_salt             | bytes32 |                                                                 |
-| \_defaultAdminRole | address | - The address of the Jelly Governance (Timelock) smart contract |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _salt | bytes32 |  |
+| _defaultAdminRole | address | - The address of the Jelly Governance (Timelock) smart contract |
 
 #### Return Values
 
-| Name | Type    | Description                                            |
-| ---- | ------- | ------------------------------------------------------ |
-| [0]  | address | address - The address of the JellyToken smart contract |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | address | address - The address of the JellyToken smart contract |
 
 ### deployJellyToken
 
@@ -1592,10 +1926,10 @@ Creates epoch for distribtuin
 
 #### Parameters
 
-| Name         | Type    | Description                                          |
-| ------------ | ------- | ---------------------------------------------------- |
-| \_merkleRoot | bytes32 | - root of merkle tree. No return only Owner can call |
-| \_ipfs       | string  |                                                      |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _merkleRoot | bytes32 | - root of merkle tree. No return only Owner can call |
+| _ipfs | string |  |
 
 ### claimWeek
 
@@ -1607,12 +1941,12 @@ Claims a single week
 
 #### Parameters
 
-| Name          | Type      | Description                                        |
-| ------------- | --------- | -------------------------------------------------- |
-| \_epochId     | uint96    | - id of epoch to be claimed                        |
-| \_amount      | uint256   | - amount of tokens to be claimed                   |
-| \_merkleProof | bytes32[] | - merkle proof of claim No return reverts an error |
-| \_isVesting   | bool      |                                                    |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _epochId | uint96 | - id of epoch to be claimed |
+| _amount | uint256 | - amount of tokens to be claimed |
+| _merkleProof | bytes32[] | - merkle proof of claim No return reverts an error |
+| _isVesting | bool |  |
 
 ### claimWeeks
 
@@ -1624,12 +1958,12 @@ Claims multiple weeks
 
 #### Parameters
 
-| Name           | Type        | Description                                         |
-| -------------- | ----------- | --------------------------------------------------- |
-| \_epochIds     | uint96[]    | - id sof epochs to be claimed                       |
-| \_amounts      | uint256[]   | - amounts of tokens to be claimed                   |
-| \_merkleProofs | bytes32[][] | - merkle proofs of claim No return reverts an error |
-| \_isVesting    | bool        |                                                     |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _epochIds | uint96[] | - id sof epochs to be claimed |
+| _amounts | uint256[] | - amounts of tokens to be claimed |
+| _merkleProofs | bytes32[][] | - merkle proofs of claim No return reverts an error |
+| _isVesting | bool |  |
 
 ### verifyClaim
 
@@ -1641,12 +1975,12 @@ Verifies claim
 
 #### Parameters
 
-| Name          | Type      | Description                                        |
-| ------------- | --------- | -------------------------------------------------- |
-| \_reciver     | address   | - address of user to claim                         |
-| \_epochId     | uint256   | - id of epoch to be claimed                        |
-| \_amount      | uint256   | - amount of tokens to be claimed                   |
-| \_merkleProof | bytes32[] | - merkle proof of claim No return reverts an error |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _reciver | address | - address of user to claim |
+| _epochId | uint256 | - id of epoch to be claimed |
+| _amount | uint256 | - amount of tokens to be claimed |
+| _merkleProof | bytes32[] | - merkle proof of claim No return reverts an error |
 
 ### setVestingContract
 
@@ -1658,9 +1992,9 @@ Changes the vesting contract
 
 #### Parameters
 
-| Name              | Type    | Description                                                 |
-| ----------------- | ------- | ----------------------------------------------------------- |
-| \_vestingContract | address | - address of vesting contract No return only Owner can call |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _vestingContract | address | - address of vesting contract No return only Owner can call |
 
 ## Minter
 
@@ -1827,15 +2161,15 @@ Calculate mint amount based on exponential function
 
 #### Parameters
 
-| Name                      | Type   | Description                            |
-| ------------------------- | ------ | -------------------------------------- |
-| \_daysSinceMintingStarted | int256 | - number of days since minting started |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _daysSinceMintingStarted | int256 | - number of days since minting started |
 
 #### Return Values
 
-| Name | Type    | Description                           |
-| ---- | ------- | ------------------------------------- |
-| [0]  | uint256 | mintAmount - amount of tokens to mint |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | mintAmount - amount of tokens to mint |
 
 ### setStakingRewardsContract
 
@@ -1849,9 +2183,9 @@ _Only owner can call._
 
 #### Parameters
 
-| Name                        | Type    | Description                               |
-| --------------------------- | ------- | ----------------------------------------- |
-| \_newStakingRewardsContract | address | new staking rewards distribution contract |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _newStakingRewardsContract | address | new staking rewards distribution contract |
 
 ### setMintingPeriod
 
@@ -1865,9 +2199,9 @@ _Only owner can call._
 
 #### Parameters
 
-| Name            | Type   | Description        |
-| --------------- | ------ | ------------------ |
-| \_mintingPeriod | uint32 | new minitng period |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _mintingPeriod | uint32 | new minitng period |
 
 ### setBeneficiaries
 
@@ -1881,9 +2215,9 @@ _Only owner can call._
 
 #### Parameters
 
-| Name            | Type                        | Description |
-| --------------- | --------------------------- | ----------- |
-| \_beneficiaries | struct Minter.Beneficiary[] | to store    |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _beneficiaries | struct Minter.Beneficiary[] | to store |
 
 ## OfficialPoolsRegister
 
@@ -1934,9 +2268,9 @@ _Only owner can call._
 
 #### Parameters
 
-| Name    | Type                                | Description |
-| ------- | ----------------------------------- | ----------- |
-| pools\_ | struct OfficialPoolsRegister.Pool[] | to store    |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| pools_ | struct OfficialPoolsRegister.Pool[] | to store |
 
 ### getAllOfficialPools
 
@@ -1944,14 +2278,14 @@ _Only owner can call._
 function getAllOfficialPools() public view returns (bytes32[])
 ```
 
-/\*\*
+/**
 Return all official pools ids
 
 #### Return Values
 
-| Name | Type      | Description   |
-| ---- | --------- | ------------- |
-| [0]  | bytes32[] | all 'poolIds' |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32[] | all 'poolIds' |
 
 ## PoolParty
 
@@ -2011,25 +2345,25 @@ event EndBuyingPeriod()
 event NativeToJellyRatioSet(uint256 usdToJellyRatio)
 ```
 
-### PoolParty\_\_CannotBuy
+### PoolParty__CannotBuy
 
 ```solidity
 error PoolParty__CannotBuy()
 ```
 
-### PoolParty\_\_NoValueSent
+### PoolParty__NoValueSent
 
 ```solidity
 error PoolParty__NoValueSent()
 ```
 
-### PoolParty\_\_AddressZero
+### PoolParty__AddressZero
 
 ```solidity
 error PoolParty__AddressZero()
 ```
 
-### PoolParty\_\_ZeroValue
+### PoolParty__ZeroValue
 
 ```solidity
 error PoolParty__ZeroValue()
@@ -2057,9 +2391,9 @@ Buys jelly tokens with USD pegged token
 
 #### Parameters
 
-| Name     | Type    | Description                              |
-| -------- | ------- | ---------------------------------------- |
-| \_amount | uint256 | amount of usd to be sold No return value |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _amount | uint256 | amount of usd to be sold No return value |
 
 ### endBuyingPeriod
 
@@ -2069,9 +2403,9 @@ function endBuyingPeriod() external
 
 Ends buying period and burns remaining JellyTokens.
 
-\_Only owner can call.
+_Only owner can call.
 
-No return, reverts on error.\_
+No return, reverts on error._
 
 ### setUSDToJellyRatio
 
@@ -2085,11 +2419,11 @@ _Only owner can call._
 
 #### Parameters
 
-| Name              | Type   | Description                                                     |
-| ----------------- | ------ | --------------------------------------------------------------- |
-| \_usdToJellyRatio | uint88 | - ratio of native to jelly tokens. No return, reverts on error. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _usdToJellyRatio | uint88 | - ratio of native to jelly tokens. No return, reverts on error. |
 
-### \_convertERC20sToAssets
+### _convertERC20sToAssets
 
 ```solidity
 function _convertERC20sToAssets(contract IERC20[] tokens) internal pure returns (contract IAsset[] assets)
@@ -2142,31 +2476,31 @@ contract IJellyToken jellyToken
 uint48 vestingPeriod
 ```
 
-### Vest\_\_InvalidCaller
+### Vest__InvalidCaller
 
 ```solidity
 error Vest__InvalidCaller()
 ```
 
-### Vest\_\_ZeroAddress
+### Vest__ZeroAddress
 
 ```solidity
 error Vest__ZeroAddress()
 ```
 
-### Vest\_\_InvalidVestingAmount
+### Vest__InvalidVestingAmount
 
 ```solidity
 error Vest__InvalidVestingAmount()
 ```
 
-### Vest\_\_AlreadyVested
+### Vest__AlreadyVested
 
 ```solidity
 error Vest__AlreadyVested()
 ```
 
-### Vest\_\_NothingToClaim
+### Vest__NothingToClaim
 
 ```solidity
 error Vest__NothingToClaim()
@@ -2212,10 +2546,10 @@ Vest liquidity
 
 #### Parameters
 
-| Name          | Type    | Description                                                       |
-| ------------- | ------- | ----------------------------------------------------------------- |
-| \_amount      | uint256 | - amount of tokens to deposit                                     |
-| \_beneficiary | address | - address of beneficiary No return only Vesting contract can call |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _amount | uint256 | - amount of tokens to deposit |
+| _beneficiary | address | - address of beneficiary No return only Vesting contract can call |
 
 ### claimLiquidity
 
@@ -2237,9 +2571,9 @@ Calculates vested tokens
 
 #### Parameters
 
-| Name          | Type    | Description                                             |
-| ------------- | ------- | ------------------------------------------------------- |
-| \_beneficiary | address | - address of beneficiary Return amount of tokens vested |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _beneficiary | address | - address of beneficiary Return amount of tokens vested |
 
 ### vestStaking
 
@@ -2251,10 +2585,10 @@ Vest staking
 
 #### Parameters
 
-| Name          | Type    | Description                                                       |
-| ------------- | ------- | ----------------------------------------------------------------- |
-| \_amount      | uint256 | - amount of tokens to deposit                                     |
-| \_beneficiary | address | - address of beneficiary No return only Vesting contract can call |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _amount | uint256 | - amount of tokens to deposit |
+| _beneficiary | address | - address of beneficiary No return only Vesting contract can call |
 
 ### claimStaking
 
@@ -2276,9 +2610,9 @@ Calculates vested tokens
 
 #### Parameters
 
-| Name          | Type    | Description                                             |
-| ------------- | ------- | ------------------------------------------------------- |
-| \_beneficiary | address | - address of beneficiary Return amount of tokens vested |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _beneficiary | address | - address of beneficiary Return amount of tokens vested |
 
 ## StakingRewardDistribution
 
@@ -2390,10 +2724,10 @@ Creates epoch for distribtuin
 
 #### Parameters
 
-| Name         | Type    | Description                                          |
-| ------------ | ------- | ---------------------------------------------------- |
-| \_merkleRoot | bytes32 | - root of merkle tree. No return only Owner can call |
-| \_ipfs       | string  |                                                      |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _merkleRoot | bytes32 | - root of merkle tree. No return only Owner can call |
+| _ipfs | string |  |
 
 ### deposit
 
@@ -2403,16 +2737,16 @@ function deposit(contract IERC20 _token, uint256 _amount) public returns (uint96
 
 Deposit funds into contract
 
-\_not using this function to deposit funds will lock the tokens
+_not using this function to deposit funds will lock the tokens
 
-No return only Owner can call\_
+No return only Owner can call_
 
 #### Parameters
 
-| Name     | Type            | Description                   |
-| -------- | --------------- | ----------------------------- |
-| \_token  | contract IERC20 | - token to deposit            |
-| \_amount | uint256         | - amount of tokens to deposit |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _token | contract IERC20 | - token to deposit |
+| _amount | uint256 | - amount of tokens to deposit |
 
 ### claimWeek
 
@@ -2424,13 +2758,13 @@ Claim tokens for epoch
 
 #### Parameters
 
-| Name                  | Type              | Description                                        |
-| --------------------- | ----------------- | -------------------------------------------------- |
-| \_epochId             | uint96            | - id of epoch to be claimed                        |
-| \_tokens              | contract IERC20[] | - tokens to clam                                   |
-| \_relativeVotingPower | uint256           | - relative voting power of user                    |
-| \_merkleProof         | bytes32[]         | - merkle proof of claim No return reverts an error |
-| \_isVesting           | bool              |                                                    |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _epochId | uint96 | - id of epoch to be claimed |
+| _tokens | contract IERC20[] | - tokens to clam |
+| _relativeVotingPower | uint256 | - relative voting power of user |
+| _merkleProof | bytes32[] | - merkle proof of claim No return reverts an error |
+| _isVesting | bool |  |
 
 ### claimWeeks
 
@@ -2442,13 +2776,13 @@ Claims multiple epochs
 
 #### Parameters
 
-| Name                   | Type              | Description                                         |
-| ---------------------- | ----------------- | --------------------------------------------------- |
-| \_epochIds             | uint96[]          | - ids of epochs to be claimed                       |
-| \_tokens               | contract IERC20[] | - tokens to clam                                    |
-| \_relativeVotingPowers | uint256[]         | - relative voting power per epoch of user           |
-| \_merkleProofs         | bytes32[][]       | - merkle proofs of claim No return reverts an error |
-| \_isVesting            | bool              |                                                     |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _epochIds | uint96[] | - ids of epochs to be claimed |
+| _tokens | contract IERC20[] | - tokens to clam |
+| _relativeVotingPowers | uint256[] | - relative voting power per epoch of user |
+| _merkleProofs | bytes32[][] | - merkle proofs of claim No return reverts an error |
+| _isVesting | bool |  |
 
 ### verifyClaim
 
@@ -2460,12 +2794,12 @@ Verifies a claim
 
 #### Parameters
 
-| Name                  | Type      | Description                                        |
-| --------------------- | --------- | -------------------------------------------------- |
-| \_reciver             | address   | - address of user to verify                        |
-| \_epochId             | uint256   | - id of epoch to be verified                       |
-| \_relativeVotingPower | uint256   | - relative voting power of user                    |
-| \_merkleProof         | bytes32[] | - merkle proof of claim No return reverts an error |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _reciver | address | - address of user to verify |
+| _epochId | uint256 | - id of epoch to be verified |
+| _relativeVotingPower | uint256 | - relative voting power of user |
+| _merkleProof | bytes32[] | - merkle proof of claim No return reverts an error |
 
 ### setVestingContract
 
@@ -2477,9 +2811,9 @@ Changes the vesting contract
 
 #### Parameters
 
-| Name              | Type    | Description                                                 |
-| ----------------- | ------- | ----------------------------------------------------------- |
-| \_vestingContract | address | - address of vesting contract No return only Owner can call |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _vestingContract | address | - address of vesting contract No return only Owner can call |
 
 ## TeamDistribution
 
@@ -2525,19 +2859,19 @@ event ChestSet(address chest)
 event BatchDistributed(uint256 startIndex, uint256 batchLength)
 ```
 
-### TeamDistribution\_\_InvalidBatchLength
+### TeamDistribution__InvalidBatchLength
 
 ```solidity
 error TeamDistribution__InvalidBatchLength()
 ```
 
-### TeamDistribution\_\_DistributionIndexOutOfBounds
+### TeamDistribution__DistributionIndexOutOfBounds
 
 ```solidity
 error TeamDistribution__DistributionIndexOutOfBounds()
 ```
 
-### TeamDistribution\_\_ChestAlreadySet
+### TeamDistribution__ChestAlreadySet
 
 ```solidity
 error TeamDistribution__ChestAlreadySet()
@@ -2573,17 +2907,39 @@ constructor(address _jellyTooken, address _owner, address _pendingOwner) public
 function distribute(uint32 batchLength) external
 ```
 
+Distributes tokens to team members in batches.
+
+_Only the contract owner can call this function.
+The `batchLength` must be greater than 0 and within the bounds of the team list._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| batchLength | uint32 | The number of team members to distribute tokens to. |
+
 ### setChest
 
 ```solidity
 function setChest(address _chestContract) external
 ```
 
+Sets the chest contract address.
+
+_Only the contract owner can call this function.
+The chest contract address must not be already set._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _chestContract | address | The address of the chest contract. |
+
 ## GovernorCountingSimple
 
-\_Extension of {Governor} for simple, 3 options, vote counting.
+_Extension of {Governor} for simple, 3 options, vote counting.
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### VoteType
 
@@ -2630,35 +2986,35 @@ function proposalVotes(uint256 proposalId) public view virtual returns (uint256 
 
 _Accessor to the internal vote counts._
 
-### \_quorumReached
+### _quorumReached
 
 ```solidity
 function _quorumReached(uint256 proposalId) internal view virtual returns (bool)
 ```
 
-_See {Governor-\_quorumReached}._
+_See {Governor-_quorumReached}._
 
-### \_voteSucceeded
+### _voteSucceeded
 
 ```solidity
 function _voteSucceeded(uint256 proposalId) internal view virtual returns (bool)
 ```
 
-_See {Governor-\_voteSucceeded}. In this module, the forVotes must be strictly over the againstVotes._
+_See {Governor-_voteSucceeded}. In this module, the forVotes must be strictly over the againstVotes._
 
-### \_countVote
+### _countVote
 
 ```solidity
 function _countVote(uint256 proposalId, address account, uint8 support, uint256 weight, bytes) internal virtual
 ```
 
-_See {Governor-\_countVote}. In this module, the support follows the `VoteType` enum (from Governor Bravo)._
+_See {Governor-_countVote}. In this module, the support follows the `VoteType` enum (from Governor Bravo)._
 
 ## GovernorSettings
 
-\_Extension of {Governor} for settings updatable through governance.
+_Extension of {Governor} for settings updatable through governance.
 
-\_Available since v4.4.\_\_
+_Available since v4.4.__
 
 ### VotingDelaySet
 
@@ -2710,39 +3066,39 @@ function proposalThreshold() public view virtual returns (uint256)
 
 _See {Governor-proposalThreshold}._
 
-### \_setVotingDelay
+### _setVotingDelay
 
 ```solidity
 function _setVotingDelay(uint256 newVotingDelay) internal virtual
 ```
 
-\_Internal setter for the voting delay.
+_Internal setter for the voting delay.
 
-Emits a {VotingDelaySet} event.\_
+Emits a {VotingDelaySet} event._
 
-### \_setVotingPeriod
+### _setVotingPeriod
 
 ```solidity
 function _setVotingPeriod(uint256 newVotingPeriod) internal virtual
 ```
 
-\_Internal setter for the voting period.
+_Internal setter for the voting period.
 
-Emits a {VotingPeriodSet} event.\_
+Emits a {VotingPeriodSet} event._
 
-### \_setProposalThreshold
+### _setProposalThreshold
 
 ```solidity
 function _setProposalThreshold(uint256 newProposalThreshold) internal virtual
 ```
 
-\_Internal setter for the proposal threshold.
+_Internal setter for the proposal threshold.
 
-Emits a {ProposalThresholdSet} event.\_
+Emits a {ProposalThresholdSet} event._
 
 ## GovernorTimelockControl
 
-\_Extension of {Governor} that binds the execution process to an instance of {TimelockController}. This adds a
+_Extension of {Governor} that binds the execution process to an instance of {TimelockController}. This adds a
 delay, enforced by the {TimelockController} to all successful proposal (in addition to the voting duration). The
 {Governor} needs the proposer (and ideally the executor) roles for the {Governor} to work properly.
 
@@ -2755,7 +3111,7 @@ grants them powers that they must be trusted or known not to use: 1) {onlyGovern
 available to them through the timelock, and 2) approved governance proposals can be blocked by them, effectively
 executing a Denial of Service attack. This risk will be mitigated in a future release.
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### TimelockChange
 
@@ -2813,7 +3169,7 @@ function queue(address[] targets, uint256[] values, bytes[] calldatas, bytes32 d
 
 _Function to queue a proposal to the timelock._
 
-### \_execute
+### _execute
 
 ```solidity
 function _execute(uint256, address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal virtual
@@ -2821,16 +3177,16 @@ function _execute(uint256, address[] targets, uint256[] values, bytes[] calldata
 
 _Overridden execute function that run the already queued proposal through the timelock._
 
-### \_cancel
+### _cancel
 
 ```solidity
 function _cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) internal virtual returns (uint256)
 ```
 
-_Overridden version of the {Governor-\_cancel} function to cancel the timelocked proposal if it as already
+_Overridden version of the {Governor-_cancel} function to cancel the timelocked proposal if it as already
 been queued._
 
-### \_executor
+### _executor
 
 ```solidity
 function _executor() internal view virtual returns (address)
@@ -2844,100 +3200,10 @@ _Address through which the governor executes action. In this case, the timelock.
 function updateTimelock(contract TimelockController newTimelock) external virtual
 ```
 
-\_Public endpoint to update the underlying timelock instance. Restricted to the timelock itself, so updates
+_Public endpoint to update the underlying timelock instance. Restricted to the timelock itself, so updates
 must be proposed, scheduled, and executed through governance proposals.
 
-CAUTION: It is not recommended to change the timelock while there are other queued governance proposals.\_
-
-## IChest
-
-\_Common interface for {ERC20Votes}, {ERC721Votes}, and other {Votes}-enabled contracts.
-
-\_Available since v4.5.\_\_
-
-### DelegateChanged
-
-```solidity
-event DelegateChanged(address delegator, address fromDelegate, address toDelegate)
-```
-
-_Emitted when an account changes their delegate._
-
-### DelegateVotesChanged
-
-```solidity
-event DelegateVotesChanged(address delegate, uint256 previousBalance, uint256 newBalance)
-```
-
-_Emitted when a token transfer or delegate change results in changes to a delegate's number of votes._
-
-### getVotingPower
-
-```solidity
-function getVotingPower(address account, uint256[] tokenIds) external view returns (uint256)
-```
-
-_Returns the current amount of votes that `account` has._
-
-### totalSupply
-
-```solidity
-function totalSupply() external view returns (uint256)
-```
-
-_Returns the amount of votes that `account` had at a specific moment in the past. If the `clock()` is
-configured to use block numbers, this will return the value at the end of the corresponding block._
-
-### getPastTotalSupply
-
-```solidity
-function getPastTotalSupply(uint256 timepoint) external view returns (uint256)
-```
-
-\_Returns the total supply of votes available at a specific moment in the past. If the `clock()` is
-configured to use block numbers, this will return the value at the end of the corresponding block.
-
-NOTE: This value is the sum of all available votes, which is not necessarily the sum of all delegated votes.
-Votes that have not been delegated are still part of total supply, even though they would not participate in a
-vote.\_
-
-### delegates
-
-```solidity
-function delegates(address account) external view returns (address)
-```
-
-_Returns the delegate that `account` has chosen._
-
-### delegate
-
-```solidity
-function delegate(address delegatee) external
-```
-
-_Delegates votes from the sender to `delegatee`._
-
-### delegateBySig
-
-```solidity
-function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) external
-```
-
-_Delegates votes from signer to `delegatee`._
-
-### stakeSpecial
-
-```solidity
-function stakeSpecial(uint256 amount, address beneficiary, uint32 freezingPeriod, uint32 vestingDuration, uint8 nerfParameter) external
-```
-
-_Mints special chest._
-
-### fee
-
-```solidity
-function fee() external view returns (uint256)
-```
+CAUTION: It is not recommended to change the timelock while there are other queued governance proposals._
 
 ## IJellyToken
 
@@ -2953,7 +3219,7 @@ function mint(address to, uint256 amount) external
 function approve(address spender, uint256 amount) external returns (bool)
 ```
 
-\_Sets `amount` as the allowance of `spender` over the caller's tokens.
+_Sets `amount` as the allowance of `spender` over the caller's tokens.
 
 Returns a boolean value indicating whether the operation succeeded.
 
@@ -2964,7 +3230,7 @@ condition is to first reduce the spender's allowance to 0 and set the
 desired value afterwards:
 https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
 
-Emits an {Approval} event.\_
+Emits an {Approval} event._
 
 ### balanceOf
 
@@ -2986,11 +3252,11 @@ function burn(uint256 value) external
 function transfer(address to, uint256 amount) external returns (bool)
 ```
 
-\_Moves `amount` tokens from the caller's account to `to`.
+_Moves `amount` tokens from the caller's account to `to`.
 
 Returns a boolean value indicating whether the operation succeeded.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
 ### decimals
 
@@ -3000,9 +3266,9 @@ function decimals() external view returns (uint8)
 
 ## IStakingRewardDistribution
 
-\_Common interface for {ERC20Votes}, {ERC721Votes}, and other {Votes}-enabled contracts.
+_Common interface for {ERC20Votes}, {ERC721Votes}, and other {Votes}-enabled contracts.
 
-\_Available since v4.5.\_\_
+_Available since v4.5.__
 
 ### deposit
 
@@ -3012,22 +3278,22 @@ function deposit(contract IERC20 _token, uint256 _amount) external returns (uint
 
 Deposit funds into contract
 
-\_not using this function to deposit funds will lock the tokens
+_not using this function to deposit funds will lock the tokens
 
-No return only Owner can call\_
+No return only Owner can call_
 
 #### Parameters
 
-| Name     | Type            | Description                   |
-| -------- | --------------- | ----------------------------- |
-| \_token  | contract IERC20 | - token to deposit            |
-| \_amount | uint256         | - amount of tokens to deposit |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _token | contract IERC20 | - token to deposit |
+| _amount | uint256 | - amount of tokens to deposit |
 
 #### Return Values
 
-| Name | Type    | Description                   |
-| ---- | ------- | ----------------------------- |
-| [0]  | uint256 | epochId - epoch id of deposit |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | epochId - epoch id of deposit |
 
 ## ERC20Token
 
@@ -3077,149 +3343,23 @@ function createNewVestingPosition(uint256 amount, uint32 cliffDuration, uint32 v
 function updateReleasedAmount(uint256 vestingIndex, uint256 amount) public
 ```
 
-## Ownable
-
-An abstract contract for ownership managment
-
-### OwnershipTransferRequested
-
-```solidity
-event OwnershipTransferRequested(address from, address to)
-```
-
-### OwnershipTransferred
-
-```solidity
-event OwnershipTransferred(address from, address to)
-```
-
-### OwnershipTransferCanceled
-
-```solidity
-event OwnershipTransferCanceled(address from, address to)
-```
-
-### Ownable\_\_CannotSetOwnerToZeroAddress
-
-```solidity
-error Ownable__CannotSetOwnerToZeroAddress()
-```
-
-### Ownable\_\_MustBeProposedOwner
-
-```solidity
-error Ownable__MustBeProposedOwner()
-```
-
-### Ownable\_\_CallerIsNotOwner
-
-```solidity
-error Ownable__CallerIsNotOwner()
-```
-
-### Ownable\_\_CannotTransferToSelf
-
-```solidity
-error Ownable__CannotTransferToSelf()
-```
-
-### onlyOwner
-
-```solidity
-modifier onlyOwner()
-```
-
-### constructor
-
-```solidity
-constructor(address newOwner, address pendingOwner) internal
-```
-
-### transferOwnership
-
-```solidity
-function transferOwnership(address newOwner) external
-```
-
-Requests ownership transfer to the new address which needs to accept it.
-
-_Only owner can call._
-
-#### Parameters
-
-| Name     | Type    | Description                                                  |
-| -------- | ------- | ------------------------------------------------------------ |
-| newOwner | address | - address of proposed new owner No return, reverts on error. |
-
-### acceptOwnership
-
-```solidity
-function acceptOwnership() external
-```
-
-Accepts pending ownership transfer request.
-
-\_Only proposed new owner can call.
-
-No return, revets on error.\_
-
-### cancelOwnershipTransfer
-
-```solidity
-function cancelOwnershipTransfer() external
-```
-
-Cancels ownership request transfer.
-
-\_Only owner can call.
-
-No return, reverts on error.\_
-
-### owner
-
-```solidity
-function owner() public view returns (address)
-```
-
-Gets current owner address.
-
-#### Return Values
-
-| Name | Type    | Description |
-| ---- | ------- | ----------- |
-| [0]  | address | owner       |
-
-### getPendingOwner
-
-```solidity
-function getPendingOwner() public view returns (address)
-```
-
-Gets pending owner address.
-
-#### Return Values
-
-| Name | Type    | Description  |
-| ---- | ------- | ------------ |
-| [0]  | address | pendingOwner |
-
 ## Vesting
 
 Vesting Contract for token vesting
 
-token amount
-^
-| ********\_\_********
-| /
-| /
-| /
-| /
-| /
-| <----- cliff ----->
-|
-|
---------------------.------.-------------------> time
-vesting duration
+ token amount
+      ^
+      |                           __________________
+      |                          /
+      |                         /
+      |                        /
+      |                       /
+      |                      /
+      | <----- cliff ----->
+      |
+      |
+       --------------------.------.-------------------> time
+                        vesting duration
 
 _Total vested amount is stored as an immutable storage variable to prevent manipulations when calculating current releasable amount._
 
@@ -3265,17 +3405,17 @@ Calculates the amount that has already vested but hasn't been released yet
 
 #### Return Values
 
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| [0]  | uint256 | uint256 The amount that has vested but hasn't been released yet |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | uint256 The amount that has vested but hasn't been released yet |
 
-### \_releasableAmount
+### _releasableAmount
 
 ```solidity
 function _releasableAmount(uint256 vestingIndex) internal view returns (uint256 amount)
 ```
 
-### \_createVestingPosition
+### _createVestingPosition
 
 ```solidity
 function _createVestingPosition(uint256 amount, uint32 cliffDuration, uint32 vestingDuration, uint120 booster, uint8 nerfParameter) internal returns (struct Vesting.VestingPosition)
@@ -3451,11 +3591,11 @@ _Returns the amount of tokens owned by `account`._
 function transfer(address recipient, uint256 amount) external returns (bool)
 ```
 
-\_Moves `amount` tokens from the caller's account to `recipient`.
+_Moves `amount` tokens from the caller's account to `recipient`.
 
 Returns a boolean value indicating whether the operation succeeded.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
 ### allowance
 
@@ -3463,11 +3603,11 @@ Emits a {Transfer} event.\_
 function allowance(address owner, address spender) external view returns (uint256)
 ```
 
-\_Returns the remaining number of tokens that `spender` will be
+_Returns the remaining number of tokens that `spender` will be
 allowed to spend on behalf of `owner` through {transferFrom}. This is
 zero by default.
 
-This value changes when {approve} or {transferFrom} are called.\_
+This value changes when {approve} or {transferFrom} are called._
 
 ### approve
 
@@ -3475,7 +3615,7 @@ This value changes when {approve} or {transferFrom} are called.\_
 function approve(address spender, uint256 amount) external returns (bool)
 ```
 
-\_Sets `amount` as the allowance of `spender` over the caller's tokens.
+_Sets `amount` as the allowance of `spender` over the caller's tokens.
 
 Returns a boolean value indicating whether the operation succeeded.
 
@@ -3486,7 +3626,7 @@ condition is to first reduce the spender's allowance to 0 and set the
 desired value afterwards:
 https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
 
-Emits an {Approval} event.\_
+Emits an {Approval} event._
 
 ### transferFrom
 
@@ -3494,13 +3634,13 @@ Emits an {Approval} event.\_
 function transferFrom(address sender, address recipient, uint256 amount) external returns (bool)
 ```
 
-\_Moves `amount` tokens from `sender` to `recipient` using the
+_Moves `amount` tokens from `sender` to `recipient` using the
 allowance mechanism. `amount` is then deducted from the caller's
 allowance.
 
 Returns a boolean value indicating whether the operation succeeded.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
 ### Transfer
 
@@ -3508,10 +3648,10 @@ Emits a {Transfer} event.\_
 event Transfer(address from, address to, uint256 value)
 ```
 
-\_Emitted when `value` tokens are moved from one account (`from`) to
+_Emitted when `value` tokens are moved from one account (`from`) to
 another (`to`).
 
-Note that `value` may be zero.\_
+Note that `value` may be zero._
 
 ### Approval
 
@@ -3524,11 +3664,11 @@ a call to {approve}. `value` is the new allowance._
 
 ## IAsset
 
-\_This is an empty interface used to represent either ERC20-conforming token contracts or ETH (using the zero
+_This is an empty interface used to represent either ERC20-conforming token contracts or ETH (using the zero
 address sentinel value). We're just relying on the fact that `interface` can be used to declare new address-like
 types.
 
-This concept is unrelated to a Pool's Asset Managers.\_
+This concept is unrelated to a Pool's Asset Managers._
 
 ## IAuthorizer
 
@@ -3548,13 +3688,13 @@ _Returns true if `account` can perform the action described by `actionId` in the
 function receiveFlashLoan(contract IERC20[] tokens, uint256[] amounts, uint256[] feeAmounts, bytes userData) external
 ```
 
-\_When `flashLoan` is called on the Vault, it invokes the `receiveFlashLoan` hook on the recipient.
+_When `flashLoan` is called on the Vault, it invokes the `receiveFlashLoan` hook on the recipient.
 
 At the time of the call, the Vault will have transferred `amounts` for `tokens` to the recipient. Before this
 call returns, the recipient must have transferred `amounts` plus `feeAmounts` for each token back to the
 Vault, or else the entire flash loan will revert.
 
-`userData` is the same value passed in the `IVault.flashLoan` call.\_
+`userData` is the same value passed in the `IVault.flashLoan` call._
 
 ## IProtocolFeesCollector
 
@@ -3637,9 +3777,9 @@ _Returns the Vault's Authorizer._
 function setAuthorizer(contract IAuthorizer newAuthorizer) external
 ```
 
-\_Sets a new Authorizer for the Vault. The caller must be allowed by the current Authorizer to do this.
+_Sets a new Authorizer for the Vault. The caller must be allowed by the current Authorizer to do this.
 
-Emits an `AuthorizerChanged` event.\_
+Emits an `AuthorizerChanged` event._
 
 ### AuthorizerChanged
 
@@ -3663,9 +3803,9 @@ _Returns true if `user` has approved `relayer` to act as a relayer for them._
 function setRelayerApproval(address sender, address relayer, bool approved) external
 ```
 
-\_Allows `relayer` to act as a relayer for `sender` if `approved` is true, and disallows it otherwise.
+_Allows `relayer` to act as a relayer for `sender` if `approved` is true, and disallows it otherwise.
 
-Emits a `RelayerApprovalChanged` event.\_
+Emits a `RelayerApprovalChanged` event._
 
 ### RelayerApprovalChanged
 
@@ -3689,11 +3829,11 @@ _Returns `user`'s Internal Balance for a set of tokens._
 function manageUserBalance(struct IVault.UserBalanceOp[] ops) external payable
 ```
 
-\_Performs a set of user balance operations, which involve Internal Balance (deposit, withdraw or transfer)
+_Performs a set of user balance operations, which involve Internal Balance (deposit, withdraw or transfer)
 and plain ERC20 transfers using the Vault's allowance. This last feature is particularly useful for relayers, as
 it lets integrators reuse a user's Vault allowance.
 
-For each operation, if the caller is not `sender`, it must be an authorized relayer for them.\_
+For each operation, if the caller is not `sender`, it must be an authorized relayer for them._
 
 ### UserBalanceOp
 
@@ -3724,11 +3864,11 @@ enum UserBalanceOpKind {
 event InternalBalanceChanged(address user, contract IERC20 token, int256 delta)
 ```
 
-\_Emitted when a user's Internal Balance changes, either from calls to `manageUserBalance`, or through
+_Emitted when a user's Internal Balance changes, either from calls to `manageUserBalance`, or through
 interacting with Pools using Internal Balance.
 
 Because Internal Balance works exclusively with ERC20 tokens, ETH deposits and withdrawals will use the WETH
-address.\_
+address._
 
 ### ExternalBalanceTransfer
 
@@ -3754,7 +3894,7 @@ enum PoolSpecialization {
 function registerPool(enum IVault.PoolSpecialization specialization) external returns (bytes32)
 ```
 
-\_Registers the caller account as a Pool with a given specialization setting. Returns the Pool's ID, which
+_Registers the caller account as a Pool with a given specialization setting. Returns the Pool's ID, which
 is used in all Pool-related functions. Pools cannot be deregistered, nor can the Pool's specialization be
 changed.
 
@@ -3764,7 +3904,7 @@ depending on the chosen specialization setting. This contract is known as the Po
 Note that the same contract may register itself as multiple Pools with unique Pool IDs, or in other words,
 multiple Pools may share the same contract.
 
-Emits a `PoolRegistered` event.\_
+Emits a `PoolRegistered` event._
 
 ### PoolRegistered
 
@@ -3788,7 +3928,7 @@ _Returns a Pool's contract address and specialization setting._
 function registerTokens(bytes32 poolId, contract IERC20[] tokens, address[] assetManagers) external
 ```
 
-\_Registers `tokens` for the `poolId` Pool. Must be called by the Pool's contract.
+_Registers `tokens` for the `poolId` Pool. Must be called by the Pool's contract.
 
 Pools can only interact with tokens they have registered. Users join a Pool by transferring registered tokens,
 exit by receiving registered tokens, and can only swap registered tokens.
@@ -3807,7 +3947,7 @@ Pools can choose not to assign an Asset Manager to a given token by passing in t
 Manager is set, it cannot be changed except by deregistering the associated token and registering again with a
 different Asset Manager.
 
-Emits a `TokensRegistered` event.\_
+Emits a `TokensRegistered` event._
 
 ### TokensRegistered
 
@@ -3823,7 +3963,7 @@ _Emitted when a Pool registers tokens by calling `registerTokens`._
 function deregisterTokens(bytes32 poolId, contract IERC20[] tokens) external
 ```
 
-\_Deregisters `tokens` for the `poolId` Pool. Must be called by the Pool's contract.
+_Deregisters `tokens` for the `poolId` Pool. Must be called by the Pool's contract.
 
 Only registered tokens (via `registerTokens`) can be deregistered. Additionally, they must have zero total
 balance. For Pools with the Two Token specialization, `tokens` must have a length of two, that is, both tokens
@@ -3831,7 +3971,7 @@ must be deregistered in the same `deregisterTokens` call.
 
 A deregistered token can be re-registered later on, possibly with a different Asset Manager.
 
-Emits a `TokensDeregistered` event.\_
+Emits a `TokensDeregistered` event._
 
 ### TokensDeregistered
 
@@ -3847,7 +3987,7 @@ _Emitted when a Pool deregisters tokens by calling `deregisterTokens`._
 function getPoolTokenInfo(bytes32 poolId, contract IERC20 token) external view returns (uint256 cash, uint256 managed, uint256 lastChangeBlock, address assetManager)
 ```
 
-\_Returns detailed information for a Pool's registered token.
+_Returns detailed information for a Pool's registered token.
 
 `cash` is the number of tokens the Vault currently holds for the Pool. `managed` is the number of tokens
 withdrawn and held outside the Vault by the Pool's token Asset Manager. The Pool's total balance for `token`
@@ -3861,7 +4001,7 @@ join, exit, swap, or Asset Manager update). This value is useful to avoid so-cal
 example when developing price oracles. A change of zero (e.g. caused by a swap with amount zero) is considered a
 change for this purpose, and will update `lastChangeBlock`.
 
-`assetManager` is the Pool's token Asset Manager.\_
+`assetManager` is the Pool's token Asset Manager._
 
 ### getPoolTokens
 
@@ -3869,7 +4009,7 @@ change for this purpose, and will update `lastChangeBlock`.
 function getPoolTokens(bytes32 poolId) external view returns (contract IERC20[] tokens, uint256[] balances, uint256 lastChangeBlock)
 ```
 
-\_Returns a Pool's registered tokens, the total balance for each, and the latest block when _any_ of
+_Returns a Pool's registered tokens, the total balance for each, and the latest block when *any* of
 the tokens' `balances` changed.
 
 The order of the `tokens` array is the same order that will be used in `joinPool`, `exitPool`, as well as in all
@@ -3880,7 +4020,7 @@ order as passed to `registerTokens`.
 
 Total balances include both tokens held by the Vault and those withdrawn by the Pool's Asset Managers. These are
 the amounts used by joins, exits and swaps. For a detailed breakdown of token balances, use `getPoolTokenInfo`
-instead.\_
+instead._
 
 ### joinPool
 
@@ -3888,7 +4028,7 @@ instead.\_
 function joinPool(bytes32 poolId, address sender, address recipient, struct IVault.JoinPoolRequest request) external payable
 ```
 
-\_Called by users to join a Pool, which transfers tokens from `sender` into the Pool's balance. This will
+_Called by users to join a Pool, which transfers tokens from `sender` into the Pool's balance. This will
 trigger custom Pool behavior, which will typically grant something in return to `recipient` - often tokenized
 Pool shares.
 
@@ -3905,7 +4045,7 @@ back to the caller (not the sender, which is important for relayers).
 
 `assets` must have the same length and order as the array returned by `getPoolTokens`. This prevents issues when
 interacting with Pools that register and deregister tokens frequently. If sending ETH however, the array must be
-sorted _before_ replacing the WETH address with the ETH sentinel value (the zero address), which means the final
+sorted *before* replacing the WETH address with the ETH sentinel value (the zero address), which means the final
 `assets` array might not be sorted. Pools with no registered tokens cannot be joined.
 
 If `fromInternalBalance` is true, the caller's Internal Balance will be preferred: ERC20 transfers will only
@@ -3917,7 +4057,7 @@ their own custom logic. This typically requires additional information from the 
 of Pool shares). This can be encoded in the `userData` argument, which is ignored by the Vault and passed
 directly to the Pool's contract, as is `recipient`.
 
-Emits a `PoolBalanceChanged` event.\_
+Emits a `PoolBalanceChanged` event._
 
 ### JoinPoolRequest
 
@@ -3936,7 +4076,7 @@ struct JoinPoolRequest {
 function exitPool(bytes32 poolId, address sender, address payable recipient, struct IVault.ExitPoolRequest request) external
 ```
 
-\_Called by users to exit a Pool, which transfers tokens from the Pool's balance to `recipient`. This will
+_Called by users to exit a Pool, which transfers tokens from the Pool's balance to `recipient`. This will
 trigger custom Pool behavior, which will typically ask for something in return from `sender` - often tokenized
 Pool shares. The amount of tokens that can be withdrawn is limited by the Pool's `cash` balance (see
 `getPoolTokenInfo`).
@@ -3953,7 +4093,7 @@ of the WETH address. Note that it is not possible to combine ETH and WETH in the
 
 `assets` must have the same length and order as the array returned by `getPoolTokens`. This prevents issues when
 interacting with Pools that register and deregister tokens frequently. If receiving ETH however, the array must
-be sorted _before_ replacing the WETH address with the ETH sentinel value (the zero address), which means the
+be sorted *before* replacing the WETH address with the ETH sentinel value (the zero address), which means the
 final `assets` array might not be sorted. Pools with no registered tokens cannot be exited.
 
 If `toInternalBalance` is true, the tokens will be deposited to `recipient`'s Internal Balance. Otherwise,
@@ -3968,7 +4108,7 @@ their own custom logic. This typically requires additional information from the 
 of Pool shares to return). This can be encoded in the `userData` argument, which is ignored by the Vault and
 passed directly to the Pool's contract.
 
-Emits a `PoolBalanceChanged` event.\_
+Emits a `PoolBalanceChanged` event._
 
 ### ExitPoolRequest
 
@@ -4013,7 +4153,7 @@ enum SwapKind {
 function swap(struct IVault.SingleSwap singleSwap, struct IVault.FundManagement funds, uint256 limit, uint256 deadline) external payable returns (uint256)
 ```
 
-\_Performs a swap with a single Pool.
+_Performs a swap with a single Pool.
 
 If the swap is 'given in' (the number of tokens to send to the Pool is known), it returns the amount of tokens
 taken from the Pool, which must be greater than or equal to `limit`.
@@ -4023,7 +4163,7 @@ sent to the Pool, which must be less than or equal to `limit`.
 
 Internal Balance usage and the recipient are determined by the `funds` struct.
 
-Emits a `Swap` event.\_
+Emits a `Swap` event._
 
 ### SingleSwap
 
@@ -4044,7 +4184,7 @@ struct SingleSwap {
 function batchSwap(enum IVault.SwapKind kind, struct IVault.BatchSwapStep[] swaps, contract IAsset[] assets, struct IVault.FundManagement funds, int256[] limits, uint256 deadline) external payable returns (int256[])
 ```
 
-\_Performs a series of swaps with one or multiple Pools. In each individual swap, the caller determines either
+_Performs a series of swaps with one or multiple Pools. In each individual swap, the caller determines either
 the amount of tokens sent to or received from the Pool, depending on the `kind` value.
 
 Returns an array with the net Vault asset balance deltas. Positive amounts represent tokens (or ETH) sent to the
@@ -4070,7 +4210,7 @@ the minimum or maximum amount of each token the vault is allowed to transfer.
 `batchSwap` can be used to make a single swap, like `swap` does, but doing so requires more gas than the
 equivalent `swap` call.
 
-Emits `Swap` events.\_
+Emits `Swap` events._
 
 ### BatchSwapStep
 
@@ -4109,7 +4249,7 @@ struct FundManagement {
 function queryBatchSwap(enum IVault.SwapKind kind, struct IVault.BatchSwapStep[] swaps, contract IAsset[] assets, struct IVault.FundManagement funds) external returns (int256[] assetDeltas)
 ```
 
-\_Simulates a call to `batchSwap`, returning an array of Vault asset deltas. Calls to `swap` cannot be
+_Simulates a call to `batchSwap`, returning an array of Vault asset deltas. Calls to `swap` cannot be
 simulated directly, but an equivalent `batchSwap` call can and will yield the exact same result.
 
 Each element in the array corresponds to the asset at the same index, and indicates the number of tokens (or ETH)
@@ -4121,7 +4261,7 @@ This makes it suitable to be called by off-chain applications via eth_call witho
 approve them for the Vault, or even know a user's address.
 
 Note that this function is not 'view' (due to implementation details): the client code must explicitly execute
-eth*call instead of eth_sendTransaction.*
+eth_call instead of eth_sendTransaction._
 
 ### flashLoan
 
@@ -4129,7 +4269,7 @@ eth*call instead of eth_sendTransaction.*
 function flashLoan(contract IFlashLoanRecipient recipient, contract IERC20[] tokens, uint256[] amounts, bytes userData) external
 ```
 
-\_Performs a 'flash loan', sending tokens to `recipient`, executing the `receiveFlashLoan` hook on it,
+_Performs a 'flash loan', sending tokens to `recipient`, executing the `receiveFlashLoan` hook on it,
 and then reverting unless the tokens plus a proportional protocol fee have been returned.
 
 The `tokens` and `amounts` arrays must have the same length, and each entry in these indicates the loan amount
@@ -4138,7 +4278,7 @@ for each token contract. `tokens` must be sorted in ascending order.
 The 'userData' field is ignored by the Vault, and forwarded as-is to `recipient` as part of the
 `receiveFlashLoan` call.
 
-Emits `FlashLoan` events.\_
+Emits `FlashLoan` events._
 
 ### FlashLoan
 
@@ -4154,12 +4294,12 @@ _Emitted for each individual flash loan performed by `flashLoan`._
 function managePoolBalance(struct IVault.PoolBalanceOp[] ops) external
 ```
 
-\_Performs a set of Pool balance operations, which may be either withdrawals, deposits or updates.
+_Performs a set of Pool balance operations, which may be either withdrawals, deposits or updates.
 
 Pool Balance management features batching, which means a single contract call can be used to perform multiple
 operations of different kinds, with different Pools and tokens, at once.
 
-For each operation, the caller must be registered as the Asset Manager for `token` in `poolId`.\_
+For each operation, the caller must be registered as the Asset Manager for `token` in `poolId`._
 
 ### PoolBalanceOp
 
@@ -4204,20 +4344,19 @@ _Returns the current protocol fee module._
 function setPaused(bool paused) external
 ```
 
-\_Safety mechanism to pause most Vault operations in the event of an emergency - typically detection of an
+_Safety mechanism to pause most Vault operations in the event of an emergency - typically detection of an
 error in some part of the system.
 
 The Vault can only be paused during an initial time period, after which pausing is forever disabled.
 
 While the contract is paused, the following features are disabled:
-
 - depositing and transferring internal balance
 - transferring external balance (using the Vault's allowance)
 - swaps
 - joining Pools
 - Asset Manager interactions
 
-Internal Balance can still be withdrawn, and Pools exited.\_
+Internal Balance can still be withdrawn, and Pools exited._
 
 ### WETH
 
@@ -4229,7 +4368,7 @@ _Returns the Vault's WETH instance._
 
 ## AccessControl
 
-\_Contract module that allows children to implement role-based access
+_Contract module that allows children to implement role-based access
 control mechanisms. This is a lightweight version that doesn't allow enumerating role
 members except through off-chain means by accessing the contract event logs. Some
 applications may benefit from on-chain enumerability, for those cases see
@@ -4260,12 +4399,12 @@ accounts that have a role's admin role can call {grantRole} and {revokeRole}.
 By default, the admin role for all roles is `DEFAULT_ADMIN_ROLE`, which means
 that only accounts with this role will be able to grant or revoke other
 roles. More complex role relationships can be created by using
-{\_setRoleAdmin}.
+{_setRoleAdmin}.
 
 WARNING: The `DEFAULT_ADMIN_ROLE` is also its own admin: it has permission to
 grant and revoke this role. Extra precautions should be taken to secure
 accounts that have been granted it. We recommend using {AccessControlDefaultAdminRules}
-to enforce additional security measures for this role.\_
+to enforce additional security measures for this role._
 
 ### RoleData
 
@@ -4288,14 +4427,14 @@ bytes32 DEFAULT_ADMIN_ROLE
 modifier onlyRole(bytes32 role)
 ```
 
-\_Modifier that checks that an account has a specific role. Reverts
+_Modifier that checks that an account has a specific role. Reverts
 with a standardized message including the required role.
 
 The format of the revert reason is given by the following regular expression:
 
-/^AccessControl: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/
+ /^AccessControl: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/
 
-\_Available since v4.1.\_\_
+_Available since v4.1.__
 
 ### supportsInterface
 
@@ -4313,30 +4452,30 @@ function hasRole(bytes32 role, address account) public view virtual returns (boo
 
 _Returns `true` if `account` has been granted `role`._
 
-### \_checkRole
+### _checkRole
 
 ```solidity
 function _checkRole(bytes32 role) internal view virtual
 ```
 
-\_Revert with a standard message if `_msgSender()` is missing `role`.
+_Revert with a standard message if `_msgSender()` is missing `role`.
 Overriding this function changes the behavior of the {onlyRole} modifier.
 
-Format of the revert message is described in {\_checkRole}.
+Format of the revert message is described in {_checkRole}.
 
-\_Available since v4.6.\_\_
+_Available since v4.6.__
 
-### \_checkRole
+### _checkRole
 
 ```solidity
 function _checkRole(bytes32 role, address account) internal view virtual
 ```
 
-\_Revert with a standard message if `account` is missing `role`.
+_Revert with a standard message if `account` is missing `role`.
 
 The format of the revert reason is given by the following regular expression:
 
-/^AccessControl: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/\_
+ /^AccessControl: account (0x[0-9a-f]{40}) is missing role (0x[0-9a-f]{64})$/_
 
 ### getRoleAdmin
 
@@ -4344,7 +4483,7 @@ The format of the revert reason is given by the following regular expression:
 function getRoleAdmin(bytes32 role) public view virtual returns (bytes32)
 ```
 
-\_Returns the admin role that controls `role`. See {grantRole} and
+_Returns the admin role that controls `role`. See {grantRole} and
 {revokeRole}.
 
 To change a role's admin, use {_setRoleAdmin}._
@@ -4355,16 +4494,16 @@ To change a role's admin, use {_setRoleAdmin}._
 function grantRole(bytes32 role, address account) public virtual
 ```
 
-\_Grants `role` to `account`.
+_Grants `role` to `account`.
 
 If `account` had not been already granted `role`, emits a {RoleGranted}
 event.
 
 Requirements:
 
-- the caller must have `role`'s admin role.
+- the caller must have ``role``'s admin role.
 
-May emit a {RoleGranted} event.\_
+May emit a {RoleGranted} event._
 
 ### revokeRole
 
@@ -4372,15 +4511,15 @@ May emit a {RoleGranted} event.\_
 function revokeRole(bytes32 role, address account) public virtual
 ```
 
-\_Revokes `role` from `account`.
+_Revokes `role` from `account`.
 
 If `account` had been granted `role`, emits a {RoleRevoked} event.
 
 Requirements:
 
-- the caller must have `role`'s admin role.
+- the caller must have ``role``'s admin role.
 
-May emit a {RoleRevoked} event.\_
+May emit a {RoleRevoked} event._
 
 ### renounceRole
 
@@ -4388,7 +4527,7 @@ May emit a {RoleRevoked} event.\_
 function renounceRole(bytes32 role, address account) public virtual
 ```
 
-\_Revokes `role` from the calling account.
+_Revokes `role` from the calling account.
 
 Roles are often managed via {grantRole} and {revokeRole}: this function's
 purpose is to provide a mechanism for accounts to lose their privileges
@@ -4401,15 +4540,15 @@ Requirements:
 
 - the caller must be `account`.
 
-May emit a {RoleRevoked} event.\_
+May emit a {RoleRevoked} event._
 
-### \_setupRole
+### _setupRole
 
 ```solidity
 function _setupRole(bytes32 role, address account) internal virtual
 ```
 
-\_Grants `role` to `account`.
+_Grants `role` to `account`.
 
 If `account` had not been already granted `role`, emits a {RoleGranted}
 event. Note that unlike {grantRole}, this function doesn't perform any
@@ -4417,8 +4556,8 @@ checks on the calling account.
 
 May emit a {RoleGranted} event.
 
-# [WARNING]
-
+[WARNING]
+====
 This function should only be called from the constructor when setting
 up the initial roles for the system.
 
@@ -4428,39 +4567,39 @@ system imposed by {AccessControl}.
 
 NOTE: This function is deprecated in favor of {_grantRole}._
 
-### \_setRoleAdmin
+### _setRoleAdmin
 
 ```solidity
 function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual
 ```
 
-\_Sets `adminRole` as `role`'s admin role.
+_Sets `adminRole` as ``role``'s admin role.
 
-Emits a {RoleAdminChanged} event.\_
+Emits a {RoleAdminChanged} event._
 
-### \_grantRole
+### _grantRole
 
 ```solidity
 function _grantRole(bytes32 role, address account) internal virtual
 ```
 
-\_Grants `role` to `account`.
+_Grants `role` to `account`.
 
 Internal function without access restriction.
 
-May emit a {RoleGranted} event.\_
+May emit a {RoleGranted} event._
 
-### \_revokeRole
+### _revokeRole
 
 ```solidity
 function _revokeRole(bytes32 role, address account) internal virtual
 ```
 
-\_Revokes `role` from `account`.
+_Revokes `role` from `account`.
 
 Internal function without access restriction.
 
-May emit a {RoleRevoked} event.\_
+May emit a {RoleRevoked} event._
 
 ## IAccessControl
 
@@ -4472,12 +4611,12 @@ _External interface of AccessControl declared to support ERC165 detection._
 event RoleAdminChanged(bytes32 role, bytes32 previousAdminRole, bytes32 newAdminRole)
 ```
 
-\_Emitted when `newAdminRole` is set as `role`'s admin role, replacing `previousAdminRole`
+_Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`
 
 `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite
 {RoleAdminChanged} not being emitted signaling this.
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### RoleGranted
 
@@ -4485,7 +4624,7 @@ event RoleAdminChanged(bytes32 role, bytes32 previousAdminRole, bytes32 newAdmin
 event RoleGranted(bytes32 role, address account, address sender)
 ```
 
-\_Emitted when `account` is granted `role`.
+_Emitted when `account` is granted `role`.
 
 `sender` is the account that originated the contract call, an admin role
 bearer except when using {AccessControl-_setupRole}._
@@ -4496,12 +4635,11 @@ bearer except when using {AccessControl-_setupRole}._
 event RoleRevoked(bytes32 role, address account, address sender)
 ```
 
-\_Emitted when `account` is revoked `role`.
+_Emitted when `account` is revoked `role`.
 
 `sender` is the account that originated the contract call:
-
-- if using `revokeRole`, it is the admin role bearer
-- if using `renounceRole`, it is the role bearer (i.e. `account`)\_
+  - if using `revokeRole`, it is the admin role bearer
+  - if using `renounceRole`, it is the role bearer (i.e. `account`)_
 
 ### hasRole
 
@@ -4517,7 +4655,7 @@ _Returns `true` if `account` has been granted `role`._
 function getRoleAdmin(bytes32 role) external view returns (bytes32)
 ```
 
-\_Returns the admin role that controls `role`. See {grantRole} and
+_Returns the admin role that controls `role`. See {grantRole} and
 {revokeRole}.
 
 To change a role's admin, use {AccessControl-_setRoleAdmin}._
@@ -4528,14 +4666,14 @@ To change a role's admin, use {AccessControl-_setRoleAdmin}._
 function grantRole(bytes32 role, address account) external
 ```
 
-\_Grants `role` to `account`.
+_Grants `role` to `account`.
 
 If `account` had not been already granted `role`, emits a {RoleGranted}
 event.
 
 Requirements:
 
-- the caller must have `role`'s admin role.\_
+- the caller must have ``role``'s admin role._
 
 ### revokeRole
 
@@ -4543,13 +4681,13 @@ Requirements:
 function revokeRole(bytes32 role, address account) external
 ```
 
-\_Revokes `role` from `account`.
+_Revokes `role` from `account`.
 
 If `account` had been granted `role`, emits a {RoleRevoked} event.
 
 Requirements:
 
-- the caller must have `role`'s admin role.\_
+- the caller must have ``role``'s admin role._
 
 ### renounceRole
 
@@ -4557,7 +4695,7 @@ Requirements:
 function renounceRole(bytes32 role, address account) external
 ```
 
-\_Revokes `role` from the calling account.
+_Revokes `role` from the calling account.
 
 Roles are often managed via {grantRole} and {revokeRole}: this function's
 purpose is to provide a mechanism for accounts to lose their privileges
@@ -4568,13 +4706,13 @@ event.
 
 Requirements:
 
-- the caller must be `account`.\_
+- the caller must be `account`._
 
 ## IGovernor
 
-\_Interface of the {Governor} core.
+_Interface of the {Governor} core.
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### ProposalState
 
@@ -4621,9 +4759,9 @@ _Emitted when a proposal is executed._
 event VoteCast(address voter, uint256 proposalId, uint8 support, uint256 weight, string reason)
 ```
 
-\_Emitted when a vote is cast without params.
+_Emitted when a vote is cast without params.
 
-Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used.\_
+Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used._
 
 ### VoteCastWithParams
 
@@ -4631,10 +4769,10 @@ Note: `support` values should be seen as buckets. Their interpretation depends o
 event VoteCastWithParams(address voter, uint256 proposalId, uint8 support, uint256 weight, string reason, bytes params)
 ```
 
-\_Emitted when a vote is cast with params.
+_Emitted when a vote is cast with params.
 
 Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used.
-`params` are additional encoded parameters. Their interpepretation also depends on the voting module used.\_
+`params` are additional encoded parameters. Their interpepretation also depends on the voting module used._
 
 ### name
 
@@ -4684,7 +4822,7 @@ function COUNTING_MODE() public view virtual returns (string)
 
 module:voting
 
-\_A description of the possible `support` values for {castVote} and the way these votes are counted, meant to
+_A description of the possible `support` values for {castVote} and the way these votes are counted, meant to
 be consumed by UIs to show correct vote options and interpret the results. The string is a URL-encoded sequence of
 key-value pairs that each describe one aspect, for example `support=bravo&quorum=for,abstain`.
 
@@ -4694,7 +4832,7 @@ There are 2 standard keys: `support` and `quorum`.
 - `quorum=bravo` means that only For votes are counted towards quorum.
 - `quorum=for,abstain` means that both For and Abstain votes are counted towards quorum.
 
-If a counting module makes use of encoded `params`, it should include this under a `params` key with a unique
+If a counting module makes use of encoded `params`, it should  include this under a `params` key with a unique
 name that describes the behavior. For example:
 
 - `params=fractional` might refer to a scheme where votes are divided fractionally between for/against/abstain.
@@ -4702,7 +4840,7 @@ name that describes the behavior. For example:
 
 NOTE: The string can be decoded by the standard
 https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams[`URLSearchParams`]
-JavaScript class.\_
+JavaScript class._
 
 ### hashProposal
 
@@ -4765,11 +4903,11 @@ function votingDelay() public view virtual returns (uint256)
 
 module:user-config
 
-\_Delay, between the proposal is created and the vote starts. The unit this duration is expressed in depends
+_Delay, between the proposal is created and the vote starts. The unit this duration is expressed in depends
 on the clock (see EIP-6372) this contract uses.
 
 This can be increased to leave time for users to buy voting power, or delegate it, before the voting of a
-proposal starts.\_
+proposal starts._
 
 ### votingPeriod
 
@@ -4779,11 +4917,11 @@ function votingPeriod() public view virtual returns (uint256)
 
 module:user-config
 
-\_Delay between the vote start and vote end. The unit this duration is expressed in depends on the clock
+_Delay between the vote start and vote end. The unit this duration is expressed in depends on the clock
 (see EIP-6372) this contract uses.
 
 NOTE: The {votingDelay} can delay the start of the vote. This must be considered when setting the voting
-duration compared to the voting delay.\_
+duration compared to the voting delay._
 
 ### quorum
 
@@ -4793,10 +4931,10 @@ function quorum(uint256 timepoint) public view virtual returns (uint256)
 
 module:user-config
 
-\_Minimum number of cast voted required for a proposal to be successful.
+_Minimum number of cast voted required for a proposal to be successful.
 
 NOTE: The `timepoint` parameter corresponds to the snapshot used for counting vote. This allows to scale the
-quorum depending on values such as the totalSupply of a token at this timepoint (see {ERC20Votes}).\_
+quorum depending on values such as the totalSupply of a token at this timepoint (see {ERC20Votes})._
 
 ### getVotes
 
@@ -4806,10 +4944,10 @@ function getVotes(address account, uint256 timepoint) public view virtual return
 
 module:reputation
 
-\_Voting power of an `account` at a specific `timepoint`.
+_Voting power of an `account` at a specific `timepoint`.
 
 Note: this can be implemented in a number of ways, for example by reading the delegated balance from one (or
-multiple), {ERC20Votes} tokens.\_
+multiple), {ERC20Votes} tokens._
 
 ### getVotesWithParams
 
@@ -4837,10 +4975,10 @@ _Returns whether `account` has cast a vote on `proposalId`._
 function propose(address[] targets, uint256[] values, bytes[] calldatas, string description) public virtual returns (uint256 proposalId)
 ```
 
-\_Create a new proposal. Vote start after a delay specified by {IGovernor-votingDelay} and lasts for a
+_Create a new proposal. Vote start after a delay specified by {IGovernor-votingDelay} and lasts for a
 duration specified by {IGovernor-votingPeriod}.
 
-Emits a {ProposalCreated} event.\_
+Emits a {ProposalCreated} event._
 
 ### execute
 
@@ -4848,12 +4986,12 @@ Emits a {ProposalCreated} event.\_
 function execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) public payable virtual returns (uint256 proposalId)
 ```
 
-\_Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the
+_Execute a successful proposal. This requires the quorum to be reached, the vote to be successful, and the
 deadline to be reached.
 
 Emits a {ProposalExecuted} event.
 
-Note: some module can modify the requirements for execution, for example by adding an additional timelock.\_
+Note: some module can modify the requirements for execution, for example by adding an additional timelock._
 
 ### cancel
 
@@ -4861,10 +4999,10 @@ Note: some module can modify the requirements for execution, for example by addi
 function cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) public virtual returns (uint256 proposalId)
 ```
 
-\_Cancel a proposal. A proposal is cancellable by the proposer, but only while it is Pending state, i.e.
+_Cancel a proposal. A proposal is cancellable by the proposer, but only while it is Pending state, i.e.
 before the vote starts.
 
-Emits a {ProposalCanceled} event.\_
+Emits a {ProposalCanceled} event._
 
 ### castVote
 
@@ -4872,9 +5010,9 @@ Emits a {ProposalCanceled} event.\_
 function castVote(uint256 proposalId, uint8 support) public virtual returns (uint256 balance)
 ```
 
-\_Cast a vote
+_Cast a vote
 
-Emits a {VoteCast} event.\_
+Emits a {VoteCast} event._
 
 ### castVoteWithReason
 
@@ -4882,9 +5020,9 @@ Emits a {VoteCast} event.\_
 function castVoteWithReason(uint256 proposalId, uint8 support, string reason) public virtual returns (uint256 balance)
 ```
 
-\_Cast a vote with a reason
+_Cast a vote with a reason
 
-Emits a {VoteCast} event.\_
+Emits a {VoteCast} event._
 
 ### castVoteWithReasonAndParams
 
@@ -4892,9 +5030,9 @@ Emits a {VoteCast} event.\_
 function castVoteWithReasonAndParams(uint256 proposalId, uint8 support, string reason, bytes params) public virtual returns (uint256 balance)
 ```
 
-\_Cast a vote with a reason and additional encoded parameters
+_Cast a vote with a reason and additional encoded parameters
 
-Emits a {VoteCast} or {VoteCastWithParams} event depending on the length of params.\_
+Emits a {VoteCast} or {VoteCastWithParams} event depending on the length of params._
 
 ### castVoteBySig
 
@@ -4902,9 +5040,9 @@ Emits a {VoteCast} or {VoteCastWithParams} event depending on the length of para
 function castVoteBySig(uint256 proposalId, uint8 support, uint8 v, bytes32 r, bytes32 s) public virtual returns (uint256 balance)
 ```
 
-\_Cast a vote using the user's cryptographic signature.
+_Cast a vote using the user's cryptographic signature.
 
-Emits a {VoteCast} event.\_
+Emits a {VoteCast} event._
 
 ### castVoteWithReasonAndParamsBySig
 
@@ -4912,13 +5050,13 @@ Emits a {VoteCast} event.\_
 function castVoteWithReasonAndParamsBySig(uint256 proposalId, uint8 support, string reason, bytes params, uint8 v, bytes32 r, bytes32 s) public virtual returns (uint256 balance)
 ```
 
-\_Cast a vote with a reason and additional encoded parameters using the user's cryptographic signature.
+_Cast a vote with a reason and additional encoded parameters using the user's cryptographic signature.
 
-Emits a {VoteCast} or {VoteCastWithParams} event depending on the length of params.\_
+Emits a {VoteCast} or {VoteCastWithParams} event depending on the length of params._
 
 ## TimelockController
 
-\_Contract module which acts as a timelocked controller. When set as the
+_Contract module which acts as a timelocked controller. When set as the
 owner of an `Ownable` smart contract, it enforces a timelock on all
 `onlyOwner` maintenance operations. This gives time for users of the
 controlled contract to exit before a potentially dangerous maintenance
@@ -4930,7 +5068,7 @@ is in charge of proposing (resp executing) operations. A common use case is
 to position this {TimelockController} as the owner of a smart contract, with
 a multisig or a DAO as the sole proposer.
 
-\_Available since v3.3.\_\_
+_Available since v3.3.__
 
 ### TIMELOCK_ADMIN_ROLE
 
@@ -4956,7 +5094,7 @@ bytes32 EXECUTOR_ROLE
 bytes32 CANCELLER_ROLE
 ```
 
-### \_DONE_TIMESTAMP
+### _DONE_TIMESTAMP
 
 ```solidity
 uint256 _DONE_TIMESTAMP
@@ -5008,7 +5146,7 @@ _Emitted when the minimum delay for future operations is modified._
 constructor(uint256 minDelay, address[] proposers, address[] executors, address admin) public
 ```
 
-\_Initializes the contract with the following parameters:
+_Initializes the contract with the following parameters:
 
 - `minDelay`: initial minimum delay for operations
 - `proposers`: accounts to be granted proposer and canceller roles
@@ -5018,7 +5156,7 @@ constructor(uint256 minDelay, address[] proposers, address[] executors, address 
 IMPORTANT: The optional admin can aid with initial configuration of roles after deployment
 without being subject to delay, but this role should be subsequently renounced in favor of
 administration through timelocked proposals. Previous versions of this contract would assign
-this admin to the deployer automatically and should be renounced as well.\_
+this admin to the deployer automatically and should be renounced as well._
 
 ### onlyRoleOrOpenRole
 
@@ -5095,9 +5233,9 @@ unset operations, 1 for done operations)._
 function getMinDelay() public view virtual returns (uint256)
 ```
 
-\_Returns the minimum delay for an operation to become valid.
+_Returns the minimum delay for an operation to become valid.
 
-This value can be changed by executing an operation that calls `updateDelay`.\_
+This value can be changed by executing an operation that calls `updateDelay`._
 
 ### hashOperation
 
@@ -5123,13 +5261,13 @@ transactions._
 function schedule(address target, uint256 value, bytes data, bytes32 predecessor, bytes32 salt, uint256 delay) public virtual
 ```
 
-\_Schedule an operation containing a single transaction.
+_Schedule an operation containing a single transaction.
 
 Emits {CallSalt} if salt is nonzero, and {CallScheduled}.
 
 Requirements:
 
-- the caller must have the 'proposer' role.\_
+- the caller must have the 'proposer' role._
 
 ### scheduleBatch
 
@@ -5137,13 +5275,13 @@ Requirements:
 function scheduleBatch(address[] targets, uint256[] values, bytes[] payloads, bytes32 predecessor, bytes32 salt, uint256 delay) public virtual
 ```
 
-\_Schedule an operation containing a batch of transactions.
+_Schedule an operation containing a batch of transactions.
 
 Emits {CallSalt} if salt is nonzero, and one {CallScheduled} event per transaction in the batch.
 
 Requirements:
 
-- the caller must have the 'proposer' role.\_
+- the caller must have the 'proposer' role._
 
 ### cancel
 
@@ -5151,11 +5289,11 @@ Requirements:
 function cancel(bytes32 id) public virtual
 ```
 
-\_Cancel an operation.
+_Cancel an operation.
 
 Requirements:
 
-- the caller must have the 'canceller' role.\_
+- the caller must have the 'canceller' role._
 
 ### execute
 
@@ -5163,13 +5301,13 @@ Requirements:
 function execute(address target, uint256 value, bytes payload, bytes32 predecessor, bytes32 salt) public payable virtual
 ```
 
-\_Execute an (ready) operation containing a single transaction.
+_Execute an (ready) operation containing a single transaction.
 
 Emits a {CallExecuted} event.
 
 Requirements:
 
-- the caller must have the 'executor' role.\_
+- the caller must have the 'executor' role._
 
 ### executeBatch
 
@@ -5177,15 +5315,15 @@ Requirements:
 function executeBatch(address[] targets, uint256[] values, bytes[] payloads, bytes32 predecessor, bytes32 salt) public payable virtual
 ```
 
-\_Execute an (ready) operation containing a batch of transactions.
+_Execute an (ready) operation containing a batch of transactions.
 
 Emits one {CallExecuted} event per transaction in the batch.
 
 Requirements:
 
-- the caller must have the 'executor' role.\_
+- the caller must have the 'executor' role._
 
-### \_execute
+### _execute
 
 ```solidity
 function _execute(address target, uint256 value, bytes data) internal virtual
@@ -5199,14 +5337,14 @@ _Execute an operation's call._
 function updateDelay(uint256 newDelay) external virtual
 ```
 
-\_Changes the minimum timelock duration for future operations.
+_Changes the minimum timelock duration for future operations.
 
 Emits a {MinDelayChange} event.
 
 Requirements:
 
 - the caller must be the timelock itself. This can only be achieved by scheduling and later executing
-  an operation where the timelock is the target and the data is the ABI-encoded call to this function.\_
+an operation where the timelock is the target and the data is the ABI-encoded call to this function._
 
 ### onERC721Received
 
@@ -5234,9 +5372,9 @@ _See {IERC1155Receiver-onERC1155BatchReceived}._
 
 ## IGovernorTimelock
 
-\_Extension of the {IGovernor} for timelock supporting modules.
+_Extension of the {IGovernor} for timelock supporting modules.
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### ProposalQueued
 
@@ -5301,7 +5439,7 @@ _Description of the clock_
 
 ## ReentrancyGuard
 
-\_Contract module that helps prevent reentrant calls to a function.
+_Contract module that helps prevent reentrant calls to a function.
 
 Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier
 available, which can be applied to functions to make sure there are no nested
@@ -5314,7 +5452,7 @@ points to them.
 
 TIP: If you would like to learn more about reentrancy and alternative ways
 to protect against it, check out our blog post
-https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\_
+https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul]._
 
 ### constructor
 
@@ -5334,7 +5472,7 @@ function is not supported. It is possible to prevent this from happening
 by making the `nonReentrant` function external, and making it call a
 `private` function that does the actual work._
 
-### \_reentrancyGuardEntered
+### _reentrancyGuardEntered
 
 ```solidity
 function _reentrancyGuardEntered() internal view returns (bool)
@@ -5345,7 +5483,7 @@ _Returns true if the reentrancy guard is currently set to "entered", which indic
 
 ## IERC1155Receiver
 
-**Available since v3.1.**
+__Available since v3.1.__
 
 ### onERC1155Received
 
@@ -5353,28 +5491,28 @@ _Returns true if the reentrancy guard is currently set to "entered", which indic
 function onERC1155Received(address operator, address from, uint256 id, uint256 value, bytes data) external returns (bytes4)
 ```
 
-\_Handles the receipt of a single ERC1155 token type. This function is
+_Handles the receipt of a single ERC1155 token type. This function is
 called at the end of a `safeTransferFrom` after the balance has been updated.
 
 NOTE: To accept the transfer, this must return
 `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`
-(i.e. 0xf23a6e61, or its own function selector).\_
+(i.e. 0xf23a6e61, or its own function selector)._
 
 #### Parameters
 
-| Name     | Type    | Description                                                |
-| -------- | ------- | ---------------------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | operator | address | The address which initiated the transfer (i.e. msg.sender) |
-| from     | address | The address which previously owned the token               |
-| id       | uint256 | The ID of the token being transferred                      |
-| value    | uint256 | The amount of tokens being transferred                     |
-| data     | bytes   | Additional data with no specified format                   |
+| from | address | The address which previously owned the token |
+| id | uint256 | The ID of the token being transferred |
+| value | uint256 | The amount of tokens being transferred |
+| data | bytes | Additional data with no specified format |
 
 #### Return Values
 
-| Name | Type   | Description                                                                                            |
-| ---- | ------ | ------------------------------------------------------------------------------------------------------ |
-| [0]  | bytes4 | `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))` if transfer is allowed |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes4 | `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))` if transfer is allowed |
 
 ### onERC1155BatchReceived
 
@@ -5382,36 +5520,36 @@ NOTE: To accept the transfer, this must return
 function onERC1155BatchReceived(address operator, address from, uint256[] ids, uint256[] values, bytes data) external returns (bytes4)
 ```
 
-\_Handles the receipt of a multiple ERC1155 token types. This function
+_Handles the receipt of a multiple ERC1155 token types. This function
 is called at the end of a `safeBatchTransferFrom` after the balances have
 been updated.
 
 NOTE: To accept the transfer(s), this must return
 `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
-(i.e. 0xbc197c81, or its own function selector).\_
+(i.e. 0xbc197c81, or its own function selector)._
 
 #### Parameters
 
-| Name     | Type      | Description                                                                                         |
-| -------- | --------- | --------------------------------------------------------------------------------------------------- |
-| operator | address   | The address which initiated the batch transfer (i.e. msg.sender)                                    |
-| from     | address   | The address which previously owned the token                                                        |
-| ids      | uint256[] | An array containing ids of each token being transferred (order and length must match values array)  |
-| values   | uint256[] | An array containing amounts of each token being transferred (order and length must match ids array) |
-| data     | bytes     | Additional data with no specified format                                                            |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| operator | address | The address which initiated the batch transfer (i.e. msg.sender) |
+| from | address | The address which previously owned the token |
+| ids | uint256[] | An array containing ids of each token being transferred (order and length must match values array) |
+| values | uint256[] | An array containing amounts of each token being transferred (order and length must match ids array) |
+| data | bytes | Additional data with no specified format |
 
 #### Return Values
 
-| Name | Type   | Description                                                                                                     |
-| ---- | ------ | --------------------------------------------------------------------------------------------------------------- |
-| [0]  | bytes4 | `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))` if transfer is allowed |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes4 | `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))` if transfer is allowed |
 
 ## ERC20
 
-\_Implementation of the {IERC20} interface.
+_Implementation of the {IERC20} interface.
 
 This implementation is agnostic to the way tokens are created. This means
-that a supply mechanism has to be added in a derived contract using {\_mint}.
+that a supply mechanism has to be added in a derived contract using {_mint}.
 For a generic mechanism see {ERC20PresetMinterPauser}.
 
 TIP: For a detailed writeup see our guide
@@ -5433,7 +5571,7 @@ these events, as it isn't required by the specification.
 
 Finally, the non-standard {decreaseAllowance} and {increaseAllowance}
 functions have been added to mitigate the well-known issues around setting
-allowances. See {IERC20-approve}.\_
+allowances. See {IERC20-approve}._
 
 ### constructor
 
@@ -5441,10 +5579,10 @@ allowances. See {IERC20-approve}.\_
 constructor(string name_, string symbol_) public
 ```
 
-\_Sets the values for {name} and {symbol}.
+_Sets the values for {name} and {symbol}.
 
 All two of these values are immutable: they can only be set once during
-construction.\_
+construction._
 
 ### name
 
@@ -5469,7 +5607,7 @@ name._
 function decimals() public view virtual returns (uint8)
 ```
 
-\_Returns the number of decimals used to get its user representation.
+_Returns the number of decimals used to get its user representation.
 For example, if `decimals` equals `2`, a balance of `505` tokens should
 be displayed to a user as `5.05` (`505 / 10 ** 2`).
 
@@ -5479,7 +5617,7 @@ it's overridden.
 
 NOTE: This information is only used for _display_ purposes: it in
 no way affects any of the arithmetic of the contract, including
-{IERC20-balanceOf} and {IERC20-transfer}.\_
+{IERC20-balanceOf} and {IERC20-transfer}._
 
 ### totalSupply
 
@@ -5503,12 +5641,12 @@ _See {IERC20-balanceOf}._
 function transfer(address to, uint256 amount) public virtual returns (bool)
 ```
 
-\_See {IERC20-transfer}.
+_See {IERC20-transfer}.
 
 Requirements:
 
 - `to` cannot be the zero address.
-- the caller must have a balance of at least `amount`.\_
+- the caller must have a balance of at least `amount`._
 
 ### allowance
 
@@ -5524,14 +5662,14 @@ _See {IERC20-allowance}._
 function approve(address spender, uint256 amount) public virtual returns (bool)
 ```
 
-\_See {IERC20-approve}.
+_See {IERC20-approve}.
 
 NOTE: If `amount` is the maximum `uint256`, the allowance is not updated on
 `transferFrom`. This is semantically equivalent to an infinite approval.
 
 Requirements:
 
-- `spender` cannot be the zero address.\_
+- `spender` cannot be the zero address._
 
 ### transferFrom
 
@@ -5539,7 +5677,7 @@ Requirements:
 function transferFrom(address from, address to, uint256 amount) public virtual returns (bool)
 ```
 
-\_See {IERC20-transferFrom}.
+_See {IERC20-transferFrom}.
 
 Emits an {Approval} event indicating the updated allowance. This is not
 required by the EIP. See the note at the beginning of {ERC20}.
@@ -5551,8 +5689,8 @@ Requirements:
 
 - `from` and `to` cannot be the zero address.
 - `from` must have a balance of at least `amount`.
-- the caller must have allowance for `from`'s tokens of at least
-  `amount`.\_
+- the caller must have allowance for ``from``'s tokens of at least
+`amount`._
 
 ### increaseAllowance
 
@@ -5560,7 +5698,7 @@ Requirements:
 function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool)
 ```
 
-\_Atomically increases the allowance granted to `spender` by the caller.
+_Atomically increases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -5569,7 +5707,7 @@ Emits an {Approval} event indicating the updated allowance.
 
 Requirements:
 
-- `spender` cannot be the zero address.\_
+- `spender` cannot be the zero address._
 
 ### decreaseAllowance
 
@@ -5577,7 +5715,7 @@ Requirements:
 function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool)
 ```
 
-\_Atomically decreases the allowance granted to `spender` by the caller.
+_Atomically decreases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -5588,15 +5726,15 @@ Requirements:
 
 - `spender` cannot be the zero address.
 - `spender` must have allowance for the caller of at least
-  `subtractedValue`.\_
+`subtractedValue`._
 
-### \_transfer
+### _transfer
 
 ```solidity
 function _transfer(address from, address to, uint256 amount) internal virtual
 ```
 
-\_Moves `amount` of tokens from `from` to `to`.
+_Moves `amount` of tokens from `from` to `to`.
 
 This internal function is equivalent to {transfer}, and can be used to
 e.g. implement automatic token fees, slashing mechanisms, etc.
@@ -5607,30 +5745,30 @@ Requirements:
 
 - `from` cannot be the zero address.
 - `to` cannot be the zero address.
-- `from` must have a balance of at least `amount`.\_
+- `from` must have a balance of at least `amount`._
 
-### \_mint
+### _mint
 
 ```solidity
 function _mint(address account, uint256 amount) internal virtual
 ```
 
-\_Creates `amount` tokens and assigns them to `account`, increasing
+_Creates `amount` tokens and assigns them to `account`, increasing
 the total supply.
 
 Emits a {Transfer} event with `from` set to the zero address.
 
 Requirements:
 
-- `account` cannot be the zero address.\_
+- `account` cannot be the zero address._
 
-### \_burn
+### _burn
 
 ```solidity
 function _burn(address account, uint256 amount) internal virtual
 ```
 
-\_Destroys `amount` tokens from `account`, reducing the
+_Destroys `amount` tokens from `account`, reducing the
 total supply.
 
 Emits a {Transfer} event with `to` set to the zero address.
@@ -5638,15 +5776,15 @@ Emits a {Transfer} event with `to` set to the zero address.
 Requirements:
 
 - `account` cannot be the zero address.
-- `account` must have at least `amount` tokens.\_
+- `account` must have at least `amount` tokens._
 
-### \_approve
+### _approve
 
 ```solidity
 function _approve(address owner, address spender, uint256 amount) internal virtual
 ```
 
-\_Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+_Sets `amount` as the allowance of `spender` over the `owner` s tokens.
 
 This internal function is equivalent to `approve`, and can be used to
 e.g. set automatic allowances for certain subsystems, etc.
@@ -5656,166 +5794,69 @@ Emits an {Approval} event.
 Requirements:
 
 - `owner` cannot be the zero address.
-- `spender` cannot be the zero address.\_
+- `spender` cannot be the zero address._
 
-### \_spendAllowance
+### _spendAllowance
 
 ```solidity
 function _spendAllowance(address owner, address spender, uint256 amount) internal virtual
 ```
 
-\_Updates `owner` s allowance for `spender` based on spent `amount`.
+_Updates `owner` s allowance for `spender` based on spent `amount`.
 
 Does not update the allowance amount in case of infinite allowance.
 Revert if not enough allowance is available.
 
-Might emit an {Approval} event.\_
+Might emit an {Approval} event._
 
-### \_beforeTokenTransfer
+### _beforeTokenTransfer
 
 ```solidity
 function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual
 ```
 
-\_Hook that is called before any transfer of tokens. This includes
+_Hook that is called before any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:
 
-- when `from` and `to` are both non-zero, `amount` of `from`'s tokens
-  will be transferred to `to`.
+- when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
+will be transferred to `to`.
 - when `from` is zero, `amount` tokens will be minted for `to`.
-- when `to` is zero, `amount` of `from`'s tokens will be burned.
+- when `to` is zero, `amount` of ``from``'s tokens will be burned.
 - `from` and `to` are never both zero.
 
-To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].\_
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
 
-### \_afterTokenTransfer
+### _afterTokenTransfer
 
 ```solidity
 function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
 ```
 
-\_Hook that is called after any transfer of tokens. This includes
+_Hook that is called after any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:
 
-- when `from` and `to` are both non-zero, `amount` of `from`'s tokens
-  has been transferred to `to`.
+- when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
+has been transferred to `to`.
 - when `from` is zero, `amount` tokens have been minted for `to`.
-- when `to` is zero, `amount` of `from`'s tokens have been burned.
+- when `to` is zero, `amount` of ``from``'s tokens have been burned.
 - `from` and `to` are never both zero.
 
-To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].\_
-
-## IERC20
-
-_Interface of the ERC20 standard as defined in the EIP._
-
-### Transfer
-
-```solidity
-event Transfer(address from, address to, uint256 value)
-```
-
-\_Emitted when `value` tokens are moved from one account (`from`) to
-another (`to`).
-
-Note that `value` may be zero.\_
-
-### Approval
-
-```solidity
-event Approval(address owner, address spender, uint256 value)
-```
-
-_Emitted when the allowance of a `spender` for an `owner` is set by
-a call to {approve}. `value` is the new allowance._
-
-### totalSupply
-
-```solidity
-function totalSupply() external view returns (uint256)
-```
-
-_Returns the amount of tokens in existence._
-
-### balanceOf
-
-```solidity
-function balanceOf(address account) external view returns (uint256)
-```
-
-_Returns the amount of tokens owned by `account`._
-
-### transfer
-
-```solidity
-function transfer(address to, uint256 amount) external returns (bool)
-```
-
-\_Moves `amount` tokens from the caller's account to `to`.
-
-Returns a boolean value indicating whether the operation succeeded.
-
-Emits a {Transfer} event.\_
-
-### allowance
-
-```solidity
-function allowance(address owner, address spender) external view returns (uint256)
-```
-
-\_Returns the remaining number of tokens that `spender` will be
-allowed to spend on behalf of `owner` through {transferFrom}. This is
-zero by default.
-
-This value changes when {approve} or {transferFrom} are called.\_
-
-### approve
-
-```solidity
-function approve(address spender, uint256 amount) external returns (bool)
-```
-
-\_Sets `amount` as the allowance of `spender` over the caller's tokens.
-
-Returns a boolean value indicating whether the operation succeeded.
-
-IMPORTANT: Beware that changing an allowance with this method brings the risk
-that someone may use both the old and the new allowance by unfortunate
-transaction ordering. One possible solution to mitigate this race
-condition is to first reduce the spender's allowance to 0 and set the
-desired value afterwards:
-https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-
-Emits an {Approval} event.\_
-
-### transferFrom
-
-```solidity
-function transferFrom(address from, address to, uint256 amount) external returns (bool)
-```
-
-\_Moves `amount` tokens from `from` to `to` using the
-allowance mechanism. `amount` is then deducted from the caller's
-allowance.
-
-Returns a boolean value indicating whether the operation succeeded.
-
-Emits a {Transfer} event.\_
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
 
 ## ERC20Permit
 
-\_Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
+_Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
 https://eips.ethereum.org/EIPS/eip-2612[EIP-2612].
 
 Adds the {permit} method, which can be used to change an account's ERC20 allowance (see {IERC20-allowance}) by
 presenting a message signed by the account. By not relying on `{IERC20-approve}`, the token holder account doesn't
 need to send a transaction, and thus is not required to hold Ether at all.
 
-\_Available since v3.4.\_\_
+_Available since v3.4.__
 
 ### constructor
 
@@ -5823,9 +5864,9 @@ need to send a transaction, and thus is not required to hold Ether at all.
 constructor(string name) internal
 ```
 
-\_Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"1"`.
+_Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"1"`.
 
-It's a good idea to use the same `name` that is defined as the ERC20 token name.\_
+It's a good idea to use the same `name` that is defined as the ERC20 token name._
 
 ### permit
 
@@ -5851,21 +5892,21 @@ function DOMAIN_SEPARATOR() external view returns (bytes32)
 
 _See {IERC20Permit-DOMAIN_SEPARATOR}._
 
-### \_useNonce
+### _useNonce
 
 ```solidity
 function _useNonce(address owner) internal virtual returns (uint256 current)
 ```
 
-\_"Consume a nonce": return the current value and increment.
+_"Consume a nonce": return the current value and increment.
 
-\_Available since v4.1.\_\_
+_Available since v4.1.__
 
 ## IERC20Metadata
 
-\_Interface for the optional metadata functions from the ERC20 standard.
+_Interface for the optional metadata functions from the ERC20 standard.
 
-\_Available since v4.1.\_\_
+_Available since v4.1.__
 
 ### name
 
@@ -5893,12 +5934,12 @@ _Returns the decimals places of the token._
 
 ## IERC20Permit
 
-\_Interface of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
+_Interface of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
 https://eips.ethereum.org/EIPS/eip-2612[EIP-2612].
 
 Adds the {permit} method, which can be used to change an account's ERC20 allowance (see {IERC20-allowance}) by
 presenting a message signed by the account. By not relying on {IERC20-approve}, the token holder account doesn't
-need to send a transaction, and thus is not required to hold Ether at all.\_
+need to send a transaction, and thus is not required to hold Ether at all._
 
 ### permit
 
@@ -5906,8 +5947,8 @@ need to send a transaction, and thus is not required to hold Ether at all.\_
 function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external
 ```
 
-\_Sets `value` as the allowance of `spender` over `owner`'s tokens,
-given `owner`'s signed approval.
+_Sets `value` as the allowance of `spender` over ``owner``'s tokens,
+given ``owner``'s signed approval.
 
 IMPORTANT: The same issues {IERC20-approve} has related to transaction
 ordering also apply here.
@@ -5919,12 +5960,12 @@ Requirements:
 - `spender` cannot be the zero address.
 - `deadline` must be a timestamp in the future.
 - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
-  over the EIP712-formatted function arguments.
-- the signature must use `owner`'s current nonce (see {nonces}).
+over the EIP712-formatted function arguments.
+- the signature must use ``owner``'s current nonce (see {nonces}).
 
 For more information on the signature format, see the
 https://eips.ethereum.org/EIPS/eip-2612#specification[relevant EIP
-section].\_
+section]._
 
 ### nonces
 
@@ -5932,11 +5973,11 @@ section].\_
 function nonces(address owner) external view returns (uint256)
 ```
 
-\_Returns the current nonce for `owner`. This value must be
+_Returns the current nonce for `owner`. This value must be
 included whenever a signature is generated for {permit}.
 
-Every successful call to {permit} increases `owner`'s nonce by one. This
-prevents a signature from being used multiple times.\_
+Every successful call to {permit} increases ``owner``'s nonce by one. This
+prevents a signature from being used multiple times._
 
 ### DOMAIN_SEPARATOR
 
@@ -5979,11 +6020,11 @@ calling contract. If `token` returns no value, non-reverting calls are assumed t
 function safeApprove(contract IERC20 token, address spender, uint256 value) internal
 ```
 
-\_Deprecated. This function has issues similar to the ones found in
+_Deprecated. This function has issues similar to the ones found in
 {IERC20-approve}, and its usage is discouraged.
 
 Whenever possible, use {safeIncreaseAllowance} and
-{safeDecreaseAllowance} instead.\_
+{safeDecreaseAllowance} instead._
 
 ### safeIncreaseAllowance
 
@@ -6084,7 +6125,7 @@ function tokenURI(uint256 tokenId) public view virtual returns (string)
 
 _See {IERC721Metadata-tokenURI}._
 
-### \_baseURI
+### _baseURI
 
 ```solidity
 function _baseURI() internal view virtual returns (string)
@@ -6150,13 +6191,13 @@ function safeTransferFrom(address from, address to, uint256 tokenId, bytes data)
 
 _See {IERC721-safeTransferFrom}._
 
-### \_safeTransfer
+### _safeTransfer
 
 ```solidity
 function _safeTransfer(address from, address to, uint256 tokenId, bytes data) internal virtual
 ```
 
-\_Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+_Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
 are aware of the ERC721 protocol to prevent tokens from being forever locked.
 
 `data` is additional data, it has no specified format and it is sent in call to `to`.
@@ -6171,9 +6212,9 @@ Requirements:
 - `tokenId` token must exist and be owned by `from`.
 - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
-### \_ownerOf
+### _ownerOf
 
 ```solidity
 function _ownerOf(uint256 tokenId) internal view virtual returns (address)
@@ -6181,79 +6222,79 @@ function _ownerOf(uint256 tokenId) internal view virtual returns (address)
 
 _Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist_
 
-### \_exists
+### _exists
 
 ```solidity
 function _exists(uint256 tokenId) internal view virtual returns (bool)
 ```
 
-\_Returns whether `tokenId` exists.
+_Returns whether `tokenId` exists.
 
 Tokens can be managed by their owner or approved accounts via {approve} or {setApprovalForAll}.
 
 Tokens start existing when they are minted (`_mint`),
-and stop existing when they are burned (`_burn`).\_
+and stop existing when they are burned (`_burn`)._
 
-### \_isApprovedOrOwner
+### _isApprovedOrOwner
 
 ```solidity
 function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool)
 ```
 
-\_Returns whether `spender` is allowed to manage `tokenId`.
+_Returns whether `spender` is allowed to manage `tokenId`.
 
 Requirements:
 
-- `tokenId` must exist.\_
+- `tokenId` must exist._
 
-### \_safeMint
+### _safeMint
 
 ```solidity
 function _safeMint(address to, uint256 tokenId) internal virtual
 ```
 
-\_Safely mints `tokenId` and transfers it to `to`.
+_Safely mints `tokenId` and transfers it to `to`.
 
 Requirements:
 
 - `tokenId` must not exist.
 - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
-### \_safeMint
+### _safeMint
 
 ```solidity
 function _safeMint(address to, uint256 tokenId, bytes data) internal virtual
 ```
 
-_Same as {xref-ERC721-\_safeMint-address-uint256-}[`_safeMint`], with an additional `data` parameter which is
+_Same as {xref-ERC721-_safeMint-address-uint256-}[`_safeMint`], with an additional `data` parameter which is
 forwarded in {IERC721Receiver-onERC721Received} to contract recipients._
 
-### \_mint
+### _mint
 
 ```solidity
 function _mint(address to, uint256 tokenId) internal virtual
 ```
 
-\_Mints `tokenId` and transfers it to `to`.
+_Mints `tokenId` and transfers it to `to`.
 
-WARNING: Usage of this method is discouraged, use {\_safeMint} whenever possible
+WARNING: Usage of this method is discouraged, use {_safeMint} whenever possible
 
 Requirements:
 
 - `tokenId` must not exist.
 - `to` cannot be the zero address.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
-### \_burn
+### _burn
 
 ```solidity
 function _burn(uint256 tokenId) internal virtual
 ```
 
-\_Destroys `tokenId`.
+_Destroys `tokenId`.
 The approval is cleared when the token is burned.
 This is an internal function that does not check if the sender is authorized to operate on the token.
 
@@ -6261,45 +6302,45 @@ Requirements:
 
 - `tokenId` must exist.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
-### \_transfer
+### _transfer
 
 ```solidity
 function _transfer(address from, address to, uint256 tokenId) internal virtual
 ```
 
-\_Transfers `tokenId` from `from` to `to`.
-As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
+_Transfers `tokenId` from `from` to `to`.
+ As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
 
 Requirements:
 
 - `to` cannot be the zero address.
 - `tokenId` token must be owned by `from`.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
-### \_approve
+### _approve
 
 ```solidity
 function _approve(address to, uint256 tokenId) internal virtual
 ```
 
-\_Approve `to` to operate on `tokenId`
+_Approve `to` to operate on `tokenId`
 
-Emits an {Approval} event.\_
+Emits an {Approval} event._
 
-### \_setApprovalForAll
+### _setApprovalForAll
 
 ```solidity
 function _setApprovalForAll(address owner, address operator, bool approved) internal virtual
 ```
 
-\_Approve `operator` to operate on all of `owner` tokens
+_Approve `operator` to operate on all of `owner` tokens
 
-Emits an {ApprovalForAll} event.\_
+Emits an {ApprovalForAll} event._
 
-### \_requireMinted
+### _requireMinted
 
 ```solidity
 function _requireMinted(uint256 tokenId) internal view virtual
@@ -6307,55 +6348,55 @@ function _requireMinted(uint256 tokenId) internal view virtual
 
 _Reverts if the `tokenId` has not been minted yet._
 
-### \_beforeTokenTransfer
+### _beforeTokenTransfer
 
 ```solidity
 function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual
 ```
 
-\_Hook that is called before any token transfer. This includes minting and burning. If {ERC721Consecutive} is
+_Hook that is called before any token transfer. This includes minting and burning. If {ERC721Consecutive} is
 used, the hook may be called as part of a consecutive (batch) mint, as indicated by `batchSize` greater than 1.
 
 Calling conditions:
 
-- When `from` and `to` are both non-zero, `from`'s tokens will be transferred to `to`.
+- When `from` and `to` are both non-zero, ``from``'s tokens will be transferred to `to`.
 - When `from` is zero, the tokens will be minted for `to`.
-- When `to` is zero, `from`'s tokens will be burned.
+- When `to` is zero, ``from``'s tokens will be burned.
 - `from` and `to` are never both zero.
 - `batchSize` is non-zero.
 
-To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].\_
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
 
-### \_afterTokenTransfer
+### _afterTokenTransfer
 
 ```solidity
 function _afterTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual
 ```
 
-\_Hook that is called after any token transfer. This includes minting and burning. If {ERC721Consecutive} is
+_Hook that is called after any token transfer. This includes minting and burning. If {ERC721Consecutive} is
 used, the hook may be called as part of a consecutive (batch) mint, as indicated by `batchSize` greater than 1.
 
 Calling conditions:
 
-- When `from` and `to` are both non-zero, `from`'s tokens were transferred to `to`.
+- When `from` and `to` are both non-zero, ``from``'s tokens were transferred to `to`.
 - When `from` is zero, the tokens were minted for `to`.
-- When `to` is zero, `from`'s tokens were burned.
+- When `to` is zero, ``from``'s tokens were burned.
 - `from` and `to` are never both zero.
 - `batchSize` is non-zero.
 
-To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].\_
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
 
-### \_\_unsafe_increaseBalance
+### __unsafe_increaseBalance
 
 ```solidity
 function __unsafe_increaseBalance(address account, uint256 amount) internal
 ```
 
-\_Unsafe write access to the balances, used by extensions that "mint" tokens using an {ownerOf} override.
+_Unsafe write access to the balances, used by extensions that "mint" tokens using an {ownerOf} override.
 
 WARNING: Anyone calling this MUST ensure that the balances remain consistent with the ownership. The invariant
 being that for any address `a` the value returned by `balanceOf(a)` must be equal to the number of tokens such
-that `ownerOf(tokenId)` is `a`.\_
+that `ownerOf(tokenId)` is `a`._
 
 ## IERC721
 
@@ -6391,7 +6432,7 @@ _Emitted when `owner` enables or disables (`approved`) `operator` to manage all 
 function balanceOf(address owner) external view returns (uint256 balance)
 ```
 
-_Returns the number of tokens in `owner`'s account._
+_Returns the number of tokens in ``owner``'s account._
 
 ### ownerOf
 
@@ -6399,11 +6440,11 @@ _Returns the number of tokens in `owner`'s account._
 function ownerOf(uint256 tokenId) external view returns (address owner)
 ```
 
-\_Returns the owner of the `tokenId` token.
+_Returns the owner of the `tokenId` token.
 
 Requirements:
 
-- `tokenId` must exist.\_
+- `tokenId` must exist._
 
 ### safeTransferFrom
 
@@ -6411,7 +6452,7 @@ Requirements:
 function safeTransferFrom(address from, address to, uint256 tokenId, bytes data) external
 ```
 
-\_Safely transfers `tokenId` token from `from` to `to`.
+_Safely transfers `tokenId` token from `from` to `to`.
 
 Requirements:
 
@@ -6421,7 +6462,7 @@ Requirements:
 - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
 - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
 ### safeTransferFrom
 
@@ -6429,7 +6470,7 @@ Emits a {Transfer} event.\_
 function safeTransferFrom(address from, address to, uint256 tokenId) external
 ```
 
-\_Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+_Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
 are aware of the ERC721 protocol to prevent tokens from being forever locked.
 
 Requirements:
@@ -6440,7 +6481,7 @@ Requirements:
 - If the caller is not `from`, it must have been allowed to move this token by either {approve} or {setApprovalForAll}.
 - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
 ### transferFrom
 
@@ -6448,7 +6489,7 @@ Emits a {Transfer} event.\_
 function transferFrom(address from, address to, uint256 tokenId) external
 ```
 
-\_Transfers `tokenId` token from `from` to `to`.
+_Transfers `tokenId` token from `from` to `to`.
 
 WARNING: Note that the caller is responsible to confirm that the recipient is capable of receiving ERC721
 or else they may be permanently lost. Usage of {safeTransferFrom} prevents loss, though the caller must
@@ -6461,7 +6502,7 @@ Requirements:
 - `tokenId` token must be owned by `from`.
 - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
 
-Emits a {Transfer} event.\_
+Emits a {Transfer} event._
 
 ### approve
 
@@ -6469,7 +6510,7 @@ Emits a {Transfer} event.\_
 function approve(address to, uint256 tokenId) external
 ```
 
-\_Gives permission to `to` to transfer `tokenId` token to another account.
+_Gives permission to `to` to transfer `tokenId` token to another account.
 The approval is cleared when the token is transferred.
 
 Only a single account can be approved at a time, so approving the zero address clears previous approvals.
@@ -6479,7 +6520,7 @@ Requirements:
 - The caller must own the token or be an approved operator.
 - `tokenId` must exist.
 
-Emits an {Approval} event.\_
+Emits an {Approval} event._
 
 ### setApprovalForAll
 
@@ -6487,14 +6528,14 @@ Emits an {Approval} event.\_
 function setApprovalForAll(address operator, bool approved) external
 ```
 
-\_Approve or remove `operator` as an operator for the caller.
+_Approve or remove `operator` as an operator for the caller.
 Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.
 
 Requirements:
 
 - The `operator` cannot be the caller.
 
-Emits an {ApprovalForAll} event.\_
+Emits an {ApprovalForAll} event._
 
 ### getApproved
 
@@ -6502,11 +6543,11 @@ Emits an {ApprovalForAll} event.\_
 function getApproved(uint256 tokenId) external view returns (address operator)
 ```
 
-\_Returns the account approved for `tokenId` token.
+_Returns the account approved for `tokenId` token.
 
 Requirements:
 
-- `tokenId` must exist.\_
+- `tokenId` must exist._
 
 ### isApprovedForAll
 
@@ -6514,9 +6555,9 @@ Requirements:
 function isApprovedForAll(address owner, address operator) external view returns (bool)
 ```
 
-\_Returns if the `operator` is allowed to manage all of the assets of `owner`.
+_Returns if the `operator` is allowed to manage all of the assets of `owner`.
 
-See {setApprovalForAll}\_
+See {setApprovalForAll}_
 
 ## IERC721Receiver
 
@@ -6529,13 +6570,13 @@ from ERC721 asset contracts._
 function onERC721Received(address operator, address from, uint256 tokenId, bytes data) external returns (bytes4)
 ```
 
-\_Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
+_Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
 by `operator` from `from`, this function is called.
 
 It must return its Solidity selector to confirm the token transfer.
 If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
 
-The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.\_
+The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`._
 
 ## IERC721Metadata
 
@@ -6575,34 +6616,34 @@ _Collection of functions related to the address type_
 function isContract(address account) internal view returns (bool)
 ```
 
-\_Returns true if `account` is a contract.
+_Returns true if `account` is a contract.
 
-# [IMPORTANT]
-
+[IMPORTANT]
+====
 It is unsafe to assume that an address for which this function returns
 false is an externally-owned account (EOA) and not a contract.
 
 Among others, `isContract` will return false for the following
 types of addresses:
 
-- an externally-owned account
-- a contract in construction
-- an address where a contract will be created
-- an address where a contract lived, but was destroyed
+ - an externally-owned account
+ - a contract in construction
+ - an address where a contract will be created
+ - an address where a contract lived, but was destroyed
 
 Furthermore, `isContract` will also return true if the target contract within
 the same transaction is already scheduled for destruction by `SELFDESTRUCT`,
 which only has an effect at the end of a transaction.
 ====
 
-# [IMPORTANT]
-
+[IMPORTANT]
+====
 You shouldn't rely on `isContract` to protect against flash loan attacks!
 
 Preventing calls from contracts is highly discouraged. It breaks composability, breaks support for smart wallets
 like Gnosis Safe, and does not provide security since it can be circumvented by calling from a contract
 constructor.
-====\_
+====_
 
 ### sendValue
 
@@ -6610,7 +6651,7 @@ constructor.
 function sendValue(address payable recipient, uint256 amount) internal
 ```
 
-\_Replacement for Solidity's `transfer`: sends `amount` wei to
+_Replacement for Solidity's `transfer`: sends `amount` wei to
 `recipient`, forwarding all available gas and reverting on errors.
 
 https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost
@@ -6623,7 +6664,7 @@ https://consensys.net/diligence/blog/2019/09/stop-using-soliditys-transfer-now/[
 IMPORTANT: because control is transferred to `recipient`, care must be
 taken to not create reentrancy vulnerabilities. Consider using
 {ReentrancyGuard} or the
-https://solidity.readthedocs.io/en/v0.8.0/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\_
+https://solidity.readthedocs.io/en/v0.8.0/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern]._
 
 ### functionCall
 
@@ -6631,7 +6672,7 @@ https://solidity.readthedocs.io/en/v0.8.0/security-considerations.html#use-the-c
 function functionCall(address target, bytes data) internal returns (bytes)
 ```
 
-\_Performs a Solidity function call using a low level `call`. A
+_Performs a Solidity function call using a low level `call`. A
 plain `call` is an unsafe replacement for a function call: use this
 function instead.
 
@@ -6646,7 +6687,7 @@ Requirements:
 - `target` must be a contract.
 - calling `target` with `data` must not revert.
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### functionCall
 
@@ -6654,10 +6695,10 @@ Requirements:
 function functionCall(address target, bytes data, string errorMessage) internal returns (bytes)
 ```
 
-\_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`], but with
+_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`], but with
 `errorMessage` as a fallback revert reason when `target` reverts.
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### functionCallWithValue
 
@@ -6665,7 +6706,7 @@ function functionCall(address target, bytes data, string errorMessage) internal 
 function functionCallWithValue(address target, bytes data, uint256 value) internal returns (bytes)
 ```
 
-\_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
+_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
 but also transferring `value` wei to `target`.
 
 Requirements:
@@ -6673,7 +6714,7 @@ Requirements:
 - the calling contract must have an ETH balance of at least `value`.
 - the called Solidity function must be `payable`.
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### functionCallWithValue
 
@@ -6681,10 +6722,10 @@ Requirements:
 function functionCallWithValue(address target, bytes data, uint256 value, string errorMessage) internal returns (bytes)
 ```
 
-\_Same as {xref-Address-functionCallWithValue-address-bytes-uint256-}[`functionCallWithValue`], but
+_Same as {xref-Address-functionCallWithValue-address-bytes-uint256-}[`functionCallWithValue`], but
 with `errorMessage` as a fallback revert reason when `target` reverts.
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### functionStaticCall
 
@@ -6692,10 +6733,10 @@ with `errorMessage` as a fallback revert reason when `target` reverts.
 function functionStaticCall(address target, bytes data) internal view returns (bytes)
 ```
 
-\_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
+_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
 but performing a static call.
 
-\_Available since v3.3.\_\_
+_Available since v3.3.__
 
 ### functionStaticCall
 
@@ -6703,10 +6744,10 @@ but performing a static call.
 function functionStaticCall(address target, bytes data, string errorMessage) internal view returns (bytes)
 ```
 
-\_Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
+_Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
 but performing a static call.
 
-\_Available since v3.3.\_\_
+_Available since v3.3.__
 
 ### functionDelegateCall
 
@@ -6714,10 +6755,10 @@ but performing a static call.
 function functionDelegateCall(address target, bytes data) internal returns (bytes)
 ```
 
-\_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
+_Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
 but performing a delegate call.
 
-\_Available since v3.4.\_\_
+_Available since v3.4.__
 
 ### functionDelegateCall
 
@@ -6725,10 +6766,10 @@ but performing a delegate call.
 function functionDelegateCall(address target, bytes data, string errorMessage) internal returns (bytes)
 ```
 
-\_Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
+_Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
 but performing a delegate call.
 
-\_Available since v3.4.\_\_
+_Available since v3.4.__
 
 ### verifyCallResultFromTarget
 
@@ -6736,10 +6777,10 @@ but performing a delegate call.
 function verifyCallResultFromTarget(address target, bool success, bytes returndata, string errorMessage) internal view returns (bytes)
 ```
 
-\_Tool to verify that a low level call to smart-contract was successful, and revert (either by bubbling
+_Tool to verify that a low level call to smart-contract was successful, and revert (either by bubbling
 the revert reason or using the provided one) in case of unsuccessful call or if target was not a contract.
 
-\_Available since v4.8.\_\_
+_Available since v4.8.__
 
 ### verifyCallResult
 
@@ -6747,18 +6788,18 @@ the revert reason or using the provided one) in case of unsuccessful call or if 
 function verifyCallResult(bool success, bytes returndata, string errorMessage) internal pure returns (bytes)
 ```
 
-\_Tool to verify that a low level call was successful, and revert if it wasn't, either by bubbling the
+_Tool to verify that a low level call was successful, and revert if it wasn't, either by bubbling the
 revert reason or using the provided one.
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ## Base64
 
-\_Provides a set of functions to operate with Base64 strings.
+_Provides a set of functions to operate with Base64 strings.
 
-\_Available since v4.5.\_\_
+_Available since v4.5.__
 
-### \_TABLE
+### _TABLE
 
 ```solidity
 string _TABLE
@@ -6776,13 +6817,13 @@ _Converts a `bytes` to its Bytes64 `string` representation._
 
 ## Checkpoints
 
-\_This library defines the `History` struct, for checkpointing values as they change at different points in
+_This library defines the `History` struct, for checkpointing values as they change at different points in
 time, and later looking up past values by block number. See {Votes} as an example.
 
 To create a history of checkpoints define a variable type `Checkpoints.History` in your contract, and store a new
 checkpoint for the current transaction block using the {push} function.
 
-\_Available since v4.5.\_\_
+_Available since v4.5.__
 
 ### History
 
@@ -6828,9 +6869,9 @@ checkpoints._
 function push(struct Checkpoints.History self, uint256 value) internal returns (uint256, uint256)
 ```
 
-\_Pushes a value onto a History so that it is stored as the checkpoint for the current block.
+_Pushes a value onto a History so that it is stored as the checkpoint for the current block.
 
-Returns previous value and new value.\_
+Returns previous value and new value._
 
 ### push
 
@@ -6838,10 +6879,10 @@ Returns previous value and new value.\_
 function push(struct Checkpoints.History self, function (uint256,uint256) view returns (uint256) op, uint256 delta) internal returns (uint256, uint256)
 ```
 
-\_Pushes a value onto a History, by updating the latest value using binary operation `op`. The new value will
+_Pushes a value onto a History, by updating the latest value using binary operation `op`. The new value will
 be set to `op(latest, delta)`.
 
-Returns previous value and new value.\_
+Returns previous value and new value._
 
 ### latest
 
@@ -6891,9 +6932,9 @@ struct Checkpoint224 {
 function push(struct Checkpoints.Trace224 self, uint32 key, uint224 value) internal returns (uint224, uint224)
 ```
 
-\_Pushes a (`key`, `value`) pair into a Trace224 so that it is stored as the checkpoint.
+_Pushes a (`key`, `value`) pair into a Trace224 so that it is stored as the checkpoint.
 
-Returns previous value and new value.\_
+Returns previous value and new value._
 
 ### lowerLookup
 
@@ -6917,9 +6958,9 @@ _Returns the value in the last (most recent) checkpoint with key lower or equal 
 function upperLookupRecent(struct Checkpoints.Trace224 self, uint32 key) internal view returns (uint224)
 ```
 
-\_Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
+_Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
 
-NOTE: This is a variant of {upperLookup} that is optimised to find "recent" checkpoint (checkpoints with high keys).\_
+NOTE: This is a variant of {upperLookup} that is optimised to find "recent" checkpoint (checkpoints with high keys)._
 
 ### latest
 
@@ -6969,9 +7010,9 @@ struct Checkpoint160 {
 function push(struct Checkpoints.Trace160 self, uint96 key, uint160 value) internal returns (uint160, uint160)
 ```
 
-\_Pushes a (`key`, `value`) pair into a Trace160 so that it is stored as the checkpoint.
+_Pushes a (`key`, `value`) pair into a Trace160 so that it is stored as the checkpoint.
 
-Returns previous value and new value.\_
+Returns previous value and new value._
 
 ### lowerLookup
 
@@ -6995,9 +7036,9 @@ _Returns the value in the last (most recent) checkpoint with key lower or equal 
 function upperLookupRecent(struct Checkpoints.Trace160 self, uint96 key) internal view returns (uint160)
 ```
 
-\_Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
+_Returns the value in the last (most recent) checkpoint with key lower or equal than the search key, or zero if there is none.
 
-NOTE: This is a variant of {upperLookup} that is optimised to find "recent" checkpoint (checkpoints with high keys).\_
+NOTE: This is a variant of {upperLookup} that is optimised to find "recent" checkpoint (checkpoints with high keys)._
 
 ### latest
 
@@ -7026,22 +7067,22 @@ _Returns the number of checkpoint._
 
 ## Context
 
-\_Provides information about the current execution context, including the
+_Provides information about the current execution context, including the
 sender of the transaction and its data. While these are generally available
 via msg.sender and msg.data, they should not be accessed in such a direct
 manner, since when dealing with meta-transactions the account sending and
 paying for execution may not be the actual sender (as far as an application
 is concerned).
 
-This contract is only required for intermediate, library-like contracts.\_
+This contract is only required for intermediate, library-like contracts._
 
-### \_msgSender
+### _msgSender
 
 ```solidity
 function _msgSender() internal view virtual returns (address)
 ```
 
-### \_msgData
+### _msgData
 
 ```solidity
 function _msgData() internal view virtual returns (bytes)
@@ -7049,10 +7090,10 @@ function _msgData() internal view virtual returns (bytes)
 
 ## Counters
 
-\_Provides counters that can only be incremented, decremented or reset. This can be used e.g. to track the number
+_Provides counters that can only be incremented, decremented or reset. This can be used e.g. to track the number
 of elements in a mapping, issuing ERC721 ids, or counting request ids.
 
-Include with `using Counters for Counters.Counter;`\_
+Include with `using Counters for Counters.Counter;`_
 
 ### Counter
 
@@ -7088,13 +7129,13 @@ function reset(struct Counters.Counter counter) internal
 
 ## Create2
 
-\_Helper to make usage of the `CREATE2` EVM opcode easier and safer.
+_Helper to make usage of the `CREATE2` EVM opcode easier and safer.
 `CREATE2` can be used to compute in advance the address where a smart
 contract will be deployed, which allows for interesting new mechanisms known
 as 'counterfactual interactions'.
 
 See the https://eips.ethereum.org/EIPS/eip-1014#motivation[EIP] for more
-information.\_
+information._
 
 ### deploy
 
@@ -7102,7 +7143,7 @@ information.\_
 function deploy(uint256 amount, bytes32 salt, bytes bytecode) internal returns (address addr)
 ```
 
-\_Deploys a contract using `CREATE2`. The address where the contract
+_Deploys a contract using `CREATE2`. The address where the contract
 will be deployed can be known in advance via {computeAddress}.
 
 The bytecode for a contract can be obtained from Solidity with
@@ -7113,7 +7154,7 @@ Requirements:
 - `bytecode` must not be empty.
 - `salt` must have not been used for `bytecode` already.
 - the factory must have a balance of at least `amount`.
-- if `amount` is non-zero, `bytecode` must have a `payable` constructor.\_
+- if `amount` is non-zero, `bytecode` must have a `payable` constructor._
 
 ### computeAddress
 
@@ -7137,7 +7178,7 @@ _Returns the address where a contract will be stored if deployed via {deploy} fr
 
 ## ShortStrings
 
-\_This library provides functions to convert short memory strings
+_This library provides functions to convert short memory strings
 into a `ShortString` type that can be used as an immutable variable.
 
 Strings of arbitrary length can be optimized using this library if
@@ -7147,7 +7188,7 @@ fallback mechanism can be used for every other case.
 
 Usage example:
 
-````solidity
+```solidity
 contract Named {
     using ShortStrings for *;
 
@@ -7168,7 +7209,7 @@ contract Named {
 
 ```solidity
 error StringTooLong(string str)
-````
+```
 
 ### InvalidShortString
 
@@ -7182,9 +7223,9 @@ error InvalidShortString()
 function toShortString(string str) internal pure returns (ShortString)
 ```
 
-\_Encode a string of at most 31 chars into a `ShortString`.
+_Encode a string of at most 31 chars into a `ShortString`.
 
-This will trigger a `StringTooLong` error is the input string is too long.\_
+This will trigger a `StringTooLong` error is the input string is too long._
 
 ### toString
 
@@ -7224,14 +7265,14 @@ _Decode a string that was encoded to `ShortString` or written to storage using {
 function byteLengthWithFallback(ShortString value, string store) internal view returns (uint256)
 ```
 
-\_Return the length of a string that was encoded to `ShortString` or written to storage using {setWithFallback}.
+_Return the length of a string that was encoded to `ShortString` or written to storage using {setWithFallback}.
 
 WARNING: This will return the "byte length" of the string. This may not reflect the actual length in terms of
-actual characters as the UTF-8 encoding of a single character can span over multiple bytes.\_
+actual characters as the UTF-8 encoding of a single character can span over multiple bytes._
 
 ## StorageSlot
 
-\_Library for reading and writing primitive types to specific storage slots.
+_Library for reading and writing primitive types to specific storage slots.
 
 Storage slots are often used to avoid storage conflict when dealing with upgradeable contracts.
 This library helps with reading and writing to such slots without the need for inline assembly.
@@ -7239,7 +7280,6 @@ This library helps with reading and writing to such slots without the need for i
 The functions in this library return Slot structs that contain a `value` member that can be used to read or write.
 
 Example usage to set ERC1967 implementation slot:
-
 ```solidity
 contract ERC1967 {
     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
@@ -7256,7 +7296,7 @@ contract ERC1967 {
 ```
 
 _Available since v4.1 for `address`, `bool`, `bytes32`, `uint256`._
-\_Available since v4.9 for `string`, `bytes`.\_\_
+_Available since v4.9 for `string`, `bytes`.__
 
 ### AddressSlot
 
@@ -7424,10 +7464,10 @@ _Returns true if the two strings are equal._
 
 ## ECDSA
 
-\_Elliptic Curve Digital Signature Algorithm (ECDSA) operations.
+_Elliptic Curve Digital Signature Algorithm (ECDSA) operations.
 
 These functions can be used to verify that a message was signed by the holder
-of the private keys of a given address.\_
+of the private keys of a given address._
 
 ### RecoverError
 
@@ -7447,7 +7487,7 @@ enum RecoverError {
 function tryRecover(bytes32 hash, bytes signature) internal pure returns (address, enum ECDSA.RecoverError)
 ```
 
-\_Returns the address that signed a hashed message (`hash`) with
+_Returns the address that signed a hashed message (`hash`) with
 `signature` or error string. This address can then be used for verification purposes.
 
 The `ecrecover` EVM opcode allows for malleable (non-unique) signatures:
@@ -7461,11 +7501,10 @@ this is by receiving a hash of the original message (which may otherwise
 be too long), and then calling {toEthSignedMessageHash} on it.
 
 Documentation for signature generation:
-
 - with https://web3js.readthedocs.io/en/v1.3.4/web3-eth-accounts.html#sign[Web3.js]
 - with https://docs.ethers.io/v5/api/signer/#Signer-signMessage[ethers]
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### recover
 
@@ -7473,7 +7512,7 @@ Documentation for signature generation:
 function recover(bytes32 hash, bytes signature) internal pure returns (address)
 ```
 
-\_Returns the address that signed a hashed message (`hash`) with
+_Returns the address that signed a hashed message (`hash`) with
 `signature`. This address can then be used for verification purposes.
 
 The `ecrecover` EVM opcode allows for malleable (non-unique) signatures:
@@ -7484,7 +7523,7 @@ IMPORTANT: `hash` _must_ be the result of a hash operation for the
 verification to be secure: it is possible to craft signatures that
 recover to arbitrary addresses for non-hashed data. A safe way to ensure
 this is by receiving a hash of the original message (which may otherwise
-be too long), and then calling {toEthSignedMessageHash} on it.\_
+be too long), and then calling {toEthSignedMessageHash} on it._
 
 ### tryRecover
 
@@ -7492,11 +7531,11 @@ be too long), and then calling {toEthSignedMessageHash} on it.\_
 function tryRecover(bytes32 hash, bytes32 r, bytes32 vs) internal pure returns (address, enum ECDSA.RecoverError)
 ```
 
-\_Overload of {ECDSA-tryRecover} that receives the `r` and `vs` short-signature fields separately.
+_Overload of {ECDSA-tryRecover} that receives the `r` and `vs` short-signature fields separately.
 
 See https://eips.ethereum.org/EIPS/eip-2098[EIP-2098 short signatures]
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### recover
 
@@ -7504,9 +7543,9 @@ See https://eips.ethereum.org/EIPS/eip-2098[EIP-2098 short signatures]
 function recover(bytes32 hash, bytes32 r, bytes32 vs) internal pure returns (address)
 ```
 
-\_Overload of {ECDSA-recover} that receives the `r and `vs` short-signature fields separately.
+_Overload of {ECDSA-recover} that receives the `r and `vs` short-signature fields separately.
 
-\_Available since v4.2.\_\_
+_Available since v4.2.__
 
 ### tryRecover
 
@@ -7514,10 +7553,10 @@ function recover(bytes32 hash, bytes32 r, bytes32 vs) internal pure returns (add
 function tryRecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) internal pure returns (address, enum ECDSA.RecoverError)
 ```
 
-\_Overload of {ECDSA-tryRecover} that receives the `v`,
+_Overload of {ECDSA-tryRecover} that receives the `v`,
 `r` and `s` signature fields separately.
 
-\_Available since v4.3.\_\_
+_Available since v4.3.__
 
 ### recover
 
@@ -7534,12 +7573,12 @@ _Overload of {ECDSA-recover} that receives the `v`,
 function toEthSignedMessageHash(bytes32 hash) internal pure returns (bytes32 message)
 ```
 
-\_Returns an Ethereum Signed Message, created from a `hash`. This
+_Returns an Ethereum Signed Message, created from a `hash`. This
 produces hash corresponding to the one signed with the
 https://eth.wiki/json-rpc/API#eth_sign[`eth_sign`]
 JSON-RPC method as part of EIP-191.
 
-See {recover}.\_
+See {recover}._
 
 ### toEthSignedMessageHash
 
@@ -7547,12 +7586,12 @@ See {recover}.\_
 function toEthSignedMessageHash(bytes s) internal pure returns (bytes32)
 ```
 
-\_Returns an Ethereum Signed Message, created from `s`. This
+_Returns an Ethereum Signed Message, created from `s`. This
 produces hash corresponding to the one signed with the
 https://eth.wiki/json-rpc/API#eth_sign[`eth_sign`]
 JSON-RPC method as part of EIP-191.
 
-See {recover}.\_
+See {recover}._
 
 ### toTypedDataHash
 
@@ -7560,13 +7599,13 @@ See {recover}.\_
 function toTypedDataHash(bytes32 domainSeparator, bytes32 structHash) internal pure returns (bytes32 data)
 ```
 
-\_Returns an Ethereum Signed Typed Data, created from a
+_Returns an Ethereum Signed Typed Data, created from a
 `domainSeparator` and a `structHash`. This produces hash corresponding
 to the one signed with the
 https://eips.ethereum.org/EIPS/eip-712[`eth_signTypedData`]
 JSON-RPC method as part of EIP-712.
 
-See {recover}.\_
+See {recover}._
 
 ### toDataWithIntendedValidatorHash
 
@@ -7574,22 +7613,22 @@ See {recover}.\_
 function toDataWithIntendedValidatorHash(address validator, bytes data) internal pure returns (bytes32)
 ```
 
-\_Returns an Ethereum Signed Data with intended validator, created from a
+_Returns an Ethereum Signed Data with intended validator, created from a
 `validator` and `data` according to the version 0 of EIP-191.
 
-See {recover}.\_
+See {recover}._
 
 ## EIP712
 
-\_https://eips.ethereum.org/EIPS/eip-712[EIP 712] is a standard for hashing and signing of typed structured data.
+_https://eips.ethereum.org/EIPS/eip-712[EIP 712] is a standard for hashing and signing of typed structured data.
 
 The encoding specified in the EIP is very generic, and such a generic implementation in Solidity is not feasible,
 thus this contract does not implement the encoding itself. Protocols need to implement the type-specific encoding
 they need in their contracts using a combination of `abi.encode` and `keccak256`.
 
-This contract implements the EIP 712 domain separator ({\_domainSeparatorV4}) that is used as part of the encoding
+This contract implements the EIP 712 domain separator ({_domainSeparatorV4}) that is used as part of the encoding
 scheme, and the final step of the encoding to obtain the message digest that is then signed via ECDSA
-({\_hashTypedDataV4}).
+({_hashTypedDataV4}).
 
 The implementation of the domain separator was designed to be as efficient as possible while still properly updating
 the chain id to protect against replay attacks on an eventual fork of the chain.
@@ -7601,7 +7640,7 @@ NOTE: In the upgradeable version of this contract, the cached values will corres
 separator of the implementation contract. This will cause the `_domainSeparatorV4` function to always rebuild the
 separator from the immutable values, which is cheaper than accessing a cached version in cold storage.
 
-\_Available since v3.4.\_\_
+_Available since v3.4.__
 
 ### constructor
 
@@ -7609,7 +7648,7 @@ separator from the immutable values, which is cheaper than accessing a cached ve
 constructor(string name, string version) internal
 ```
 
-\_Initializes the domain separator and parameter caches.
+_Initializes the domain separator and parameter caches.
 
 The meaning of `name` and `version` is specified in
 https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator[EIP 712]:
@@ -7618,9 +7657,9 @@ https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator[EIP 712]:
 - `version`: the current major version of the signing domain.
 
 NOTE: These parameters cannot be changed except through a xref:learn::upgrading-smart-contracts.adoc[smart
-contract upgrade].\_
+contract upgrade]._
 
-### \_domainSeparatorV4
+### _domainSeparatorV4
 
 ```solidity
 function _domainSeparatorV4() internal view returns (bytes32)
@@ -7628,18 +7667,18 @@ function _domainSeparatorV4() internal view returns (bytes32)
 
 _Returns the domain separator for the current chain._
 
-### \_hashTypedDataV4
+### _hashTypedDataV4
 
 ```solidity
 function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32)
 ```
 
-\_Given an already https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct[hashed struct], this
+_Given an already https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct[hashed struct], this
 function returns the hash of the fully encoded EIP712 message for this domain.
 
 This hash can be used together with {ECDSA-recover} to obtain the signer of a message. For example:
 
-````solidity
+```solidity
 bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(
     keccak256("Mail(address to,string contents)"),
     mailTo,
@@ -7652,15 +7691,15 @@ address signer = ECDSA.recover(digest, signature);
 
 ```solidity
 function eip712Domain() public view virtual returns (bytes1 fields, string name, string version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] extensions)
-````
+```
 
-\_See {EIP-5267}.
+_See {EIP-5267}.
 
-\_Available since v4.9.\_\_
+_Available since v4.9.__
 
 ## MerkleProof
 
-\_These functions deal with verification of Merkle Tree proofs.
+_These functions deal with verification of Merkle Tree proofs.
 
 The tree and the proofs can be generated using our
 https://github.com/OpenZeppelin/merkle-tree[JavaScript library].
@@ -7671,7 +7710,7 @@ hashing, or use a hash function other than keccak256 for hashing leaves.
 This is because the concatenation of a sorted pair of internal nodes in
 the merkle tree could be reinterpreted as a leaf value.
 OpenZeppelin's JavaScript library generates merkle trees that are safe
-against this attack out of the box.\_
+against this attack out of the box._
 
 ### verify
 
@@ -7690,9 +7729,9 @@ pair of leaves and each pair of pre-images are assumed to be sorted._
 function verifyCalldata(bytes32[] proof, bytes32 root, bytes32 leaf) internal pure returns (bool)
 ```
 
-\_Calldata version of {verify}
+_Calldata version of {verify}
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### processProof
 
@@ -7700,12 +7739,12 @@ function verifyCalldata(bytes32[] proof, bytes32 root, bytes32 leaf) internal pu
 function processProof(bytes32[] proof, bytes32 leaf) internal pure returns (bytes32)
 ```
 
-\_Returns the rebuilt hash obtained by traversing a Merkle tree up
+_Returns the rebuilt hash obtained by traversing a Merkle tree up
 from `leaf` using `proof`. A `proof` is valid if and only if the rebuilt
 hash matches the root of the tree. When processing the proof, the pairs
 of leafs & pre-images are assumed to be sorted.
 
-\_Available since v4.4.\_\_
+_Available since v4.4.__
 
 ### processProofCalldata
 
@@ -7713,9 +7752,9 @@ of leafs & pre-images are assumed to be sorted.
 function processProofCalldata(bytes32[] proof, bytes32 leaf) internal pure returns (bytes32)
 ```
 
-\_Calldata version of {processProof}
+_Calldata version of {processProof}
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### multiProofVerify
 
@@ -7723,12 +7762,12 @@ function processProofCalldata(bytes32[] proof, bytes32 leaf) internal pure retur
 function multiProofVerify(bytes32[] proof, bool[] proofFlags, bytes32 root, bytes32[] leaves) internal pure returns (bool)
 ```
 
-\_Returns true if the `leaves` can be simultaneously proven to be a part of a merkle tree defined by
+_Returns true if the `leaves` can be simultaneously proven to be a part of a merkle tree defined by
 `root`, according to `proof` and `proofFlags` as described in {processMultiProof}.
 
 CAUTION: Not all merkle trees admit multiproofs. See {processMultiProof} for details.
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### multiProofVerifyCalldata
 
@@ -7736,11 +7775,11 @@ CAUTION: Not all merkle trees admit multiproofs. See {processMultiProof} for det
 function multiProofVerifyCalldata(bytes32[] proof, bool[] proofFlags, bytes32 root, bytes32[] leaves) internal pure returns (bool)
 ```
 
-\_Calldata version of {multiProofVerify}
+_Calldata version of {multiProofVerify}
 
 CAUTION: Not all merkle trees admit multiproofs. See {processMultiProof} for details.
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### processMultiProof
 
@@ -7748,7 +7787,7 @@ CAUTION: Not all merkle trees admit multiproofs. See {processMultiProof} for det
 function processMultiProof(bytes32[] proof, bool[] proofFlags, bytes32[] leaves) internal pure returns (bytes32 merkleRoot)
 ```
 
-\_Returns the root of a tree reconstructed from `leaves` and sibling nodes in `proof`. The reconstruction
+_Returns the root of a tree reconstructed from `leaves` and sibling nodes in `proof`. The reconstruction
 proceeds by incrementally reconstructing all inner nodes by combining a leaf/inner node with either another
 leaf/inner node or a proof sibling node, depending on whether each `proofFlags` item is true or false
 respectively.
@@ -7757,7 +7796,7 @@ CAUTION: Not all merkle trees admit multiproofs. To use multiproofs, it is suffi
 is complete (but not necessarily perfect), 2) the leaves to be proven are in the opposite order they are in the
 tree (i.e., as seen from right to left starting at the deepest layer and continuing at the next layer).
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### processMultiProofCalldata
 
@@ -7765,15 +7804,15 @@ tree (i.e., as seen from right to left starting at the deepest layer and continu
 function processMultiProofCalldata(bytes32[] proof, bool[] proofFlags, bytes32[] leaves) internal pure returns (bytes32 merkleRoot)
 ```
 
-\_Calldata version of {processMultiProof}.
+_Calldata version of {processMultiProof}.
 
 CAUTION: Not all merkle trees admit multiproofs. See {processMultiProof} for details.
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ## ERC165
 
-\_Implementation of the {IERC165} interface.
+_Implementation of the {IERC165} interface.
 
 Contracts that want to implement ERC165 should inherit from this contract and override {supportsInterface} to check
 for the additional interface id that will be supported. For example:
@@ -7784,7 +7823,7 @@ function supportsInterface(bytes4 interfaceId) public view virtual override retu
 }
 ```
 
-Alternatively, {ERC165Storage} provides an easier to use but more expensive implementation.\_
+Alternatively, {ERC165Storage} provides an easier to use but more expensive implementation._
 
 ### supportsInterface
 
@@ -7796,13 +7835,13 @@ _See {IERC165-supportsInterface}._
 
 ## IERC165
 
-\_Interface of the ERC165 standard, as defined in the
+_Interface of the ERC165 standard, as defined in the
 https://eips.ethereum.org/EIPS/eip-165[EIP].
 
 Implementers can declare support of contract interfaces, which can then be
 queried by others ({ERC165Checker}).
 
-For an implementation, see {ERC165}.\_
+For an implementation, see {ERC165}._
 
 ### supportsInterface
 
@@ -7810,12 +7849,12 @@ For an implementation, see {ERC165}.\_
 function supportsInterface(bytes4 interfaceId) external view returns (bool)
 ```
 
-\_Returns true if this contract implements the interface defined by
+_Returns true if this contract implements the interface defined by
 `interfaceId`. See the corresponding
 https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
 to learn more about how these ids are created.
 
-This function call must use less than 30 000 gas.\_
+This function call must use less than 30 000 gas._
 
 ## Math
 
@@ -7862,10 +7901,10 @@ zero._
 function ceilDiv(uint256 a, uint256 b) internal pure returns (uint256)
 ```
 
-\_Returns the ceiling of the division of two numbers.
+_Returns the ceiling of the division of two numbers.
 
 This differs from standard division with `/` in that it rounds up instead
-of rounding down.\_
+of rounding down._
 
 ### mulDiv
 
@@ -7873,7 +7912,7 @@ of rounding down.\_
 function mulDiv(uint256 x, uint256 y, uint256 denominator) internal pure returns (uint256 result)
 ```
 
-Calculates floor(x \* y / denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
+Calculates floor(x * y / denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
 
 _Original credit to Remco Bloemen under MIT license (https://xn--2-umb.com/21/muldiv)
 with further edits by Uniswap Labs also under MIT license._
@@ -7884,7 +7923,7 @@ with further edits by Uniswap Labs also under MIT license._
 function mulDiv(uint256 x, uint256 y, uint256 denominator, enum Math.Rounding rounding) internal pure returns (uint256)
 ```
 
-Calculates x \* y / denominator with full precision, following the selected rounding direction.
+Calculates x * y / denominator with full precision, following the selected rounding direction.
 
 ### sqrt
 
@@ -7892,9 +7931,9 @@ Calculates x \* y / denominator with full precision, following the selected roun
 function sqrt(uint256 a) internal pure returns (uint256)
 ```
 
-\_Returns the square root of a number. If the number is not a perfect square, the value is rounded down.
+_Returns the square root of a number. If the number is not a perfect square, the value is rounded down.
 
-Inspired by Henry S. Warren, Jr.'s "Hacker's Delight" (Chapter 11).\_
+Inspired by Henry S. Warren, Jr.'s "Hacker's Delight" (Chapter 11)._
 
 ### sqrt
 
@@ -7946,10 +7985,10 @@ Returns 0 if given 0._
 function log256(uint256 value) internal pure returns (uint256)
 ```
 
-\_Return the log in base 256, rounded down, of a positive value.
+_Return the log in base 256, rounded down, of a positive value.
 Returns 0 if given 0.
 
-Adding one to the result gives the number of pairs of hex symbols needed to represent `value` as a hex string.\_
+Adding one to the result gives the number of pairs of hex symbols needed to represent `value` as a hex string._
 
 ### log256
 
@@ -7962,7 +8001,7 @@ Returns 0 if given 0._
 
 ## SafeCast
 
-\_Wrappers over Solidity's uintXX/intXX casting operators with added overflow
+_Wrappers over Solidity's uintXX/intXX casting operators with added overflow
 checks.
 
 Downcasting from uint256/int256 in Solidity does not revert on overflow. This can
@@ -7974,7 +8013,7 @@ Using this library instead of the unchecked operations eliminates an entire
 class of bugs, so it's recommended to use it always.
 
 Can be combined with {SafeMath} and {SignedSafeMath} to extend it to smaller types, by performing
-all math on `uint256` and `int256` and then downcasting.\_
+all math on `uint256` and `int256` and then downcasting._
 
 ### toUint248
 
@@ -7982,7 +8021,7 @@ all math on `uint256` and `int256` and then downcasting.\_
 function toUint248(uint256 value) internal pure returns (uint248)
 ```
 
-\_Returns the downcasted uint248 from uint256, reverting on
+_Returns the downcasted uint248 from uint256, reverting on
 overflow (when the input is greater than largest uint248).
 
 Counterpart to Solidity's `uint248` operator.
@@ -7991,7 +8030,7 @@ Requirements:
 
 - input must fit into 248 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint240
 
@@ -7999,7 +8038,7 @@ Requirements:
 function toUint240(uint256 value) internal pure returns (uint240)
 ```
 
-\_Returns the downcasted uint240 from uint256, reverting on
+_Returns the downcasted uint240 from uint256, reverting on
 overflow (when the input is greater than largest uint240).
 
 Counterpart to Solidity's `uint240` operator.
@@ -8008,7 +8047,7 @@ Requirements:
 
 - input must fit into 240 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint232
 
@@ -8016,7 +8055,7 @@ Requirements:
 function toUint232(uint256 value) internal pure returns (uint232)
 ```
 
-\_Returns the downcasted uint232 from uint256, reverting on
+_Returns the downcasted uint232 from uint256, reverting on
 overflow (when the input is greater than largest uint232).
 
 Counterpart to Solidity's `uint232` operator.
@@ -8025,7 +8064,7 @@ Requirements:
 
 - input must fit into 232 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint224
 
@@ -8033,7 +8072,7 @@ Requirements:
 function toUint224(uint256 value) internal pure returns (uint224)
 ```
 
-\_Returns the downcasted uint224 from uint256, reverting on
+_Returns the downcasted uint224 from uint256, reverting on
 overflow (when the input is greater than largest uint224).
 
 Counterpart to Solidity's `uint224` operator.
@@ -8042,7 +8081,7 @@ Requirements:
 
 - input must fit into 224 bits
 
-\_Available since v4.2.\_\_
+_Available since v4.2.__
 
 ### toUint216
 
@@ -8050,7 +8089,7 @@ Requirements:
 function toUint216(uint256 value) internal pure returns (uint216)
 ```
 
-\_Returns the downcasted uint216 from uint256, reverting on
+_Returns the downcasted uint216 from uint256, reverting on
 overflow (when the input is greater than largest uint216).
 
 Counterpart to Solidity's `uint216` operator.
@@ -8059,7 +8098,7 @@ Requirements:
 
 - input must fit into 216 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint208
 
@@ -8067,7 +8106,7 @@ Requirements:
 function toUint208(uint256 value) internal pure returns (uint208)
 ```
 
-\_Returns the downcasted uint208 from uint256, reverting on
+_Returns the downcasted uint208 from uint256, reverting on
 overflow (when the input is greater than largest uint208).
 
 Counterpart to Solidity's `uint208` operator.
@@ -8076,7 +8115,7 @@ Requirements:
 
 - input must fit into 208 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint200
 
@@ -8084,7 +8123,7 @@ Requirements:
 function toUint200(uint256 value) internal pure returns (uint200)
 ```
 
-\_Returns the downcasted uint200 from uint256, reverting on
+_Returns the downcasted uint200 from uint256, reverting on
 overflow (when the input is greater than largest uint200).
 
 Counterpart to Solidity's `uint200` operator.
@@ -8093,7 +8132,7 @@ Requirements:
 
 - input must fit into 200 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint192
 
@@ -8101,7 +8140,7 @@ Requirements:
 function toUint192(uint256 value) internal pure returns (uint192)
 ```
 
-\_Returns the downcasted uint192 from uint256, reverting on
+_Returns the downcasted uint192 from uint256, reverting on
 overflow (when the input is greater than largest uint192).
 
 Counterpart to Solidity's `uint192` operator.
@@ -8110,7 +8149,7 @@ Requirements:
 
 - input must fit into 192 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint184
 
@@ -8118,7 +8157,7 @@ Requirements:
 function toUint184(uint256 value) internal pure returns (uint184)
 ```
 
-\_Returns the downcasted uint184 from uint256, reverting on
+_Returns the downcasted uint184 from uint256, reverting on
 overflow (when the input is greater than largest uint184).
 
 Counterpart to Solidity's `uint184` operator.
@@ -8127,7 +8166,7 @@ Requirements:
 
 - input must fit into 184 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint176
 
@@ -8135,7 +8174,7 @@ Requirements:
 function toUint176(uint256 value) internal pure returns (uint176)
 ```
 
-\_Returns the downcasted uint176 from uint256, reverting on
+_Returns the downcasted uint176 from uint256, reverting on
 overflow (when the input is greater than largest uint176).
 
 Counterpart to Solidity's `uint176` operator.
@@ -8144,7 +8183,7 @@ Requirements:
 
 - input must fit into 176 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint168
 
@@ -8152,7 +8191,7 @@ Requirements:
 function toUint168(uint256 value) internal pure returns (uint168)
 ```
 
-\_Returns the downcasted uint168 from uint256, reverting on
+_Returns the downcasted uint168 from uint256, reverting on
 overflow (when the input is greater than largest uint168).
 
 Counterpart to Solidity's `uint168` operator.
@@ -8161,7 +8200,7 @@ Requirements:
 
 - input must fit into 168 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint160
 
@@ -8169,7 +8208,7 @@ Requirements:
 function toUint160(uint256 value) internal pure returns (uint160)
 ```
 
-\_Returns the downcasted uint160 from uint256, reverting on
+_Returns the downcasted uint160 from uint256, reverting on
 overflow (when the input is greater than largest uint160).
 
 Counterpart to Solidity's `uint160` operator.
@@ -8178,7 +8217,7 @@ Requirements:
 
 - input must fit into 160 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint152
 
@@ -8186,7 +8225,7 @@ Requirements:
 function toUint152(uint256 value) internal pure returns (uint152)
 ```
 
-\_Returns the downcasted uint152 from uint256, reverting on
+_Returns the downcasted uint152 from uint256, reverting on
 overflow (when the input is greater than largest uint152).
 
 Counterpart to Solidity's `uint152` operator.
@@ -8195,7 +8234,7 @@ Requirements:
 
 - input must fit into 152 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint144
 
@@ -8203,7 +8242,7 @@ Requirements:
 function toUint144(uint256 value) internal pure returns (uint144)
 ```
 
-\_Returns the downcasted uint144 from uint256, reverting on
+_Returns the downcasted uint144 from uint256, reverting on
 overflow (when the input is greater than largest uint144).
 
 Counterpart to Solidity's `uint144` operator.
@@ -8212,7 +8251,7 @@ Requirements:
 
 - input must fit into 144 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint136
 
@@ -8220,7 +8259,7 @@ Requirements:
 function toUint136(uint256 value) internal pure returns (uint136)
 ```
 
-\_Returns the downcasted uint136 from uint256, reverting on
+_Returns the downcasted uint136 from uint256, reverting on
 overflow (when the input is greater than largest uint136).
 
 Counterpart to Solidity's `uint136` operator.
@@ -8229,7 +8268,7 @@ Requirements:
 
 - input must fit into 136 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint128
 
@@ -8237,7 +8276,7 @@ Requirements:
 function toUint128(uint256 value) internal pure returns (uint128)
 ```
 
-\_Returns the downcasted uint128 from uint256, reverting on
+_Returns the downcasted uint128 from uint256, reverting on
 overflow (when the input is greater than largest uint128).
 
 Counterpart to Solidity's `uint128` operator.
@@ -8246,7 +8285,7 @@ Requirements:
 
 - input must fit into 128 bits
 
-\_Available since v2.5.\_\_
+_Available since v2.5.__
 
 ### toUint120
 
@@ -8254,7 +8293,7 @@ Requirements:
 function toUint120(uint256 value) internal pure returns (uint120)
 ```
 
-\_Returns the downcasted uint120 from uint256, reverting on
+_Returns the downcasted uint120 from uint256, reverting on
 overflow (when the input is greater than largest uint120).
 
 Counterpart to Solidity's `uint120` operator.
@@ -8263,7 +8302,7 @@ Requirements:
 
 - input must fit into 120 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint112
 
@@ -8271,7 +8310,7 @@ Requirements:
 function toUint112(uint256 value) internal pure returns (uint112)
 ```
 
-\_Returns the downcasted uint112 from uint256, reverting on
+_Returns the downcasted uint112 from uint256, reverting on
 overflow (when the input is greater than largest uint112).
 
 Counterpart to Solidity's `uint112` operator.
@@ -8280,7 +8319,7 @@ Requirements:
 
 - input must fit into 112 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint104
 
@@ -8288,7 +8327,7 @@ Requirements:
 function toUint104(uint256 value) internal pure returns (uint104)
 ```
 
-\_Returns the downcasted uint104 from uint256, reverting on
+_Returns the downcasted uint104 from uint256, reverting on
 overflow (when the input is greater than largest uint104).
 
 Counterpart to Solidity's `uint104` operator.
@@ -8297,7 +8336,7 @@ Requirements:
 
 - input must fit into 104 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint96
 
@@ -8305,7 +8344,7 @@ Requirements:
 function toUint96(uint256 value) internal pure returns (uint96)
 ```
 
-\_Returns the downcasted uint96 from uint256, reverting on
+_Returns the downcasted uint96 from uint256, reverting on
 overflow (when the input is greater than largest uint96).
 
 Counterpart to Solidity's `uint96` operator.
@@ -8314,7 +8353,7 @@ Requirements:
 
 - input must fit into 96 bits
 
-\_Available since v4.2.\_\_
+_Available since v4.2.__
 
 ### toUint88
 
@@ -8322,7 +8361,7 @@ Requirements:
 function toUint88(uint256 value) internal pure returns (uint88)
 ```
 
-\_Returns the downcasted uint88 from uint256, reverting on
+_Returns the downcasted uint88 from uint256, reverting on
 overflow (when the input is greater than largest uint88).
 
 Counterpart to Solidity's `uint88` operator.
@@ -8331,7 +8370,7 @@ Requirements:
 
 - input must fit into 88 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint80
 
@@ -8339,7 +8378,7 @@ Requirements:
 function toUint80(uint256 value) internal pure returns (uint80)
 ```
 
-\_Returns the downcasted uint80 from uint256, reverting on
+_Returns the downcasted uint80 from uint256, reverting on
 overflow (when the input is greater than largest uint80).
 
 Counterpart to Solidity's `uint80` operator.
@@ -8348,7 +8387,7 @@ Requirements:
 
 - input must fit into 80 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint72
 
@@ -8356,7 +8395,7 @@ Requirements:
 function toUint72(uint256 value) internal pure returns (uint72)
 ```
 
-\_Returns the downcasted uint72 from uint256, reverting on
+_Returns the downcasted uint72 from uint256, reverting on
 overflow (when the input is greater than largest uint72).
 
 Counterpart to Solidity's `uint72` operator.
@@ -8365,7 +8404,7 @@ Requirements:
 
 - input must fit into 72 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint64
 
@@ -8373,7 +8412,7 @@ Requirements:
 function toUint64(uint256 value) internal pure returns (uint64)
 ```
 
-\_Returns the downcasted uint64 from uint256, reverting on
+_Returns the downcasted uint64 from uint256, reverting on
 overflow (when the input is greater than largest uint64).
 
 Counterpart to Solidity's `uint64` operator.
@@ -8382,7 +8421,7 @@ Requirements:
 
 - input must fit into 64 bits
 
-\_Available since v2.5.\_\_
+_Available since v2.5.__
 
 ### toUint56
 
@@ -8390,7 +8429,7 @@ Requirements:
 function toUint56(uint256 value) internal pure returns (uint56)
 ```
 
-\_Returns the downcasted uint56 from uint256, reverting on
+_Returns the downcasted uint56 from uint256, reverting on
 overflow (when the input is greater than largest uint56).
 
 Counterpart to Solidity's `uint56` operator.
@@ -8399,7 +8438,7 @@ Requirements:
 
 - input must fit into 56 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint48
 
@@ -8407,7 +8446,7 @@ Requirements:
 function toUint48(uint256 value) internal pure returns (uint48)
 ```
 
-\_Returns the downcasted uint48 from uint256, reverting on
+_Returns the downcasted uint48 from uint256, reverting on
 overflow (when the input is greater than largest uint48).
 
 Counterpart to Solidity's `uint48` operator.
@@ -8416,7 +8455,7 @@ Requirements:
 
 - input must fit into 48 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint40
 
@@ -8424,7 +8463,7 @@ Requirements:
 function toUint40(uint256 value) internal pure returns (uint40)
 ```
 
-\_Returns the downcasted uint40 from uint256, reverting on
+_Returns the downcasted uint40 from uint256, reverting on
 overflow (when the input is greater than largest uint40).
 
 Counterpart to Solidity's `uint40` operator.
@@ -8433,7 +8472,7 @@ Requirements:
 
 - input must fit into 40 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint32
 
@@ -8441,7 +8480,7 @@ Requirements:
 function toUint32(uint256 value) internal pure returns (uint32)
 ```
 
-\_Returns the downcasted uint32 from uint256, reverting on
+_Returns the downcasted uint32 from uint256, reverting on
 overflow (when the input is greater than largest uint32).
 
 Counterpart to Solidity's `uint32` operator.
@@ -8450,7 +8489,7 @@ Requirements:
 
 - input must fit into 32 bits
 
-\_Available since v2.5.\_\_
+_Available since v2.5.__
 
 ### toUint24
 
@@ -8458,7 +8497,7 @@ Requirements:
 function toUint24(uint256 value) internal pure returns (uint24)
 ```
 
-\_Returns the downcasted uint24 from uint256, reverting on
+_Returns the downcasted uint24 from uint256, reverting on
 overflow (when the input is greater than largest uint24).
 
 Counterpart to Solidity's `uint24` operator.
@@ -8467,7 +8506,7 @@ Requirements:
 
 - input must fit into 24 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toUint16
 
@@ -8475,7 +8514,7 @@ Requirements:
 function toUint16(uint256 value) internal pure returns (uint16)
 ```
 
-\_Returns the downcasted uint16 from uint256, reverting on
+_Returns the downcasted uint16 from uint256, reverting on
 overflow (when the input is greater than largest uint16).
 
 Counterpart to Solidity's `uint16` operator.
@@ -8484,7 +8523,7 @@ Requirements:
 
 - input must fit into 16 bits
 
-\_Available since v2.5.\_\_
+_Available since v2.5.__
 
 ### toUint8
 
@@ -8492,7 +8531,7 @@ Requirements:
 function toUint8(uint256 value) internal pure returns (uint8)
 ```
 
-\_Returns the downcasted uint8 from uint256, reverting on
+_Returns the downcasted uint8 from uint256, reverting on
 overflow (when the input is greater than largest uint8).
 
 Counterpart to Solidity's `uint8` operator.
@@ -8501,7 +8540,7 @@ Requirements:
 
 - input must fit into 8 bits
 
-\_Available since v2.5.\_\_
+_Available since v2.5.__
 
 ### toUint256
 
@@ -8509,13 +8548,13 @@ Requirements:
 function toUint256(int256 value) internal pure returns (uint256)
 ```
 
-\_Converts a signed int256 into an unsigned uint256.
+_Converts a signed int256 into an unsigned uint256.
 
 Requirements:
 
 - input must be greater than or equal to 0.
 
-\_Available since v3.0.\_\_
+_Available since v3.0.__
 
 ### toInt248
 
@@ -8523,7 +8562,7 @@ Requirements:
 function toInt248(int256 value) internal pure returns (int248 downcasted)
 ```
 
-\_Returns the downcasted int248 from int256, reverting on
+_Returns the downcasted int248 from int256, reverting on
 overflow (when the input is less than smallest int248 or
 greater than largest int248).
 
@@ -8533,7 +8572,7 @@ Requirements:
 
 - input must fit into 248 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt240
 
@@ -8541,7 +8580,7 @@ Requirements:
 function toInt240(int256 value) internal pure returns (int240 downcasted)
 ```
 
-\_Returns the downcasted int240 from int256, reverting on
+_Returns the downcasted int240 from int256, reverting on
 overflow (when the input is less than smallest int240 or
 greater than largest int240).
 
@@ -8551,7 +8590,7 @@ Requirements:
 
 - input must fit into 240 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt232
 
@@ -8559,7 +8598,7 @@ Requirements:
 function toInt232(int256 value) internal pure returns (int232 downcasted)
 ```
 
-\_Returns the downcasted int232 from int256, reverting on
+_Returns the downcasted int232 from int256, reverting on
 overflow (when the input is less than smallest int232 or
 greater than largest int232).
 
@@ -8569,7 +8608,7 @@ Requirements:
 
 - input must fit into 232 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt224
 
@@ -8577,7 +8616,7 @@ Requirements:
 function toInt224(int256 value) internal pure returns (int224 downcasted)
 ```
 
-\_Returns the downcasted int224 from int256, reverting on
+_Returns the downcasted int224 from int256, reverting on
 overflow (when the input is less than smallest int224 or
 greater than largest int224).
 
@@ -8587,7 +8626,7 @@ Requirements:
 
 - input must fit into 224 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt216
 
@@ -8595,7 +8634,7 @@ Requirements:
 function toInt216(int256 value) internal pure returns (int216 downcasted)
 ```
 
-\_Returns the downcasted int216 from int256, reverting on
+_Returns the downcasted int216 from int256, reverting on
 overflow (when the input is less than smallest int216 or
 greater than largest int216).
 
@@ -8605,7 +8644,7 @@ Requirements:
 
 - input must fit into 216 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt208
 
@@ -8613,7 +8652,7 @@ Requirements:
 function toInt208(int256 value) internal pure returns (int208 downcasted)
 ```
 
-\_Returns the downcasted int208 from int256, reverting on
+_Returns the downcasted int208 from int256, reverting on
 overflow (when the input is less than smallest int208 or
 greater than largest int208).
 
@@ -8623,7 +8662,7 @@ Requirements:
 
 - input must fit into 208 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt200
 
@@ -8631,7 +8670,7 @@ Requirements:
 function toInt200(int256 value) internal pure returns (int200 downcasted)
 ```
 
-\_Returns the downcasted int200 from int256, reverting on
+_Returns the downcasted int200 from int256, reverting on
 overflow (when the input is less than smallest int200 or
 greater than largest int200).
 
@@ -8641,7 +8680,7 @@ Requirements:
 
 - input must fit into 200 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt192
 
@@ -8649,7 +8688,7 @@ Requirements:
 function toInt192(int256 value) internal pure returns (int192 downcasted)
 ```
 
-\_Returns the downcasted int192 from int256, reverting on
+_Returns the downcasted int192 from int256, reverting on
 overflow (when the input is less than smallest int192 or
 greater than largest int192).
 
@@ -8659,7 +8698,7 @@ Requirements:
 
 - input must fit into 192 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt184
 
@@ -8667,7 +8706,7 @@ Requirements:
 function toInt184(int256 value) internal pure returns (int184 downcasted)
 ```
 
-\_Returns the downcasted int184 from int256, reverting on
+_Returns the downcasted int184 from int256, reverting on
 overflow (when the input is less than smallest int184 or
 greater than largest int184).
 
@@ -8677,7 +8716,7 @@ Requirements:
 
 - input must fit into 184 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt176
 
@@ -8685,7 +8724,7 @@ Requirements:
 function toInt176(int256 value) internal pure returns (int176 downcasted)
 ```
 
-\_Returns the downcasted int176 from int256, reverting on
+_Returns the downcasted int176 from int256, reverting on
 overflow (when the input is less than smallest int176 or
 greater than largest int176).
 
@@ -8695,7 +8734,7 @@ Requirements:
 
 - input must fit into 176 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt168
 
@@ -8703,7 +8742,7 @@ Requirements:
 function toInt168(int256 value) internal pure returns (int168 downcasted)
 ```
 
-\_Returns the downcasted int168 from int256, reverting on
+_Returns the downcasted int168 from int256, reverting on
 overflow (when the input is less than smallest int168 or
 greater than largest int168).
 
@@ -8713,7 +8752,7 @@ Requirements:
 
 - input must fit into 168 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt160
 
@@ -8721,7 +8760,7 @@ Requirements:
 function toInt160(int256 value) internal pure returns (int160 downcasted)
 ```
 
-\_Returns the downcasted int160 from int256, reverting on
+_Returns the downcasted int160 from int256, reverting on
 overflow (when the input is less than smallest int160 or
 greater than largest int160).
 
@@ -8731,7 +8770,7 @@ Requirements:
 
 - input must fit into 160 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt152
 
@@ -8739,7 +8778,7 @@ Requirements:
 function toInt152(int256 value) internal pure returns (int152 downcasted)
 ```
 
-\_Returns the downcasted int152 from int256, reverting on
+_Returns the downcasted int152 from int256, reverting on
 overflow (when the input is less than smallest int152 or
 greater than largest int152).
 
@@ -8749,7 +8788,7 @@ Requirements:
 
 - input must fit into 152 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt144
 
@@ -8757,7 +8796,7 @@ Requirements:
 function toInt144(int256 value) internal pure returns (int144 downcasted)
 ```
 
-\_Returns the downcasted int144 from int256, reverting on
+_Returns the downcasted int144 from int256, reverting on
 overflow (when the input is less than smallest int144 or
 greater than largest int144).
 
@@ -8767,7 +8806,7 @@ Requirements:
 
 - input must fit into 144 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt136
 
@@ -8775,7 +8814,7 @@ Requirements:
 function toInt136(int256 value) internal pure returns (int136 downcasted)
 ```
 
-\_Returns the downcasted int136 from int256, reverting on
+_Returns the downcasted int136 from int256, reverting on
 overflow (when the input is less than smallest int136 or
 greater than largest int136).
 
@@ -8785,7 +8824,7 @@ Requirements:
 
 - input must fit into 136 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt128
 
@@ -8793,7 +8832,7 @@ Requirements:
 function toInt128(int256 value) internal pure returns (int128 downcasted)
 ```
 
-\_Returns the downcasted int128 from int256, reverting on
+_Returns the downcasted int128 from int256, reverting on
 overflow (when the input is less than smallest int128 or
 greater than largest int128).
 
@@ -8803,7 +8842,7 @@ Requirements:
 
 - input must fit into 128 bits
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### toInt120
 
@@ -8811,7 +8850,7 @@ Requirements:
 function toInt120(int256 value) internal pure returns (int120 downcasted)
 ```
 
-\_Returns the downcasted int120 from int256, reverting on
+_Returns the downcasted int120 from int256, reverting on
 overflow (when the input is less than smallest int120 or
 greater than largest int120).
 
@@ -8821,7 +8860,7 @@ Requirements:
 
 - input must fit into 120 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt112
 
@@ -8829,7 +8868,7 @@ Requirements:
 function toInt112(int256 value) internal pure returns (int112 downcasted)
 ```
 
-\_Returns the downcasted int112 from int256, reverting on
+_Returns the downcasted int112 from int256, reverting on
 overflow (when the input is less than smallest int112 or
 greater than largest int112).
 
@@ -8839,7 +8878,7 @@ Requirements:
 
 - input must fit into 112 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt104
 
@@ -8847,7 +8886,7 @@ Requirements:
 function toInt104(int256 value) internal pure returns (int104 downcasted)
 ```
 
-\_Returns the downcasted int104 from int256, reverting on
+_Returns the downcasted int104 from int256, reverting on
 overflow (when the input is less than smallest int104 or
 greater than largest int104).
 
@@ -8857,7 +8896,7 @@ Requirements:
 
 - input must fit into 104 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt96
 
@@ -8865,7 +8904,7 @@ Requirements:
 function toInt96(int256 value) internal pure returns (int96 downcasted)
 ```
 
-\_Returns the downcasted int96 from int256, reverting on
+_Returns the downcasted int96 from int256, reverting on
 overflow (when the input is less than smallest int96 or
 greater than largest int96).
 
@@ -8875,7 +8914,7 @@ Requirements:
 
 - input must fit into 96 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt88
 
@@ -8883,7 +8922,7 @@ Requirements:
 function toInt88(int256 value) internal pure returns (int88 downcasted)
 ```
 
-\_Returns the downcasted int88 from int256, reverting on
+_Returns the downcasted int88 from int256, reverting on
 overflow (when the input is less than smallest int88 or
 greater than largest int88).
 
@@ -8893,7 +8932,7 @@ Requirements:
 
 - input must fit into 88 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt80
 
@@ -8901,7 +8940,7 @@ Requirements:
 function toInt80(int256 value) internal pure returns (int80 downcasted)
 ```
 
-\_Returns the downcasted int80 from int256, reverting on
+_Returns the downcasted int80 from int256, reverting on
 overflow (when the input is less than smallest int80 or
 greater than largest int80).
 
@@ -8911,7 +8950,7 @@ Requirements:
 
 - input must fit into 80 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt72
 
@@ -8919,7 +8958,7 @@ Requirements:
 function toInt72(int256 value) internal pure returns (int72 downcasted)
 ```
 
-\_Returns the downcasted int72 from int256, reverting on
+_Returns the downcasted int72 from int256, reverting on
 overflow (when the input is less than smallest int72 or
 greater than largest int72).
 
@@ -8929,7 +8968,7 @@ Requirements:
 
 - input must fit into 72 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt64
 
@@ -8937,7 +8976,7 @@ Requirements:
 function toInt64(int256 value) internal pure returns (int64 downcasted)
 ```
 
-\_Returns the downcasted int64 from int256, reverting on
+_Returns the downcasted int64 from int256, reverting on
 overflow (when the input is less than smallest int64 or
 greater than largest int64).
 
@@ -8947,7 +8986,7 @@ Requirements:
 
 - input must fit into 64 bits
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### toInt56
 
@@ -8955,7 +8994,7 @@ Requirements:
 function toInt56(int256 value) internal pure returns (int56 downcasted)
 ```
 
-\_Returns the downcasted int56 from int256, reverting on
+_Returns the downcasted int56 from int256, reverting on
 overflow (when the input is less than smallest int56 or
 greater than largest int56).
 
@@ -8965,7 +9004,7 @@ Requirements:
 
 - input must fit into 56 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt48
 
@@ -8973,7 +9012,7 @@ Requirements:
 function toInt48(int256 value) internal pure returns (int48 downcasted)
 ```
 
-\_Returns the downcasted int48 from int256, reverting on
+_Returns the downcasted int48 from int256, reverting on
 overflow (when the input is less than smallest int48 or
 greater than largest int48).
 
@@ -8983,7 +9022,7 @@ Requirements:
 
 - input must fit into 48 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt40
 
@@ -8991,7 +9030,7 @@ Requirements:
 function toInt40(int256 value) internal pure returns (int40 downcasted)
 ```
 
-\_Returns the downcasted int40 from int256, reverting on
+_Returns the downcasted int40 from int256, reverting on
 overflow (when the input is less than smallest int40 or
 greater than largest int40).
 
@@ -9001,7 +9040,7 @@ Requirements:
 
 - input must fit into 40 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt32
 
@@ -9009,7 +9048,7 @@ Requirements:
 function toInt32(int256 value) internal pure returns (int32 downcasted)
 ```
 
-\_Returns the downcasted int32 from int256, reverting on
+_Returns the downcasted int32 from int256, reverting on
 overflow (when the input is less than smallest int32 or
 greater than largest int32).
 
@@ -9019,7 +9058,7 @@ Requirements:
 
 - input must fit into 32 bits
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### toInt24
 
@@ -9027,7 +9066,7 @@ Requirements:
 function toInt24(int256 value) internal pure returns (int24 downcasted)
 ```
 
-\_Returns the downcasted int24 from int256, reverting on
+_Returns the downcasted int24 from int256, reverting on
 overflow (when the input is less than smallest int24 or
 greater than largest int24).
 
@@ -9037,7 +9076,7 @@ Requirements:
 
 - input must fit into 24 bits
 
-\_Available since v4.7.\_\_
+_Available since v4.7.__
 
 ### toInt16
 
@@ -9045,7 +9084,7 @@ Requirements:
 function toInt16(int256 value) internal pure returns (int16 downcasted)
 ```
 
-\_Returns the downcasted int16 from int256, reverting on
+_Returns the downcasted int16 from int256, reverting on
 overflow (when the input is less than smallest int16 or
 greater than largest int16).
 
@@ -9055,7 +9094,7 @@ Requirements:
 
 - input must fit into 16 bits
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### toInt8
 
@@ -9063,7 +9102,7 @@ Requirements:
 function toInt8(int256 value) internal pure returns (int8 downcasted)
 ```
 
-\_Returns the downcasted int8 from int256, reverting on
+_Returns the downcasted int8 from int256, reverting on
 overflow (when the input is less than smallest int8 or
 greater than largest int8).
 
@@ -9073,7 +9112,7 @@ Requirements:
 
 - input must fit into 8 bits
 
-\_Available since v3.1.\_\_
+_Available since v3.1.__
 
 ### toInt256
 
@@ -9081,13 +9120,13 @@ Requirements:
 function toInt256(uint256 value) internal pure returns (int256)
 ```
 
-\_Converts an unsigned uint256 into a signed int256.
+_Converts an unsigned uint256 into a signed int256.
 
 Requirements:
 
 - input must be less than or equal to maxInt256.
 
-\_Available since v3.0.\_\_
+_Available since v3.0.__
 
 ## SignedMath
 
@@ -9128,19 +9167,18 @@ _Returns the absolute unsigned value of a signed value._
 
 ## DoubleEndedQueue
 
-\_A sequence of items with the ability to efficiently push and pop items (i.e. insert and remove) on both ends of
+_A sequence of items with the ability to efficiently push and pop items (i.e. insert and remove) on both ends of
 the sequence (called front and back). Among other access patterns, it can be used to implement efficient LIFO and
 FIFO queues. Storage use is optimized, and all operations are O(1) constant time. This includes {clear}, given that
 the existing queue contents are left in storage.
 
 The struct is called `Bytes32Deque`. Other types can be cast to and from `bytes32`. This data structure can only be
 used in storage, and not in memory.
-
 ```solidity
 DoubleEndedQueue.Bytes32Deque queue;
 ```
 
-\_Available since v4.6.\_\_
+_Available since v4.6.__
 
 ### Empty
 
@@ -9182,9 +9220,9 @@ _Inserts an item at the end of the queue._
 function popBack(struct DoubleEndedQueue.Bytes32Deque deque) internal returns (bytes32 value)
 ```
 
-\_Removes the item at the end of the queue and returns it.
+_Removes the item at the end of the queue and returns it.
 
-Reverts with `Empty` if the queue is empty.\_
+Reverts with `Empty` if the queue is empty._
 
 ### pushFront
 
@@ -9200,9 +9238,9 @@ _Inserts an item at the beginning of the queue._
 function popFront(struct DoubleEndedQueue.Bytes32Deque deque) internal returns (bytes32 value)
 ```
 
-\_Removes the item at the beginning of the queue and returns it.
+_Removes the item at the beginning of the queue and returns it.
 
-Reverts with `Empty` if the queue is empty.\_
+Reverts with `Empty` if the queue is empty._
 
 ### front
 
@@ -9210,9 +9248,9 @@ Reverts with `Empty` if the queue is empty.\_
 function front(struct DoubleEndedQueue.Bytes32Deque deque) internal view returns (bytes32 value)
 ```
 
-\_Returns the item at the beginning of the queue.
+_Returns the item at the beginning of the queue.
 
-Reverts with `Empty` if the queue is empty.\_
+Reverts with `Empty` if the queue is empty._
 
 ### back
 
@@ -9220,9 +9258,9 @@ Reverts with `Empty` if the queue is empty.\_
 function back(struct DoubleEndedQueue.Bytes32Deque deque) internal view returns (bytes32 value)
 ```
 
-\_Returns the item at the end of the queue.
+_Returns the item at the end of the queue.
 
-Reverts with `Empty` if the queue is empty.\_
+Reverts with `Empty` if the queue is empty._
 
 ### at
 
@@ -9230,10 +9268,10 @@ Reverts with `Empty` if the queue is empty.\_
 function at(struct DoubleEndedQueue.Bytes32Deque deque, uint256 index) internal view returns (bytes32 value)
 ```
 
-\_Return the item at a position in the queue given by `index`, with the first item at 0 and last item at
+_Return the item at a position in the queue given by `index`, with the first item at 0 and last item at
 `length(deque) - 1`.
 
-Reverts with `OutOfBounds` if the index is out of bounds.\_
+Reverts with `OutOfBounds` if the index is out of bounds._
 
 ### clear
 
@@ -9241,10 +9279,10 @@ Reverts with `OutOfBounds` if the index is out of bounds.\_
 function clear(struct DoubleEndedQueue.Bytes32Deque deque) internal
 ```
 
-\_Resets the queue back to being empty.
+_Resets the queue back to being empty.
 
 NOTE: The current items are left behind in storage. This does not affect the functioning of the queue, but misses
-out on potential gas refunds.\_
+out on potential gas refunds._
 
 ### length
 
@@ -9336,14 +9374,14 @@ _Has to use 192.64-bit fixed-point numbers. See https://ethereum.stackexchange.c
 
 ### Parameters
 
-| Name | Type    | Description                                                |
-| ---- | ------- | ---------------------------------------------------------- |
-| x    | uint256 | The exponent as an unsigned 192.64-bit fixed-point number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | uint256 | The exponent as an unsigned 192.64-bit fixed-point number. |
 
 ### Return Values
 
-| Name   | Type    | Description                                                 |
-| ------ | ------- | ----------------------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | uint256 | The result as an unsigned 60.18-decimal fixed-point number. |
 
 ## msb
@@ -9354,7 +9392,7 @@ function msb(uint256 x) internal pure returns (uint256 result)
 
 Finds the zero-based index of the first 1 in the binary representation of x.
 
-\_See the note on "msb" in this Wikipedia article: https://en.wikipedia.org/wiki/Find_first_set
+_See the note on "msb" in this Wikipedia article: https://en.wikipedia.org/wiki/Find_first_set
 
 Each step in this implementation is equivalent to this high-level code:
 
@@ -9373,18 +9411,18 @@ The Yul instructions used below are:
 - "gt" is "greater than"
 - "or" is the OR bitwise operator
 - "shl" is "shift left"
-- "shr" is "shift right"\_
+- "shr" is "shift right"_
 
 ### Parameters
 
-| Name | Type    | Description                                                                 |
-| ---- | ------- | --------------------------------------------------------------------------- |
-| x    | uint256 | The uint256 number for which to find the index of the most significant bit. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | uint256 | The uint256 number for which to find the index of the most significant bit. |
 
 ### Return Values
 
-| Name   | Type    | Description                                         |
-| ------ | ------- | --------------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | uint256 | The index of the most significant bit as a uint256. |
 
 ## mulDiv
@@ -9393,31 +9431,29 @@ The Yul instructions used below are:
 function mulDiv(uint256 x, uint256 y, uint256 denominator) internal pure returns (uint256 result)
 ```
 
-Calculates x\*y÷denominator with 512-bit precision.
+Calculates x*y÷denominator with 512-bit precision.
 
-\_Credits to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv.
+_Credits to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv.
 
 Notes:
-
 - The result is rounded toward zero.
 
 Requirements:
-
 - The denominator must not be zero.
-- The result must fit in uint256.\_
+- The result must fit in uint256._
 
 ### Parameters
 
-| Name        | Type    | Description                    |
-| ----------- | ------- | ------------------------------ |
-| x           | uint256 | The multiplicand as a uint256. |
-| y           | uint256 | The multiplier as a uint256.   |
-| denominator | uint256 | The divisor as a uint256.      |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | uint256 | The multiplicand as a uint256. |
+| y | uint256 | The multiplier as a uint256. |
+| denominator | uint256 | The divisor as a uint256. |
 
 ### Return Values
 
-| Name   | Type    | Description              |
-| ------ | ------- | ------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | uint256 | The result as a uint256. |
 
 ## mulDiv18
@@ -9426,12 +9462,11 @@ Requirements:
 function mulDiv18(uint256 x, uint256 y) internal pure returns (uint256 result)
 ```
 
-Calculates x\*y÷1e18 with 512-bit precision.
+Calculates x*y÷1e18 with 512-bit precision.
 
-\_A variant of {mulDiv} with constant folding, i.e. in which the denominator is hard coded to 1e18.
+_A variant of {mulDiv} with constant folding, i.e. in which the denominator is hard coded to 1e18.
 
 Notes:
-
 - The body is purposely left uncommented; to understand how this works, see the documentation in {mulDiv}.
 - The result is rounded toward zero.
 - We take as an axiom that the result cannot be `MAX_UINT256` when x and y solve the following system of equations:
@@ -9444,21 +9479,20 @@ $$
 $$
 
 Requirements:
-
 - Refer to the requirements in {mulDiv}.
-- The result must fit in uint256.\_
+- The result must fit in uint256._
 
 ### Parameters
 
-| Name | Type    | Description                                                       |
-| ---- | ------- | ----------------------------------------------------------------- |
-| x    | uint256 | The multiplicand as an unsigned 60.18-decimal fixed-point number. |
-| y    | uint256 | The multiplier as an unsigned 60.18-decimal fixed-point number.   |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | uint256 | The multiplicand as an unsigned 60.18-decimal fixed-point number. |
+| y | uint256 | The multiplier as an unsigned 60.18-decimal fixed-point number. |
 
 ### Return Values
 
-| Name   | Type    | Description                                                 |
-| ------ | ------- | ----------------------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | uint256 | The result as an unsigned 60.18-decimal fixed-point number. |
 
 ## mulDivSigned
@@ -9467,32 +9501,30 @@ Requirements:
 function mulDivSigned(int256 x, int256 y, int256 denominator) internal pure returns (int256 result)
 ```
 
-Calculates x\*y÷denominator with 512-bit precision.
+Calculates x*y÷denominator with 512-bit precision.
 
-\_This is an extension of {mulDiv} for signed numbers, which works by computing the signs and the absolute values separately.
+_This is an extension of {mulDiv} for signed numbers, which works by computing the signs and the absolute values separately.
 
 Notes:
-
 - The result is rounded toward zero.
 
 Requirements:
-
 - Refer to the requirements in {mulDiv}.
 - None of the inputs can be `type(int256).min`.
-- The result must fit in int256.\_
+- The result must fit in int256._
 
 ### Parameters
 
-| Name        | Type   | Description                    |
-| ----------- | ------ | ------------------------------ |
-| x           | int256 | The multiplicand as an int256. |
-| y           | int256 | The multiplier as an int256.   |
-| denominator | int256 | The divisor as an int256.      |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | int256 | The multiplicand as an int256. |
+| y | int256 | The multiplier as an int256. |
+| denominator | int256 | The divisor as an int256. |
 
 ### Return Values
 
-| Name   | Type   | Description              |
-| ------ | ------ | ------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | int256 | The result as an int256. |
 
 ## sqrt
@@ -9503,23 +9535,22 @@ function sqrt(uint256 x) internal pure returns (uint256 result)
 
 Calculates the square root of x using the Babylonian method.
 
-\_See https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
+_See https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
 
 Notes:
-
 - If x is not a perfect square, the result is rounded down.
-- Credits to OpenZeppelin for the explanations in comments below.\_
+- Credits to OpenZeppelin for the explanations in comments below._
 
 ### Parameters
 
-| Name | Type    | Description                                                |
-| ---- | ------- | ---------------------------------------------------------- |
-| x    | uint256 | The uint256 number for which to calculate the square root. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | uint256 | The uint256 number for which to calculate the square root. |
 
 ### Return Values
 
-| Name   | Type    | Description              |
-| ------ | ------- | ------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | uint256 | The result as a uint256. |
 
 ## PRBMath_IntoSD1x18_Overflow
@@ -9550,9 +9581,8 @@ function intoSD1x18(uint128 x) internal pure returns (SD1x18 result)
 
 Casts a uint128 number to SD1x18.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_SD1x18`.\_
+_Requirements:
+- x must be less than or equal to `MAX_SD1x18`._
 
 ### intoSD59x18
 
@@ -9572,9 +9602,8 @@ function intoUD2x18(uint128 x) internal pure returns (UD2x18 result)
 
 Casts a uint128 number to UD2x18.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_SD1x18`.\_
+_Requirements:
+- x must be less than or equal to `MAX_SD1x18`._
 
 ### intoUD60x18
 
@@ -9622,9 +9651,8 @@ function intoSD1x18(uint256 x) internal pure returns (SD1x18 result)
 
 Casts a uint256 number to SD1x18.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_SD1x18`.\_
+_Requirements:
+- x must be less than or equal to `MAX_SD1x18`._
 
 ### intoSD59x18
 
@@ -9634,9 +9662,8 @@ function intoSD59x18(uint256 x) internal pure returns (SD59x18 result)
 
 Casts a uint256 number to SD59x18.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_SD59x18`.\_
+_Requirements:
+- x must be less than or equal to `MAX_SD59x18`._
 
 ### intoUD2x18
 
@@ -9715,7 +9742,6 @@ function intoUD2x18(SD1x18 x) internal pure returns (UD2x18 result)
 ```
 
 Casts an SD1x18 number into UD2x18.
-
 - x must be positive.
 
 ## intoUD60x18
@@ -9726,9 +9752,8 @@ function intoUD60x18(SD1x18 x) internal pure returns (UD60x18 result)
 
 Casts an SD1x18 number into UD60x18.
 
-\_Requirements:
-
-- x must be positive.\_
+_Requirements:
+- x must be positive._
 
 ## intoUint256
 
@@ -9738,9 +9763,8 @@ function intoUint256(SD1x18 x) internal pure returns (uint256 result)
 
 Casts an SD1x18 number into uint256.
 
-\_Requirements:
-
-- x must be positive.\_
+_Requirements:
+- x must be positive._
 
 ## intoUint128
 
@@ -9750,9 +9774,8 @@ function intoUint128(SD1x18 x) internal pure returns (uint128 result)
 
 Casts an SD1x18 number into uint128.
 
-\_Requirements:
-
-- x must be positive.\_
+_Requirements:
+- x must be positive._
 
 ## intoUint40
 
@@ -9762,10 +9785,9 @@ function intoUint40(SD1x18 x) internal pure returns (uint40 result)
 
 Casts an SD1x18 number into uint40.
 
-\_Requirements:
-
+_Requirements:
 - x must be positive.
-- x must be less than or equal to `MAX_UINT40`.\_
+- x must be less than or equal to `MAX_UINT40`._
 
 ## sd1x18
 
@@ -9907,10 +9929,9 @@ function intoSD1x18(SD59x18 x) internal pure returns (SD1x18 result)
 
 Casts an SD59x18 number into SD1x18.
 
-\_Requirements:
-
+_Requirements:
 - x must be greater than or equal to `uMIN_SD1x18`.
-- x must be less than or equal to `uMAX_SD1x18`.\_
+- x must be less than or equal to `uMAX_SD1x18`._
 
 ## intoUD2x18
 
@@ -9920,10 +9941,9 @@ function intoUD2x18(SD59x18 x) internal pure returns (UD2x18 result)
 
 Casts an SD59x18 number into UD2x18.
 
-\_Requirements:
-
+_Requirements:
 - x must be positive.
-- x must be less than or equal to `uMAX_UD2x18`.\_
+- x must be less than or equal to `uMAX_UD2x18`._
 
 ## intoUD60x18
 
@@ -9933,9 +9953,8 @@ function intoUD60x18(SD59x18 x) internal pure returns (UD60x18 result)
 
 Casts an SD59x18 number into UD60x18.
 
-\_Requirements:
-
-- x must be positive.\_
+_Requirements:
+- x must be positive._
 
 ## intoUint256
 
@@ -9945,9 +9964,8 @@ function intoUint256(SD59x18 x) internal pure returns (uint256 result)
 
 Casts an SD59x18 number into uint256.
 
-\_Requirements:
-
-- x must be positive.\_
+_Requirements:
+- x must be positive._
 
 ## intoUint128
 
@@ -9957,10 +9975,9 @@ function intoUint128(SD59x18 x) internal pure returns (uint128 result)
 
 Casts an SD59x18 number into uint128.
 
-\_Requirements:
-
+_Requirements:
 - x must be positive.
-- x must be less than or equal to `uMAX_UINT128`.\_
+- x must be less than or equal to `uMAX_UINT128`._
 
 ## intoUint40
 
@@ -9970,10 +9987,9 @@ function intoUint40(SD59x18 x) internal pure returns (uint40 result)
 
 Casts an SD59x18 number into uint40.
 
-\_Requirements:
-
+_Requirements:
 - x must be positive.
-- x must be less than or equal to `MAX_UINT40`.\_
+- x must be less than or equal to `MAX_UINT40`._
 
 ## sd
 
@@ -10165,16 +10181,15 @@ function convert(int256 x) internal pure returns (SD59x18 result)
 
 Converts a simple integer to SD59x18 by multiplying it by `UNIT`.
 
-\_Requirements:
-
+_Requirements:
 - x must be greater than or equal to `MIN_SD59x18 / UNIT`.
-- x must be less than or equal to `MAX_SD59x18 / UNIT`.\_
+- x must be less than or equal to `MAX_SD59x18 / UNIT`._
 
 ### Parameters
 
-| Name | Type   | Description                   |
-| ---- | ------ | ----------------------------- |
-| x    | int256 | The basic integer to convert. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | int256 | The basic integer to convert. |
 
 ## convert
 
@@ -10188,14 +10203,14 @@ _The result is rounded toward zero._
 
 ### Parameters
 
-| Name | Type    | Description                    |
-| ---- | ------- | ------------------------------ |
-| x    | SD59x18 | The SD59x18 number to convert. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number to convert. |
 
 ### Return Values
 
-| Name   | Type   | Description                          |
-| ------ | ------ | ------------------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | int256 | The same number as a simple integer. |
 
 ## PRBMath_SD59x18_Abs_MinSD59x18
@@ -10590,15 +10605,14 @@ function abs(SD59x18 x) internal pure returns (SD59x18 result)
 
 Calculates the absolute value of x.
 
-\_Requirements:
-
-- x must be greater than `MIN_SD59x18`.\_
+_Requirements:
+- x must be greater than `MIN_SD59x18`._
 
 ### Parameters
 
-| Name | Type    | Description                                                   |
-| ---- | ------- | ------------------------------------------------------------- |
-| x    | SD59x18 | The SD59x18 number for which to calculate the absolute value. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number for which to calculate the absolute value. |
 
 ## avg
 
@@ -10608,21 +10622,20 @@ function avg(SD59x18 x, SD59x18 y) internal pure returns (SD59x18 result)
 
 Calculates the arithmetic average of x and y.
 
-\_Notes:
-
-- The result is rounded toward zero.\_
+_Notes:
+- The result is rounded toward zero._
 
 ### Parameters
 
-| Name | Type    | Description                              |
-| ---- | ------- | ---------------------------------------- |
-| x    | SD59x18 | The first operand as an SD59x18 number.  |
-| y    | SD59x18 | The second operand as an SD59x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The first operand as an SD59x18 number. |
+| y | SD59x18 | The second operand as an SD59x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                                  |
-| ------ | ------- | -------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The arithmetic average as an SD59x18 number. |
 
 ## ceil
@@ -10633,18 +10646,17 @@ function ceil(SD59x18 x) internal pure returns (SD59x18 result)
 
 Yields the smallest whole number greater than or equal to x.
 
-\_Optimized for fractional value inputs, because every whole value has (1e18 - 1) fractional counterparts.
+_Optimized for fractional value inputs, because every whole value has (1e18 - 1) fractional counterparts.
 See https://en.wikipedia.org/wiki/Floor_and_ceiling_functions.
 
 Requirements:
-
-- x must be less than or equal to `MAX_WHOLE_SD59x18`.\_
+- x must be less than or equal to `MAX_WHOLE_SD59x18`._
 
 ### Parameters
 
-| Name | Type    | Description                 |
-| ---- | ------- | --------------------------- |
-| x    | SD59x18 | The SD59x18 number to ceil. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number to ceil. |
 
 ## div
 
@@ -10654,27 +10666,25 @@ function div(SD59x18 x, SD59x18 y) internal pure returns (SD59x18 result)
 
 Divides two SD59x18 numbers, returning a new SD59x18 number.
 
-\_This is an extension of {Common.mulDiv} for signed numbers, which works by computing the signs and the absolute
+_This is an extension of {Common.mulDiv} for signed numbers, which works by computing the signs and the absolute
 values separately.
 
 Notes:
-
 - Refer to the notes in {Common.mulDiv}.
 - The result is rounded toward zero.
 
 Requirements:
-
 - Refer to the requirements in {Common.mulDiv}.
 - None of the inputs can be `MIN_SD59x18`.
 - The denominator must not be zero.
-- The result must fit in SD59x18.\_
+- The result must fit in SD59x18._
 
 ### Parameters
 
-| Name | Type    | Description                           |
-| ---- | ------- | ------------------------------------- |
-| x    | SD59x18 | The numerator as an SD59x18 number.   |
-| y    | SD59x18 | The denominator as an SD59x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The numerator as an SD59x18 number. |
+| y | SD59x18 | The denominator as an SD59x18 number. |
 
 ## exp
 
@@ -10688,25 +10698,23 @@ $$
 e^x = 2^{x * log_2{e}}
 $$
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {exp2}.
 
 Requirements:
-
 - Refer to the requirements in {exp2}.
-- x must be less than 133*084258667509499441.*
+- x must be less than 133_084258667509499441._
 
 ### Parameters
 
-| Name | Type    | Description                        |
-| ---- | ------- | ---------------------------------- |
-| x    | SD59x18 | The exponent as an SD59x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The exponent as an SD59x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                      |
-| ------ | ------- | -------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The result as an SD59x18 number. |
 
 ## exp2
@@ -10721,27 +10729,25 @@ $$
 2^{-x} = \frac{1}{2^x}
 $$
 
-\_See https://ethereum.stackexchange.com/q/79903/24693.
+_See https://ethereum.stackexchange.com/q/79903/24693.
 
 Notes:
-
 - If x is less than -59_794705707972522261, the result is zero.
 
 Requirements:
-
 - x must be less than 192e18.
-- The result must fit in SD59x18.\_
+- The result must fit in SD59x18._
 
 ### Parameters
 
-| Name | Type    | Description                        |
-| ---- | ------- | ---------------------------------- |
-| x    | SD59x18 | The exponent as an SD59x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The exponent as an SD59x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                      |
-| ------ | ------- | -------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The result as an SD59x18 number. |
 
 ## floor
@@ -10752,18 +10758,17 @@ function floor(SD59x18 x) internal pure returns (SD59x18 result)
 
 Yields the greatest whole number less than or equal to x.
 
-\_Optimized for fractional value inputs, because for every whole value there are (1e18 - 1) fractional
+_Optimized for fractional value inputs, because for every whole value there are (1e18 - 1) fractional
 counterparts. See https://en.wikipedia.org/wiki/Floor_and_ceiling_functions.
 
 Requirements:
-
-- x must be greater than or equal to `MIN_WHOLE_SD59x18`.\_
+- x must be greater than or equal to `MIN_WHOLE_SD59x18`._
 
 ### Parameters
 
-| Name | Type    | Description                  |
-| ---- | ------- | ---------------------------- |
-| x    | SD59x18 | The SD59x18 number to floor. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number to floor. |
 
 ## frac
 
@@ -10778,9 +10783,9 @@ _Based on the odd function definition. https://en.wikipedia.org/wiki/Fractional_
 
 ### Parameters
 
-| Name | Type    | Description                                       |
-| ---- | ------- | ------------------------------------------------- |
-| x    | SD59x18 | The SD59x18 number to get the fractional part of. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number to get the fractional part of. |
 
 ## gm
 
@@ -10790,26 +10795,24 @@ function gm(SD59x18 x, SD59x18 y) internal pure returns (SD59x18 result)
 
 Calculates the geometric mean of x and y, i.e. $\sqrt{x * y}$.
 
-\_Notes:
-
+_Notes:
 - The result is rounded toward zero.
 
 Requirements:
-
-- x \* y must fit in SD59x18.
-- x \* y must not be negative, since complex numbers are not supported.\_
+- x * y must fit in SD59x18.
+- x * y must not be negative, since complex numbers are not supported._
 
 ### Parameters
 
-| Name | Type    | Description                              |
-| ---- | ------- | ---------------------------------------- |
-| x    | SD59x18 | The first operand as an SD59x18 number.  |
-| y    | SD59x18 | The second operand as an SD59x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The first operand as an SD59x18 number. |
+| y | SD59x18 | The second operand as an SD59x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                      |
-| ------ | ------- | -------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The result as an SD59x18 number. |
 
 ## inv
@@ -10820,24 +10823,22 @@ function inv(SD59x18 x) internal pure returns (SD59x18 result)
 
 Calculates the inverse of x.
 
-\_Notes:
-
+_Notes:
 - The result is rounded toward zero.
 
 Requirements:
-
-- x must not be zero.\_
+- x must not be zero._
 
 ### Parameters
 
-| Name | Type    | Description                                            |
-| ---- | ------- | ------------------------------------------------------ |
-| x    | SD59x18 | The SD59x18 number for which to calculate the inverse. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number for which to calculate the inverse. |
 
 ### Return Values
 
-| Name   | Type    | Description                       |
-| ------ | ------- | --------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The inverse as an SD59x18 number. |
 
 ## ln
@@ -10852,25 +10853,23 @@ $$
 ln{x} = log_2{x} / log_2{e}
 $$
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {log2}.
 - The precision isn't sufficiently fine-grained to return exactly `UNIT` when the input is `E`.
 
 Requirements:
-
-- Refer to the requirements in {log2}.\_
+- Refer to the requirements in {log2}._
 
 ### Parameters
 
-| Name | Type    | Description                                                      |
-| ---- | ------- | ---------------------------------------------------------------- |
-| x    | SD59x18 | The SD59x18 number for which to calculate the natural logarithm. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number for which to calculate the natural logarithm. |
 
 ### Return Values
 
-| Name   | Type    | Description                                 |
-| ------ | ------- | ------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The natural logarithm as an SD59x18 number. |
 
 ## log10
@@ -10887,24 +10886,22 @@ $$
 
 However, if x is an exact power of ten, a hard coded value is returned.
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {log2}.
 
 Requirements:
-
-- Refer to the requirements in {log2}.\_
+- Refer to the requirements in {log2}._
 
 ### Parameters
 
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| x    | SD59x18 | The SD59x18 number for which to calculate the common logarithm. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number for which to calculate the common logarithm. |
 
 ### Return Values
 
-| Name   | Type    | Description                                |
-| ------ | ------- | ------------------------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The common logarithm as an SD59x18 number. |
 
 ## log2
@@ -10925,26 +10922,24 @@ $$
 log_2{x} = -log_2{\frac{1}{x}}
 $$
 
-\_See https://en.wikipedia.org/wiki/Binary_logarithm#Iterative_approximation.
+_See https://en.wikipedia.org/wiki/Binary_logarithm#Iterative_approximation.
 
 Notes:
-
 - Due to the lossy precision of the iterative approximation, the results are not perfectly accurate to the last decimal.
 
 Requirements:
-
-- x must be greater than zero.\_
+- x must be greater than zero._
 
 ### Parameters
 
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| x    | SD59x18 | The SD59x18 number for which to calculate the binary logarithm. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number for which to calculate the binary logarithm. |
 
 ### Return Values
 
-| Name   | Type    | Description                                |
-| ------ | ------- | ------------------------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The binary logarithm as an SD59x18 number. |
 
 ## mul
@@ -10955,27 +10950,25 @@ function mul(SD59x18 x, SD59x18 y) internal pure returns (SD59x18 result)
 
 Multiplies two SD59x18 numbers together, returning a new SD59x18 number.
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {Common.mulDiv18}.
 
 Requirements:
-
 - Refer to the requirements in {Common.mulDiv18}.
 - None of the inputs can be `MIN_SD59x18`.
-- The result must fit in SD59x18.\_
+- The result must fit in SD59x18._
 
 ### Parameters
 
-| Name | Type    | Description                            |
-| ---- | ------- | -------------------------------------- |
-| x    | SD59x18 | The multiplicand as an SD59x18 number. |
-| y    | SD59x18 | The multiplier as an SD59x18 number.   |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The multiplicand as an SD59x18 number. |
+| y | SD59x18 | The multiplier as an SD59x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                       |
-| ------ | ------- | --------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The product as an SD59x18 number. |
 
 ## pow
@@ -10990,26 +10983,24 @@ $$
 x^y = 2^{log_2{x} * y}
 $$
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {exp2}, {log2}, and {mul}.
 - Returns `UNIT` for 0^0.
 
 Requirements:
-
-- Refer to the requirements in {exp2}, {log2}, and {mul}.\_
+- Refer to the requirements in {exp2}, {log2}, and {mul}._
 
 ### Parameters
 
-| Name | Type    | Description                                  |
-| ---- | ------- | -------------------------------------------- |
-| x    | SD59x18 | The base as an SD59x18 number.               |
-| y    | SD59x18 | Exponent to raise x to, as an SD59x18 number |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The base as an SD59x18 number. |
+| y | SD59x18 | Exponent to raise x to, as an SD59x18 number |
 
 ### Return Values
 
-| Name   | Type    | Description                                |
-| ------ | ------- | ------------------------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | x raised to power y, as an SD59x18 number. |
 
 ## powu
@@ -11021,29 +11012,27 @@ function powu(SD59x18 x, uint256 y) internal pure returns (SD59x18 result)
 Raises x (an SD59x18 number) to the power y (an unsigned basic integer) using the well-known
 algorithm "exponentiation by squaring".
 
-\_See https://en.wikipedia.org/wiki/Exponentiation_by_squaring.
+_See https://en.wikipedia.org/wiki/Exponentiation_by_squaring.
 
 Notes:
-
 - Refer to the notes in {Common.mulDiv18}.
 - Returns `UNIT` for 0^0.
 
 Requirements:
-
 - Refer to the requirements in {abs} and {Common.mulDiv18}.
-- The result must fit in SD59x18.\_
+- The result must fit in SD59x18._
 
 ### Parameters
 
-| Name | Type    | Description                    |
-| ---- | ------- | ------------------------------ |
-| x    | SD59x18 | The base as an SD59x18 number. |
-| y    | uint256 | The exponent as a uint256.     |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The base as an SD59x18 number. |
+| y | uint256 | The exponent as a uint256. |
 
 ### Return Values
 
-| Name   | Type    | Description                      |
-| ------ | ------- | -------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The result as an SD59x18 number. |
 
 ## sqrt
@@ -11054,28 +11043,26 @@ function sqrt(SD59x18 x) internal pure returns (SD59x18 result)
 
 Calculates the square root of x using the Babylonian method.
 
-\_See https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
+_See https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
 
 Notes:
-
 - Only the positive root is returned.
 - The result is rounded toward zero.
 
 Requirements:
-
 - x cannot be negative, since complex numbers are not supported.
-- x must be less than `MAX_SD59x18 / UNIT`.\_
+- x must be less than `MAX_SD59x18 / UNIT`._
 
 ### Parameters
 
-| Name | Type    | Description                                                |
-| ---- | ------- | ---------------------------------------------------------- |
-| x    | SD59x18 | The SD59x18 number for which to calculate the square root. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | SD59x18 | The SD59x18 number for which to calculate the square root. |
 
 ### Return Values
 
-| Name   | Type    | Description                      |
-| ------ | ------- | -------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | SD59x18 | The result as an SD59x18 number. |
 
 ## SD59x18
@@ -11087,7 +11074,6 @@ function intoSD1x18(UD2x18 x) internal pure returns (SD1x18 result)
 ```
 
 Casts a UD2x18 number into SD1x18.
-
 - x must be less than or equal to `uMAX_SD1x18`.
 
 ## intoSD59x18
@@ -11138,9 +11124,8 @@ function intoUint40(UD2x18 x) internal pure returns (uint40 result)
 
 Casts a UD2x18 number into uint40.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_UINT40`.\_
+_Requirements:
+- x must be less than or equal to `MAX_UINT40`._
 
 ## ud2x18
 
@@ -11228,9 +11213,8 @@ function intoSD1x18(UD60x18 x) internal pure returns (SD1x18 result)
 
 Casts a UD60x18 number into SD1x18.
 
-\_Requirements:
-
-- x must be less than or equal to `uMAX_SD1x18`.\_
+_Requirements:
+- x must be less than or equal to `uMAX_SD1x18`._
 
 ## intoUD2x18
 
@@ -11240,9 +11224,8 @@ function intoUD2x18(UD60x18 x) internal pure returns (UD2x18 result)
 
 Casts a UD60x18 number into UD2x18.
 
-\_Requirements:
-
-- x must be less than or equal to `uMAX_UD2x18`.\_
+_Requirements:
+- x must be less than or equal to `uMAX_UD2x18`._
 
 ## intoSD59x18
 
@@ -11252,9 +11235,8 @@ function intoSD59x18(UD60x18 x) internal pure returns (SD59x18 result)
 
 Casts a UD60x18 number into SD59x18.
 
-\_Requirements:
-
-- x must be less than or equal to `uMAX_SD59x18`.\_
+_Requirements:
+- x must be less than or equal to `uMAX_SD59x18`._
 
 ## intoUint256
 
@@ -11274,9 +11256,8 @@ function intoUint128(UD60x18 x) internal pure returns (uint128 result)
 
 Casts a UD60x18 number into uint128.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_UINT128`.\_
+_Requirements:
+- x must be less than or equal to `MAX_UINT128`._
 
 ## intoUint40
 
@@ -11286,9 +11267,8 @@ function intoUint40(UD60x18 x) internal pure returns (uint40 result)
 
 Casts a UD60x18 number into uint40.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_UINT40`.\_
+_Requirements:
+- x must be less than or equal to `MAX_UINT40`._
 
 ## ud
 
@@ -11460,14 +11440,14 @@ _The result is rounded toward zero._
 
 ### Parameters
 
-| Name | Type    | Description                    |
-| ---- | ------- | ------------------------------ |
-| x    | UD60x18 | The UD60x18 number to convert. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number to convert. |
 
 ### Return Values
 
-| Name   | Type    | Description                            |
-| ------ | ------- | -------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | uint256 | The same number in basic integer form. |
 
 ## convert
@@ -11478,15 +11458,14 @@ function convert(uint256 x) internal pure returns (UD60x18 result)
 
 Converts a simple integer to UD60x18 by multiplying it by `UNIT`.
 
-\_Requirements:
-
-- x must be less than or equal to `MAX_UD60x18 / UNIT`.\_
+_Requirements:
+- x must be less than or equal to `MAX_UD60x18 / UNIT`._
 
 ### Parameters
 
-| Name | Type    | Description                   |
-| ---- | ------- | ----------------------------- |
-| x    | uint256 | The basic integer to convert. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | uint256 | The basic integer to convert. |
 
 ## PRBMath_UD60x18_Ceil_Overflow
 
@@ -11757,21 +11736,20 @@ In English, this is what this formula does:
 This technique is known as SWAR, which stands for "SIMD within a register". You can read more about it here:
 https://devblogs.microsoft.com/oldnewthing/20220207-00/?p=106223
 
-\_Notes:
-
-- The result is rounded toward zero.\_
+_Notes:
+- The result is rounded toward zero._
 
 ### Parameters
 
-| Name | Type    | Description                             |
-| ---- | ------- | --------------------------------------- |
-| x    | UD60x18 | The first operand as a UD60x18 number.  |
-| y    | UD60x18 | The second operand as a UD60x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The first operand as a UD60x18 number. |
+| y | UD60x18 | The second operand as a UD60x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                                 |
-| ------ | ------- | ------------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The arithmetic average as a UD60x18 number. |
 
 ## ceil
@@ -11782,18 +11760,17 @@ function ceil(UD60x18 x) internal pure returns (UD60x18 result)
 
 Yields the smallest whole number greater than or equal to x.
 
-\_This is optimized for fractional value inputs, because for every whole value there are (1e18 - 1) fractional
+_This is optimized for fractional value inputs, because for every whole value there are (1e18 - 1) fractional
 counterparts. See https://en.wikipedia.org/wiki/Floor_and_ceiling_functions.
 
 Requirements:
-
-- x must be less than or equal to `MAX_WHOLE_UD60x18`.\_
+- x must be less than or equal to `MAX_WHOLE_UD60x18`._
 
 ### Parameters
 
-| Name | Type    | Description                 |
-| ---- | ------- | --------------------------- |
-| x    | UD60x18 | The UD60x18 number to ceil. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number to ceil. |
 
 ## div
 
@@ -11803,22 +11780,20 @@ function div(UD60x18 x, UD60x18 y) internal pure returns (UD60x18 result)
 
 Divides two UD60x18 numbers, returning a new UD60x18 number.
 
-\_Uses {Common.mulDiv} to enable overflow-safe multiplication and division.
+_Uses {Common.mulDiv} to enable overflow-safe multiplication and division.
 
 Notes:
-
 - Refer to the notes in {Common.mulDiv}.
 
 Requirements:
-
-- Refer to the requirements in {Common.mulDiv}.\_
+- Refer to the requirements in {Common.mulDiv}._
 
 ### Parameters
 
-| Name | Type    | Description                          |
-| ---- | ------- | ------------------------------------ |
-| x    | UD60x18 | The numerator as a UD60x18 number.   |
-| y    | UD60x18 | The denominator as a UD60x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The numerator as a UD60x18 number. |
+| y | UD60x18 | The denominator as a UD60x18 number. |
 
 ## exp
 
@@ -11832,20 +11807,19 @@ $$
 e^x = 2^{x * log_2{e}}
 $$
 
-\_Requirements:
-
-- x must be less than 133*084258667509499441.*
+_Requirements:
+- x must be less than 133_084258667509499441._
 
 ### Parameters
 
-| Name | Type    | Description                       |
-| ---- | ------- | --------------------------------- |
-| x    | UD60x18 | The exponent as a UD60x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The exponent as a UD60x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                     |
-| ------ | ------- | ------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The result as a UD60x18 number. |
 
 ## exp2
@@ -11856,23 +11830,22 @@ function exp2(UD60x18 x) internal pure returns (UD60x18 result)
 
 Calculates the binary exponent of x using the binary fraction method.
 
-\_See https://ethereum.stackexchange.com/q/79903/24693
+_See https://ethereum.stackexchange.com/q/79903/24693
 
 Requirements:
-
 - x must be less than 192e18.
-- The result must fit in UD60x18.\_
+- The result must fit in UD60x18._
 
 ### Parameters
 
-| Name | Type    | Description                       |
-| ---- | ------- | --------------------------------- |
-| x    | UD60x18 | The exponent as a UD60x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The exponent as a UD60x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                     |
-| ------ | ------- | ------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The result as a UD60x18 number. |
 
 ## floor
@@ -11888,9 +11861,9 @@ See https://en.wikipedia.org/wiki/Floor_and_ceiling_functions._
 
 ### Parameters
 
-| Name | Type    | Description                  |
-| ---- | ------- | ---------------------------- |
-| x    | UD60x18 | The UD60x18 number to floor. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number to floor. |
 
 ## frac
 
@@ -11904,9 +11877,9 @@ _See https://en.wikipedia.org/wiki/Fractional_part._
 
 ### Parameters
 
-| Name | Type    | Description                                       |
-| ---- | ------- | ------------------------------------------------- |
-| x    | UD60x18 | The UD60x18 number to get the fractional part of. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number to get the fractional part of. |
 
 ## gm
 
@@ -11916,21 +11889,20 @@ function gm(UD60x18 x, UD60x18 y) internal pure returns (UD60x18 result)
 
 Calculates the geometric mean of x and y, i.e. $\sqrt{x * y}$, rounding down.
 
-\_Requirements:
-
-- x \* y must fit in UD60x18.\_
+_Requirements:
+- x * y must fit in UD60x18._
 
 ### Parameters
 
-| Name | Type    | Description                             |
-| ---- | ------- | --------------------------------------- |
-| x    | UD60x18 | The first operand as a UD60x18 number.  |
-| y    | UD60x18 | The second operand as a UD60x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The first operand as a UD60x18 number. |
+| y | UD60x18 | The second operand as a UD60x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                     |
-| ------ | ------- | ------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The result as a UD60x18 number. |
 
 ## inv
@@ -11941,24 +11913,22 @@ function inv(UD60x18 x) internal pure returns (UD60x18 result)
 
 Calculates the inverse of x.
 
-\_Notes:
-
+_Notes:
 - The result is rounded toward zero.
 
 Requirements:
-
-- x must not be zero.\_
+- x must not be zero._
 
 ### Parameters
 
-| Name | Type    | Description                                            |
-| ---- | ------- | ------------------------------------------------------ |
-| x    | UD60x18 | The UD60x18 number for which to calculate the inverse. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number for which to calculate the inverse. |
 
 ### Return Values
 
-| Name   | Type    | Description                      |
-| ------ | ------- | -------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The inverse as a UD60x18 number. |
 
 ## ln
@@ -11973,25 +11943,23 @@ $$
 ln{x} = log_2{x} / log_2{e}
 $$
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {log2}.
 - The precision isn't sufficiently fine-grained to return exactly `UNIT` when the input is `E`.
 
 Requirements:
-
-- Refer to the requirements in {log2}.\_
+- Refer to the requirements in {log2}._
 
 ### Parameters
 
-| Name | Type    | Description                                                      |
-| ---- | ------- | ---------------------------------------------------------------- |
-| x    | UD60x18 | The UD60x18 number for which to calculate the natural logarithm. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number for which to calculate the natural logarithm. |
 
 ### Return Values
 
-| Name   | Type    | Description                                |
-| ------ | ------- | ------------------------------------------ |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The natural logarithm as a UD60x18 number. |
 
 ## log10
@@ -12008,24 +11976,22 @@ $$
 
 However, if x is an exact power of ten, a hard coded value is returned.
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {log2}.
 
 Requirements:
-
-- Refer to the requirements in {log2}.\_
+- Refer to the requirements in {log2}._
 
 ### Parameters
 
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| x    | UD60x18 | The UD60x18 number for which to calculate the common logarithm. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number for which to calculate the common logarithm. |
 
 ### Return Values
 
-| Name   | Type    | Description                               |
-| ------ | ------- | ----------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The common logarithm as a UD60x18 number. |
 
 ## log2
@@ -12046,26 +12012,24 @@ $$
 log_2{x} = -log_2{\frac{1}{x}}
 $$
 
-\_See https://en.wikipedia.org/wiki/Binary_logarithm#Iterative_approximation
+_See https://en.wikipedia.org/wiki/Binary_logarithm#Iterative_approximation
 
 Notes:
-
 - Due to the lossy precision of the iterative approximation, the results are not perfectly accurate to the last decimal.
 
 Requirements:
-
-- x must be greater than zero.\_
+- x must be greater than zero._
 
 ### Parameters
 
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| x    | UD60x18 | The UD60x18 number for which to calculate the binary logarithm. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number for which to calculate the binary logarithm. |
 
 ### Return Values
 
-| Name   | Type    | Description                               |
-| ------ | ------- | ----------------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The binary logarithm as a UD60x18 number. |
 
 ## mul
@@ -12076,29 +12040,27 @@ function mul(UD60x18 x, UD60x18 y) internal pure returns (UD60x18 result)
 
 Multiplies two UD60x18 numbers together, returning a new UD60x18 number.
 
-\_Uses {Common.mulDiv} to enable overflow-safe multiplication and division.
+_Uses {Common.mulDiv} to enable overflow-safe multiplication and division.
 
 Notes:
-
 - Refer to the notes in {Common.mulDiv}.
 
 Requirements:
-
 - Refer to the requirements in {Common.mulDiv}.
 
-See the documentation in {Common.mulDiv18}.\_
+See the documentation in {Common.mulDiv18}._
 
 ### Parameters
 
-| Name | Type    | Description                           |
-| ---- | ------- | ------------------------------------- |
-| x    | UD60x18 | The multiplicand as a UD60x18 number. |
-| y    | UD60x18 | The multiplier as a UD60x18 number.   |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The multiplicand as a UD60x18 number. |
+| y | UD60x18 | The multiplier as a UD60x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                      |
-| ------ | ------- | -------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The product as a UD60x18 number. |
 
 ## pow
@@ -12123,27 +12085,25 @@ w = 2^{log_2{i} * y}
 x^y = \frac{1}{w}
 $$
 
-\_Notes:
-
+_Notes:
 - Refer to the notes in {log2} and {mul}.
 - Returns `UNIT` for 0^0.
 - It may not perform well with very small values of x. Consider using SD59x18 as an alternative.
 
 Requirements:
-
-- Refer to the requirements in {exp2}, {log2}, and {mul}.\_
+- Refer to the requirements in {exp2}, {log2}, and {mul}._
 
 ### Parameters
 
-| Name | Type    | Description                       |
-| ---- | ------- | --------------------------------- |
-| x    | UD60x18 | The base as a UD60x18 number.     |
-| y    | UD60x18 | The exponent as a UD60x18 number. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The base as a UD60x18 number. |
+| y | UD60x18 | The exponent as a UD60x18 number. |
 
 ### Return Values
 
-| Name   | Type    | Description                     |
-| ------ | ------- | ------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The result as a UD60x18 number. |
 
 ## powu
@@ -12155,28 +12115,26 @@ function powu(UD60x18 x, uint256 y) internal pure returns (UD60x18 result)
 Raises x (a UD60x18 number) to the power y (an unsigned basic integer) using the well-known
 algorithm "exponentiation by squaring".
 
-\_See https://en.wikipedia.org/wiki/Exponentiation_by_squaring.
+_See https://en.wikipedia.org/wiki/Exponentiation_by_squaring.
 
 Notes:
-
 - Refer to the notes in {Common.mulDiv18}.
 - Returns `UNIT` for 0^0.
 
 Requirements:
-
-- The result must fit in UD60x18.\_
+- The result must fit in UD60x18._
 
 ### Parameters
 
-| Name | Type    | Description                   |
-| ---- | ------- | ----------------------------- |
-| x    | UD60x18 | The base as a UD60x18 number. |
-| y    | uint256 | The exponent as a uint256.    |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The base as a UD60x18 number. |
+| y | uint256 | The exponent as a uint256. |
 
 ### Return Values
 
-| Name   | Type    | Description                     |
-| ------ | ------- | ------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The result as a UD60x18 number. |
 
 ## sqrt
@@ -12187,445 +12145,25 @@ function sqrt(UD60x18 x) internal pure returns (UD60x18 result)
 
 Calculates the square root of x using the Babylonian method.
 
-\_See https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
+_See https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
 
 Notes:
-
 - The result is rounded toward zero.
 
 Requirements:
-
-- x must be less than `MAX_UD60x18 / UNIT`.\_
+- x must be less than `MAX_UD60x18 / UNIT`._
 
 ### Parameters
 
-| Name | Type    | Description                                                |
-| ---- | ------- | ---------------------------------------------------------- |
-| x    | UD60x18 | The UD60x18 number for which to calculate the square root. |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| x | UD60x18 | The UD60x18 number for which to calculate the square root. |
 
 ### Return Values
 
-| Name   | Type    | Description                     |
-| ------ | ------- | ------------------------------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | result | UD60x18 | The result as a UD60x18 number. |
 
 ## UD60x18
 
-## Allocator
-
-Contract for swapping native tokens for jelly tokens
-
-### i_jellyToken
-
-```solidity
-address i_jellyToken
-```
-
-### weth
-
-```solidity
-address weth
-```
-
-### nativeToJellyRatio
-
-```solidity
-uint256 nativeToJellyRatio
-```
-
-### jellySwapPoolId
-
-```solidity
-bytes32 jellySwapPoolId
-```
-
-### jellySwapVault
-
-```solidity
-address jellySwapVault
-```
-
-### isOver
-
-```solidity
-bool isOver
-```
-
-### BuyWithNative
-
-```solidity
-event BuyWithNative(uint256 nativeAmount, uint256 jellyAmount, address buyer)
-```
-
-### EndBuyingPeriod
-
-```solidity
-event EndBuyingPeriod()
-```
-
-### NativeToJellyRatioSet
-
-```solidity
-event NativeToJellyRatioSet(uint256 nativeToJellyRatio)
-```
-
-### Allocator\_\_CannotBuy
-
-```solidity
-error Allocator__CannotBuy()
-```
-
-### Allocator\_\_NoValueSent
-
-```solidity
-error Allocator__NoValueSent()
-```
-
-### canBuy
-
-```solidity
-modifier canBuy()
-```
-
-### constructor
-
-```solidity
-constructor(address _jellyToken, address _weth, uint256 _nativeToJellyRatio, address _jellySwapVault, bytes32 _jellySwapPoolId, address _owner, address _pendingOwner) public
-```
-
-### buyWithNative
-
-```solidity
-function buyWithNative() external payable
-```
-
-Buys jelly tokens with native token.
-
-### endBuyingPeriod
-
-```solidity
-function endBuyingPeriod() external
-```
-
-Ends buying period and burns remaining JellyTokens.
-
-\_Only owner can call.
-
-No return, reverts on error.\_
-
-### setNativeToJellyRatio
-
-```solidity
-function setNativeToJellyRatio(uint256 _nativeToJellyRatio) external
-```
-
-Sets native to jelly ratio.
-
-_Only owner can call._
-
-#### Parameters
-
-| Name                 | Type    | Description                                                     |
-| -------------------- | ------- | --------------------------------------------------------------- |
-| \_nativeToJellyRatio | uint256 | - ratio of native to jelly tokens. No return, reverts on error. |
-
-### \_convertERC20sToAssets
-
-```solidity
-function _convertERC20sToAssets(contract IERC20[] tokens) internal pure returns (contract IAsset[] assets)
-```
-
-## VestingLibChestTest
-
-### getVestingPosition
-
-```solidity
-function getVestingPosition(uint256 vestingIndex) public view returns (struct VestingLibChest.VestingPosition)
-```
-
-### getVestingIndex
-
-```solidity
-function getVestingIndex() public view returns (uint256)
-```
-
-### getVestedAmount
-
-```solidity
-function getVestedAmount(uint256 vestingIndex) public view returns (uint256)
-```
-
-### createNewVestingPosition
-
-```solidity
-function createNewVestingPosition(uint256 amount, uint32 cliffDuration, uint32 vestingDuration, uint120 booster, uint8 nerfParameter) public returns (struct VestingLibChest.VestingPosition)
-```
-
-### updateReleasedAmount
-
-```solidity
-function updateReleasedAmount(uint256 vestingIndex, uint256 releaseAmount) public
-```
-
-## VestingLibTest
-
-### getVestingPosition
-
-```solidity
-function getVestingPosition(uint256 vestingIndex) public view returns (struct VestingLib.VestingPosition)
-```
-
-### getVestingIndex
-
-```solidity
-function getVestingIndex() public view returns (uint256)
-```
-
-### getVestedAmount
-
-```solidity
-function getVestedAmount(uint256 vestingIndex) public view returns (uint256)
-```
-
-### createNewVestingPosition
-
-```solidity
-function createNewVestingPosition(uint256 totalVestedAmount, address beneficiary, uint32 cliffDuration, uint32 vestingDuration) public returns (struct VestingLib.VestingPosition)
-```
-
-### updateReleasedAmountPublic
-
-```solidity
-function updateReleasedAmountPublic(uint256 vestingIndex, uint256 releaseAmount) public
-```
-
-## VestingLib
-
-Vesting Library
-
-token amount
-^
-| ********\_\_********
-| /
-| /
-| /
-| /
-| /
-| <----- cliff ----->
-|
-|
---------------------.------.-------------------> time
-vesting duration
-
-_Total vested amount is stored as an immutable storage variable to prevent manipulations when calculating current releasable amount._
-
-### index
-
-```solidity
-uint256 index
-```
-
-### VestingPosition
-
-```solidity
-struct VestingPosition {
-  address beneficiary;
-  uint256 totalVestedAmount;
-  uint256 releasedAmount;
-  uint48 cliffTimestamp;
-  uint32 vestingDuration;
-}
-```
-
-### NewVestingPosition
-
-```solidity
-event NewVestingPosition(struct VestingLib.VestingPosition position, uint256 index)
-```
-
-### vestingPositions
-
-```solidity
-mapping(uint256 => struct VestingLib.VestingPosition) vestingPositions
-```
-
-### VestingLib\_\_StartTimestampMustNotBeInThePast
-
-```solidity
-error VestingLib__StartTimestampMustNotBeInThePast()
-```
-
-### VestingLib\_\_InvalidDuration
-
-```solidity
-error VestingLib__InvalidDuration()
-```
-
-### VestingLib\_\_InvalidIndex
-
-```solidity
-error VestingLib__InvalidIndex()
-```
-
-### VestingLib\_\_InvalidSender
-
-```solidity
-error VestingLib__InvalidSender()
-```
-
-### VestingLib\_\_InvalidBeneficiary
-
-```solidity
-error VestingLib__InvalidBeneficiary()
-```
-
-### VestingLib\_\_InvalidVestingAmount
-
-```solidity
-error VestingLib__InvalidVestingAmount()
-```
-
-### VestingLib\_\_InvalidReleaseAmount
-
-```solidity
-error VestingLib__InvalidReleaseAmount()
-```
-
-### releasableAmount
-
-```solidity
-function releasableAmount(uint256 vestingIndex) public view returns (uint256)
-```
-
-Calculates the amount that has already vested but hasn't been released yet
-
-#### Return Values
-
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| [0]  | uint256 | uint256 The amount that has vested but hasn't been released yet |
-
-### vestedAmount
-
-```solidity
-function vestedAmount(uint256 vestingIndex) internal view returns (uint256 vestedAmount_)
-```
-
-### createVestingPosition
-
-```solidity
-function createVestingPosition(uint256 amount, address beneficiary, uint32 cliffDuration, uint32 vestingDuration) internal returns (struct VestingLib.VestingPosition)
-```
-
-### updateReleasedAmount
-
-```solidity
-function updateReleasedAmount(uint256 vestingIndex, uint256 releaseAmount) internal
-```
-
-## VestingLibChest
-
-Vesting Library
-
-token amount
-^
-| ********\_\_********
-| /
-| /
-| /
-| /
-| /
-| <----- cliff ----->
-|
-|
---------------------.------.-------------------> time
-vesting duration
-
-_Total vested amount is stored as an immutable storage variable to prevent manipulations when calculating current releasable amount._
-
-### index
-
-```solidity
-uint256 index
-```
-
-### VestingPosition
-
-```solidity
-struct VestingPosition {
-  uint256 totalVestedAmount;
-  uint256 releasedAmount;
-  uint48 cliffTimestamp;
-  uint48 boosterTimestamp;
-  uint32 vestingDuration;
-  uint120 accumulatedBooster;
-  uint8 nerfParameter;
-}
-```
-
-### NewVestingPosition
-
-```solidity
-event NewVestingPosition(struct VestingLibChest.VestingPosition position, uint256 index)
-```
-
-### vestingPositions
-
-```solidity
-mapping(uint256 => struct VestingLibChest.VestingPosition) vestingPositions
-```
-
-### releasableAmount
-
-```solidity
-function releasableAmount(uint256 vestingIndex) public view returns (uint256)
-```
-
-Calculates the amount that has already vested but hasn't been released yet
-
-#### Return Values
-
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| [0]  | uint256 | uint256 The amount that has vested but hasn't been released yet |
-
-### vestedAmount
-
-```solidity
-function vestedAmount(uint256 vestingIndex) internal view returns (uint256 vestedAmount_)
-```
-
-### createVestingPosition
-
-```solidity
-function createVestingPosition(uint256 amount, uint32 cliffDuration, uint32 vestingDuration, uint120 booster, uint8 nerfParameter) internal returns (struct VestingLibChest.VestingPosition)
-```
-
-## ERC20Capped
-
-_Extension of {ERC20} that adds a cap to the supply of tokens._
-
-### constructor
-
-```solidity
-constructor(uint256 cap_) internal
-```
-
-_Sets the value of the `cap`. This value is immutable, it can only be
-set once during construction._
-
-### cap
-
-```solidity
-function cap() public view virtual returns (uint256)
-```
-
-_Returns the cap on the token's total supply._
-
-### \_mint
-
-```solidity
-function _mint(address account, uint256 amount) internal virtual
-```
-
-_See {ERC20-\_mint}._

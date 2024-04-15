@@ -1496,6 +1496,259 @@ event OfficialPoolDeregistered(bytes32 poolId)
 error OfficialPoolsRegister_MaxPools50()
 ```
 
+## TeamDistribution.sol
+
+### Contract Overview
+
+TeamDistribution manages the distribution of tokens to a predefined list of team members by creating special Chests.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Constants
+
+#### LIST_LEN
+
+```solidity
+uint32 LIST_LEN
+```
+
+#### JELLY_AMOUNT
+
+```solidity
+uint256 JELLY_AMOUNT
+```
+
+#### jellyToken
+
+```solidity
+contract IERC20 jellyToken
+```
+
+### Storage Layout
+
+| Name           | Type                             | Slot | Offset | Bytes | Contract                                        |
+| -------------- | -------------------------------- | ---- | ------ | ----- | ----------------------------------------------- |
+| \_owner        | address                          | 0    | 0      | 20    | contracts/TeamDistribution.sol:TeamDistribution |
+| \_pendingOwner | address                          | 1    | 0      | 20    | contracts/TeamDistribution.sol:TeamDistribution |
+| chestContract  | address                          | 2    | 0      | 20    | contracts/TeamDistribution.sol:TeamDistribution |
+| index          | uint32                           | 2    | 20     | 4     | contracts/TeamDistribution.sol:TeamDistribution |
+| teamList       | struct TeamDistribution.Team[15] | 3    | 0      | 960   | contracts/TeamDistribution.sol:TeamDistribution |
+
+### Functions
+
+#### constructor
+
+```solidity
+constructor(address _jellyTooken, address _owner, address _pendingOwner) public
+```
+
+#### distribute
+
+```solidity
+function distribute(uint32 batchLength) external onlyOwner
+```
+
+\_Distributes tokens to team members in batches.\_
+
+_Only the contract owner can call this function.
+The `batchLength` must be greater than 0 and within the bounds of the team list._
+
+#### Parameters
+
+| Name        | Type   | Description                                         |
+| ----------- | ------ | --------------------------------------------------- |
+| batchLength | uint32 | The number of team members to distribute tokens to. |
+
+#### setChest
+
+```solidity
+function setChest(address _chestContract) external onlyOwner
+```
+
+_Sets the chest contract address._
+
+_Only the contract owner can call this function.
+The chest contract address must not be already set._
+
+#### Parameters
+
+| Name            | Type    | Description                        |
+| --------------- | ------- | ---------------------------------- |
+| \_chestContract | address | The address of the chest contract. |
+
+### Events
+
+#### ChestSet
+
+```solidity
+event ChestSet(address chest)
+```
+
+#### BatchDistributed
+
+```solidity
+event BatchDistributed(uint256 startIndex, uint256 batchLength)
+```
+
+### Errors
+
+#### TeamDistribution\_\_InvalidBatchLength
+
+```solidity
+error TeamDistribution__InvalidBatchLength()
+```
+
+#### TeamDistribution\_\_DistributionIndexOutOfBounds
+
+```solidity
+error TeamDistribution__DistributionIndexOutOfBounds()
+```
+
+#### TeamDistribution\_\_ChestAlreadySet
+
+```solidity
+error TeamDistribution__ChestAlreadySet()
+```
+
+## InvestorDistribution.sol
+
+### Contract Overview
+
+InvestorDistribution manages the distribution of tokens to a predefined list of investors by creating special Chests.
+
+### Dependencies
+
+**Inherits:**
+[Ownable](/contracts/utils/Ownable.sol)
+
+### Constants
+
+#### NUMBER_OF_INVESTORS
+
+```solidity
+uint256 NUMBER_OF_INVESTORS
+```
+
+#### JELLY_AMOUNT
+
+```solidity
+uint256 JELLY_AMOUNT
+```
+
+#### FREEZING_PERIOD
+
+```solidity
+uint32 FREEZING_PERIOD
+```
+
+#### VESTING_DURATION
+
+```solidity
+uint32 VESTING_DURATION
+```
+
+#### NERF_PARAMETER
+
+```solidity
+uint8 NERF_PARAMETER
+```
+
+#### i_jellyToken
+
+```solidity
+contract IERC20 i_jellyToken
+```
+
+### Storage Layout
+
+| Name | Type | Slot | Offset | Bytes | Contract |
+| -------------- | -------------------------------- | ---- | ------ | ----- | | Name | Type | Slot | Offset | Bytes | Contract |
+|---------------|------------------------------------------|------|--------|-------|---------------------------------------------------------|
+| \_owner | address | 0 | 0 | 20 | contracts/InvestorDistribution.sol:InvestorDistribution |
+| \_pendingOwner | address | 1 | 0 | 20 | contracts/InvestorDistribution.sol:InvestorDistribution |
+| index | uint32 | 1 | 20 | 4 | contracts/InvestorDistribution.sol:InvestorDistribution |
+| investors | struct InvestorDistribution.Investor[87] | 2 | 0 | 2784 | contracts/InvestorDistribution.sol:InvestorDistribution |
+| i_chest | contract IChest | 89 | 0 | 20 | contracts/InvestorDistribution.sol:InvestorDistribution |
+
+### Functions
+
+#### constructor
+
+```solidity
+constructor(address jellyToken, address owner, address pendingOwner) public
+```
+
+#### distribute
+
+```solidity
+function distribute(uint32 batchLength) external onlyOwner
+```
+
+\_Distributes tokens to investors in batches.\_
+
+_Only the contract owner can call this function.
+The `batchLength` must be greater than 0 and within the bounds of the investors list._
+
+#### Parameters
+
+| Name        | Type   | Description                                      |
+| ----------- | ------ | ------------------------------------------------ |
+| batchLength | uint32 | The number of investors to distribute tokens to. |
+
+#### setChest
+
+```solidity
+function setChest(address chest) external onlyOwner
+```
+
+_Sets the chest contract address._
+
+_Only the contract owner can call this function.
+The chest contract address must not be already set._
+
+#### Parameters
+
+| Name  | Type    | Description                        |
+| ----- | ------- | ---------------------------------- |
+| chest | address | The address of the chest contract. |
+
+### Events
+
+#### ChestSet
+
+```solidity
+event ChestSet(address chest)
+```
+
+#### BatchDistributed
+
+```solidity
+event BatchDistributed(uint256 startIndex, uint256 batchLength)
+```
+
+### Errors
+
+#### InvestorDistribution\_\_InvalidBatchLength
+
+```solidity
+error InvestorDistribution__InvalidBatchLength()
+```
+
+#### InvestorDistribution\_\_DistributionIndexOutOfBounds
+
+```solidity
+error InvestorDistribution__DistributionIndexOutOfBounds()
+```
+
+#### InvestorDistribution\_\_ChestAlreadySet
+
+```solidity
+error InvestorDistribution__ChestAlreadySet()
+```
+
 ## Draft.sol
 
 ### Contract Overview
