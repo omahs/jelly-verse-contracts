@@ -67,7 +67,7 @@ forge inspect --pretty ContractName storage
 This project consists of the following smart contracts:
 
 - [JellyToken](./contracts/JellyToken.sol)
-- [JellyTokenDeployer](./contracts/JellyTokenDeployer)
+- [JellyTokenDeployer](./contracts/JellyTokenDeployer.sol)
 - [JellyGovernor](./contracts/JellyGovernor.sol)
 - [Governor](./contracts/Governor.sol)
 - [GovernorVotes](./contracts/GovernorVotes.sol)
@@ -83,7 +83,32 @@ This project consists of the following smart contracts:
 - [RewardVesting](./contracts/RewardVesting.sol)
 - [DailySnapshot](./contracts/DailySnapshot.sol)
 
-## Roles & Actors
+## Roles & Ownership
+
+### Roles
+
+| Role                | Contract      | Description                                                                                                    |
+| ------------------- | ------------- | -------------------------------------------------------------------------------------------------------------- |
+| MINTER              | JellyToken    | Enables designated addresses to mint new tokens. Initially, the Minter contract is granted this role.          |
+| DEFAULT_ADMIN_ROLE  | JellyToken    | Grants full administrative privileges, which are transferred to the Timelock after deployment.                 |
+| TIMELOCK_ADMIN_ROLE | JellyTimelock | Manages operations within the Timelock contract. The deployer renounces this role post-deployment.             |
+| PROPOSER_ROLE       | JellyTimelock | Allows any holder to propose actions within the governance framework. Set to address(0) so anyone can propose. |
+| EXECUTOR_ROLE       | JellyTimelock | Permits the execution of approved proposals after the timelock delay. Assigned to the JellyGovernor.           |
+| CANCELLER_ROLE      | JellyTimelock | Enables the cancellation of operation. Assigned to the JellyGovernor.                                          |
+
+### Ownership
+
+| Contract                    | Owned by | Description |
+| --------------------------- | -------- | ----------- |
+| Chest                       | Timelock |             |
+| Minter                      | Timelock |             |
+| PoolParty                   | Timelock |             |
+| OfficialPoolsRegister       | Timelock |             |
+| TeamDistribution            | Deployer |             |
+| InvestorDistribution        | Deployer |             |
+| LiquidityRewardDistribution | Timelock |             |
+| StakingRewardDistribution   | Timelock |             |
+| DailySnapshot               | Timelock |             |
 
 ## JellyToken.sol
 
