@@ -32,7 +32,7 @@ In Regular Chests, the booster starts with an initial value and increases weekly
 
 Exclusive to Special Chests, the nerf parameter adjusts the voting power to prevent large stakeholders from having disproportionately high influence. This parameter reduces the voting power in a way that balances equity among participants, ensuring a fair governance process.
 
-### Invariants
+## Invariants
 
 - Chest is soul-bounded.
 - User cannot withdraw more than deposited.
