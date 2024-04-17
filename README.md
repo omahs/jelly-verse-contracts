@@ -62,6 +62,18 @@ forge test
 forge inspect --pretty ContractName storage
 ```
 
+8. Get coverage
+
+```shell
+npx hardhat coverage
+```
+
+[For Chest]
+
+```shell
+forge coverage
+```
+
 ## Smart contracts scope
 
 This project consists of the following smart contracts:
