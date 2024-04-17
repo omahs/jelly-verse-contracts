@@ -2453,3 +2453,70 @@ error DailySnapshot_TooEarly()
 ```solidity
 error DailySnapshot_ZeroBlockTime()
 ```
+
+## Sequence Diagrams
+
+This is the overview of the functionalities of this project:
+
+#### Pre-minting of tokens
+
+```mermaid
+sequenceDiagram
+    actor MINTER_ROLE
+    MINTER_ROLE->>JellyToken.sol: premint()
+    activate JellyToken.sol
+    JellyToken.sol->>JellyToken.sol: _mint(vesting)
+    JellyToken.sol-->>VestingTeam.sol: Minted 133_000_000 JLY
+    JellyToken.sol->>JellyToken.sol: _mint(vestingJelly)
+    JellyToken.sol-->>VestingInvestors.sol: Minted 133_000_000 JLY
+    JellyToken.sol->>JellyToken.sol: _mint(allocator)
+    JellyToken.sol-->>PoolParty.sol: Minted 133_000_000 JLY
+    JellyToken.sol-->>MINTER_ROLE: emit Preminted() event
+    deactivate JellyToken.sol
+
+    MINTER_ROLE->>JellyToken.sol: premint()
+    activate JellyToken.sol
+    JellyToken.sol-->>MINTER_ROLE: revert JellyToken__AlreadyPreminted()
+    deactivate JellyToken.sol
+```
+
+#### Community members can buy JLY tokens with USDT
+
+Buying JLY tokens with USDT adds tokens to the JellyVerse DEX pool and gives JLY tokens back to the User instantly. There is no vesting schedule, but also no voting power through the Chest NFT.
+
+```mermaid
+sequenceDiagram
+    actor User
+    User->>USDT.sol: approve(PoolParty.sol, amount)
+    User->>PoolParty.sol: buyWithUSDT(amount, freezingPeriod)
+    activate PoolParty.sol
+    alt canBuy
+        PoolParty.sol->>USDT.sol: transferFrom(User, address(0), amount)
+        PoolParty.sol->>PoolParty.sol: jellyAmount = amount * dusdToJellyRatio
+        PoolParty.sol->>Vault.sol: fee()
+        Vault.sol-->>PoolParty.sol: mintingFee
+        PoolParty.sol->>JellyToken.sol: approve(Vault.sol, jellyAmount)
+        PoolParty.sol->>Vault.sol: freeze(jellyAmount - mintingFee, freezingPeriod, User)
+        PoolParty.sol-->>User: emit BuyWithUSDT(amount, jellyAmount - mintingFee)
+    else
+        PoolParty.sol-->>User: revert PoolParty__CannotBuy()
+    end
+    deactivate PoolParty.sol
+```
+
+#### Tokens for Team Members and Investors
+
+Tokens for Team members and Investors are linearly vested through Vesting and VestingJelly smart contract.
+
+There is a set of Differential tests to confirm that the calculation for the vesting schedule is correct.
+
+![vesting](./docs/VestingCliff.png)
+
+## Additional docs
+Governance documentation and contract differances from openzeppelin can be found [here](./docs/Governance.md)
+
+Additonal UML Charts and Sequence Diagrams can be found here:
+1. [PoolParty](./docs/BuyJLYwithUSDTUml.md)
+2. [Chest](./docs/Chest.md)
+3. [StakingChestUML](./docs/StakingChestUml.md)
+4. [RewardsClaimingAndVesting](./docs/RewardClaiming&VestingUml.md)
