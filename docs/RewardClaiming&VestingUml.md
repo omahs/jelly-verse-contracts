@@ -67,6 +67,3 @@ sequenceDiagram
         end
     end
 ```
-
-## Questions
-- What are we going to do with JLY tokens left in vesting contract (when user claims before vesting period ends)? Are we going to leave them there, send them to treasury or burn them?
