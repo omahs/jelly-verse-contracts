@@ -42,7 +42,12 @@ contract InvestorDistribution is Ownable {
         _initialize();
     }
 
-    // not sure if we need onlyOwner here
+    /**
+     * @notice Distributes tokens to investors in batches.
+     * @dev Only the contract owner can call this function.
+     * @dev The `batchLength` must be greater than 0 and within the bounds of the investors list.
+     * @param batchLength The number of investors to distribute tokens to.
+     */
     function distribute(uint32 batchLength) external onlyOwner {
         if (batchLength == 0) {
             revert InvestorDistribution__InvalidBatchLength();
@@ -70,6 +75,12 @@ contract InvestorDistribution is Ownable {
         emit BatchDistributed(currentIndex, batchLength);
     }
 
+    /**
+     * @notice Sets the chest contract address.
+     * @dev Only the contract owner can call this function.
+     * @dev The chest contract address must not be already set.
+     * @param chest The address of the chest contract.
+     */
     function setChest(address chest) external onlyOwner {
         if (address(i_chest) != address(0)) {
             revert InvestorDistribution__ChestAlreadySet();
@@ -86,6 +97,11 @@ contract InvestorDistribution is Ownable {
         );
     }
 
+    /**
+     * @notice Initializes the contract by setting the investors values.
+     * @dev This function is called during contract deployment.
+     * @dev Only the contract owner can call this function.
+     */
     function _initialize() private {
         investors[0] = Investor({
             beneficiary: 0x0928a4Debc0297A643ECA744b41b09512A32c0e1,

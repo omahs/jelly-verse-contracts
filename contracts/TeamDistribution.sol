@@ -8,7 +8,6 @@ import "./interfaces/IChest.sol";
 import {IERC20} from "./vendor/openzeppelin/v4.9.0/token/ERC20/IERC20.sol";
 
 contract TeamDistribution is Ownable {
-  
     uint32 constant LIST_LEN = 15;
     uint256 constant JELLY_AMOUNT = 110000000;
 
@@ -41,6 +40,12 @@ contract TeamDistribution is Ownable {
         _initialize();
     }
 
+    /**
+     * @notice Distributes tokens to team members in batches.
+     * @dev Only the contract owner can call this function.
+     * @dev The `batchLength` must be greater than 0 and within the bounds of the team list.
+     * @param batchLength The number of team members to distribute tokens to.
+     */
     function distribute(uint32 batchLength) external onlyOwner {
         if (batchLength == 0) {
             revert TeamDistribution__InvalidBatchLength();
@@ -68,6 +73,12 @@ contract TeamDistribution is Ownable {
         emit BatchDistributed(currentIndex, batchLength);
     }
 
+    /**
+     * @notice Sets the chest contract address.
+     * @dev Only the contract owner can call this function.
+     * @dev The chest contract address must not be already set.
+     * @param _chestContract The address of the chest contract.
+     */
     function setChest(address _chestContract) external onlyOwner {
         if (chestContract != address(0)) {
             revert TeamDistribution__ChestAlreadySet();
@@ -80,7 +91,11 @@ contract TeamDistribution is Ownable {
 
         emit ChestSet(_chestContract);
     }
-
+    /**
+     * @notice Initializes the contract by setting the team members values.
+     * @dev This function is called during contract deployment.
+     * @dev Only the contract owner can call this function.
+     */
     function _initialize() private {
         teamList[0] = Team({
             amount: 20000000,
