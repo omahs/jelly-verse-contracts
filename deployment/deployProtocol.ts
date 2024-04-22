@@ -541,6 +541,14 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
     }
 
     console.log(
+      `ℹ️  Set RewardVesting contract addreses on LP and Staking Reward distribution Contracts...`
+    );
+    LiquidityRewardDistribution.setVestingContract(RewardVesting.address);
+    StakingRewardDistribution.setVestingContract(RewardVesting.address);
+    
+    console.log(`✅ Vesting Contract set on Distribution contracts`);
+
+    console.log(
       `ℹ️  Attempting to deploy the TeamDistribution smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, with ${jellyToken} as the token address, by passing the ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
     );
 
