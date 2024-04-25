@@ -17,7 +17,7 @@ contract ChestHarness is Chest {
     function exposed_calculateBooster(
         ChestHarness.VestingPosition memory vestingPosition,
         uint48 timestamp
-    ) external pure returns (uint120) {
+    ) external view returns (uint120) {
         return _calculateBooster(vestingPosition, timestamp);
     }
 

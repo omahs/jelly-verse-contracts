@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Chest} from "../../../contracts/Chest.sol";
 import {ERC20Token} from "../../../contracts/test/ERC20Token.sol";
 import {Math} from "../../../contracts/vendor/openzeppelin/v4.9.0/utils/math/Math.sol";
+import "forge-std/console.sol";
 
 // contract for internal function testing
 contract ChestHarness is Chest {
@@ -18,14 +19,14 @@ contract ChestHarness is Chest {
     function exposed_calculateBooster(
         ChestHarness.VestingPosition memory vestingPosition,
         uint48 timestamp
-    ) external pure returns (uint120) {
+    ) external view returns (uint120) {
         return _calculateBooster(vestingPosition, timestamp);
     }
 
     function exposed_calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
-    ) external pure returns (uint256) {
+    ) external view returns (uint256) {
         return _calculatePower(timestamp, vestingPosition);
     }
 
@@ -197,7 +198,46 @@ contract ChestTest is Test {
         assertEq(chestHarness.getPendingOwner(), testAddress);
         assertEq(chestHarness.totalSupply(), 0);
     }
+function test_calculatePowerChestWithMaximumFreezingPeriodOne() external {
+        uint256 amount = MIN_STAKING_AMOUNT;
+        uint32 freezingPeriodMaximum = MAX_FREEZING_PERIOD_REGULAR_CHEST;
+        uint8 nerfParameter = 10;
 
+        // Regular chest position with maximum freezing period
+        uint32 vestingDuration = 0;
+        uint32 freezingPeriod = freezingPeriodMaximum;
+        ChestHarness.VestingPosition
+            memory vestingPositionRegularChestFreezingPeriodMaximum = chestHarness
+                .exposed_createVestingPosition(
+                    amount,
+                    freezingPeriod,
+                    vestingDuration,
+                    INITIAL_BOOSTER,
+                    nerfParameter
+                );
+
+      
+        uint256 timestamp = block.timestamp;
+        console.log("chest creation timestamp: ", timestamp);
+        console.log("clip timestamp: ", vestingPositionRegularChestFreezingPeriodMaximum.cliffTimestamp);
+
+        uint120 booster;
+
+        uint256 regularFreezingTime = 157; // @dev expected value for maximum freezing period is 157
+        uint256 power;
+        // Chest is frozen, week by week check in maximum freezing period range
+        for (uint256 i = 0; i < 158; i++) {
+            timestamp = block.timestamp + (i * 1 weeks) + 1;
+            console.log("week: ", i);
+            console.log("timestamp: ", timestamp);
+            
+
+            power = chestHarness.exposed_calculatePower(
+                timestamp,
+                vestingPositionRegularChestFreezingPeriodMaximum
+            );
+        }
+    }
     // Regular chest stake tests
     function test_stake() external {
         uint256 amount = MIN_STAKING_AMOUNT;

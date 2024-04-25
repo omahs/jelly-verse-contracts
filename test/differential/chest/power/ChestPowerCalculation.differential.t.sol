@@ -17,7 +17,7 @@ contract ChestHarness is Chest {
     function exposed_calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
-    ) external pure returns (uint256) {
+    ) external view returns (uint256) {
         return _calculatePower(timestamp, vestingPosition);
     }
 

@@ -10,6 +10,7 @@ import {Strings} from "./vendor/openzeppelin/v4.9.0/utils/Strings.sol";
 import {Base64} from "./vendor/openzeppelin/v4.9.0/utils/Base64.sol";
 import {Ownable} from "./utils/Ownable.sol";
 import {Vesting} from "./utils/Vesting.sol";
+import "forge-std/console.sol";
 
 contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -417,7 +418,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
     function estimateChestPower(
         uint256 timestamp,
         VestingPosition calldata vestingPosition
-    ) external pure returns (uint256) {
+    ) external view returns (uint256) {
         uint256 power = _calculatePower(timestamp, vestingPosition);
         return power;
     }
@@ -522,7 +523,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
     function _calculateBooster(
         VestingPosition memory vestingPosition,
         uint48 timestamp
-    ) internal pure returns (uint120) {
+    ) internal view returns (uint120) {
         uint120 booster;
 
         if (vestingPosition.boosterTimestamp == 0) {
@@ -540,11 +541,12 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
                 TIME_FACTOR
             )
         );
-
+        console.log("weeksPassed: %s", weeksPassed);
         booster = accumulatedBooster + (weeksPassed * WEEKLY_BOOSTER_INCREMENT);
         if (booster > MAX_BOOSTER) {
             booster = MAX_BOOSTER;
         }
+        console.log('booster %s', booster);
         return booster;
     }
 
@@ -559,7 +561,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
     function _calculatePower(
         uint256 timestamp,
         VestingPosition memory vestingPosition
-    ) internal pure returns (uint256) {
+    ) internal view returns (uint256) {
         uint256 power;
 
         uint256 vestingDuration = vestingPosition.vestingDuration;
@@ -576,6 +578,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
             ? Math.ceilDiv(cliffTimestamp - timestamp, TIME_FACTOR)
             : 0;
 
+        console.log("regularFreezingTime: %s", regularFreezingTime);
         // calculate power based on vesting type
         if (vestingPosition.vestingDuration == 0) {
             // regular chest
@@ -589,6 +592,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
                         vestingPosition.releasedAmount) *
                     regularFreezingTime) /
                 (MIN_STAKING_AMOUNT * DECIMALS); // @dev scaling because of minimum staking amount and booster
+            console.log("power: %s", power);
         } else {
             // special chest
             uint256 linearFreezingTime;
