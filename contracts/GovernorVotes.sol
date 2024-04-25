@@ -52,6 +52,12 @@ abstract contract GovernorVotes is Governor {
         require(chestIDs.length > 0, "JellyGovernor: no chest IDs provided");
 
         for (uint8 i = 0; i < chestIDs.length; i++) {
+            for (uint8 j = 0; j < i; j++) {
+                require(
+                    chestIDs[i] != chestIDs[j],
+                    "JellyGovernor: duplicate chest IDs provided"
+                );
+            }
             require(
                 chestIDs[i] <= timepoint,
                 "JellyGovernor: chest not viable for voting"
