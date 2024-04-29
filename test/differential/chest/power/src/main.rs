@@ -29,7 +29,7 @@ fn booster(
         cliff_timestamp
     };
 
-    let weeks_passed: U64 = (timestamp - booster_timestamp).div_ceil(time_factor);
+    let weeks_passed: U64 = (timestamp - booster_timestamp) / time_factor;
     let booster: U128 = accumulated_booster + U128::from(weeks_passed) * weekly_booster_increment;
 
     if booster > max_booster {
