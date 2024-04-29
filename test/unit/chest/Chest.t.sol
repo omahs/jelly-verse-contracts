@@ -2023,7 +2023,7 @@ contract ChestTest is Test {
             assertEq(
                 booster,
                 INITIAL_BOOSTER +
-                    Math.ceilDiv(i * 1 days, TIME_FACTOR) *
+                    ((i * 1 days) / TIME_FACTOR) *
                     WEEKLY_BOOSTER_INCREMENT
             );
         }
@@ -2053,7 +2053,7 @@ contract ChestTest is Test {
             assertEq(
                 booster,
                 INITIAL_BOOSTER +
-                    Math.ceilDiv(i * 1 days, TIME_FACTOR) *
+                    ((i * 1 days) / TIME_FACTOR) *
                     WEEKLY_BOOSTER_INCREMENT
             );
         }
