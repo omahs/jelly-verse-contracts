@@ -204,6 +204,7 @@ contract StakingRewardDistribution is Ownable {
                             msg.sender
                         );
                     } else
+                        jellyToken.burn(totalBalance - totalBalance / 2);
                         _tokens[token].safeTransfer(
                             msg.sender,
                             totalBalance / 2

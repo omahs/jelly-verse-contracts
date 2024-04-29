@@ -69,10 +69,10 @@ abstract contract Vesting {
         } else {
             unchecked {
                 amount =
-                    ((vestingPosition.totalVestedAmount -
-                        vestingPosition.releasedAmount) *
+                    ((vestingPosition.totalVestedAmount *
                         (block.timestamp - vestingPosition.cliffTimestamp)) /
-                    vestingPosition.vestingDuration;
+                        vestingPosition.vestingDuration) -
+                    vestingPosition.releasedAmount;
             }
         }
     }
