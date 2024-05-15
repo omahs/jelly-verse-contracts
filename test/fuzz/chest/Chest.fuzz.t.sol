@@ -171,6 +171,7 @@ contract ChestFuzzTest is Test {
 
         vm.prank(nonApprovedAddress);
         jellyToken.mint(JELLY_MAX_SUPPLY + fee);
+        vm.warp(7 days); //min freezing period
     }
 
     // Deployment test

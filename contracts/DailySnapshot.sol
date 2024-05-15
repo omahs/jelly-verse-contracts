@@ -66,7 +66,7 @@ contract DailySnapshot is Ownable {
      */
     function dailySnapshot() external onlyStarted {
         if (
-            block.timestamp - beginningOfTheNewDayTimestamp <= ONE_DAY_SECONDS
+            beginningOfTheNewDayTimestamp + ONE_DAY_SECONDS > block.timestamp
         ) {
             revert DailySnapshot_TooEarly();
         }

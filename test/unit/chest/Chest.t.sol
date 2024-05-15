@@ -181,6 +181,8 @@ contract ChestTest is Test {
 
         vm.prank(nonApprovedAddress);
         jellyToken.mint(1_000 * MIN_STAKING_AMOUNT);
+
+        vm.warp(7 days); //min freezing period
     }
 
     // UNIT TESTS
@@ -2021,7 +2023,7 @@ contract ChestTest is Test {
             assertEq(
                 booster,
                 INITIAL_BOOSTER +
-                    Math.ceilDiv(i * 1 days, TIME_FACTOR) *
+                    ((i * 1 days) / TIME_FACTOR) *
                     WEEKLY_BOOSTER_INCREMENT
             );
         }
@@ -2051,7 +2053,7 @@ contract ChestTest is Test {
             assertEq(
                 booster,
                 INITIAL_BOOSTER +
-                    Math.ceilDiv(i * 1 days, TIME_FACTOR) *
+                    ((i * 1 days) / TIME_FACTOR) *
                     WEEKLY_BOOSTER_INCREMENT
             );
         }

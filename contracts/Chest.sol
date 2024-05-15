@@ -261,6 +261,8 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
                     block.timestamp + MAX_FREEZING_PERIOD_REGULAR_CHEST
                 ) {
                     revert Chest__InvalidFreezingPeriod();
+                } else if (newCliffTimestamp < (block.timestamp - MIN_FREEZING_PERIOD)) {
+                    revert Chest__InvalidFreezingPeriod();
                 }
                 vestingPositions[tokenId].cliffTimestamp = newCliffTimestamp;
             } else {
@@ -535,10 +537,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
         uint120 accumulatedBooster = vestingPosition.accumulatedBooster;
 
         uint120 weeksPassed = uint120(
-            Math.ceilDiv(
-                timestamp - vestingPosition.boosterTimestamp,
-                TIME_FACTOR
-            )
+            (timestamp - vestingPosition.boosterTimestamp) / TIME_FACTOR
         );
 
         booster = accumulatedBooster + (weeksPassed * WEEKLY_BOOSTER_INCREMENT);
