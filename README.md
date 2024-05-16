@@ -353,7 +353,7 @@ event Deployed(address contractAddress, bytes32 salt)
 
 ### Contract Overview
 
-JellyGovernor contract serves as the main governance mechanism for managing proposals and enforcing decision-making rules within Jellyverse.
+JellyGovernor contract serves as the main governance mechanism for managing proposals and enforcing decision-making rules within Jellyverse. The voting is done by the users who provide chest ids that they vote with. Chests represent staked jelly tokens that give voting power to that user. When a proposal is created the user can vote with however many chests they wants, but the chest needs to be created before the proposal. When the proposal is approved it executes by the executor.
 
 ### Additional notes
 
@@ -1307,7 +1307,7 @@ error Minter_ZeroAddress()
 
 ### Contract Overview
 
-PoolParty smart contract represent initial JELLY token offering.
+PoolParty smart contract represents initial JELLY token offering. The contract is used to give the users initial source of jelly tokens. The user can swap a fixed amount of usd stable tokens to receive some predetermined amount of jelly tokens. The usd supplied by the users is then used as liquidity for a JLY-USD pool on JLY swap by joining the correspondent pool and then burning the resulting LP tokens which insuers that the liquidity is never withdrawn.
 
 ### Dependencies
 
@@ -1462,7 +1462,8 @@ error PoolParty__ZeroValue()
 
 ### Contract Overview
 
-OfficialPoolsRegister stores identifiers for all official pools.
+OfficialPoolsRegister stores identifiers for all official pools. OOffical pools are special type of pools that have additional rewards distributed to the users that provide liquidty to them. The contract is used to store all of the special pools ids on chain which is than used by an off chain script to calculate the rewards for users. It is mainly used as a single source of truth on chain on which pools are official and how much rewards are given to them.
+
 
 ### Dependencies
 
