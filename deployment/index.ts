@@ -10,5 +10,6 @@ import './deployRewardVesting';
 import './deployStaktingRewardDistribution';
 import './deployTeamDistribution';
 import './deployInvestorDistribution';
-import './deployProtocol'
+import './deployProtocol';
+import './postDeploymentScript';
 
