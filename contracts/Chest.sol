@@ -261,7 +261,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
                     block.timestamp + MAX_FREEZING_PERIOD_REGULAR_CHEST
                 ) {
                     revert Chest__InvalidFreezingPeriod();
-                } else if (newCliffTimestamp < (block.timestamp - MIN_FREEZING_PERIOD)) {
+                } else if (newCliffTimestamp < (block.timestamp + MIN_FREEZING_PERIOD)) {
                     revert Chest__InvalidFreezingPeriod();
                 }
                 vestingPositions[tokenId].cliffTimestamp = newCliffTimestamp;

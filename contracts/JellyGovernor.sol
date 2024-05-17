@@ -66,6 +66,10 @@ contract JellyGovernor is
     }
 
     // The following functions are overrides required by Solidity.
+
+    /**
+     * @dev Returns the delay period for the Governor.
+     */
     function votingDelay()
         public
         view
@@ -75,6 +79,9 @@ contract JellyGovernor is
         return super.votingDelay();
     }
 
+    /**
+     * @dev Returns the voting period for the Governor.
+     */
     function votingPeriod()
         public
         view
@@ -84,6 +91,9 @@ contract JellyGovernor is
         return super.votingPeriod();
     }
 
+    /**
+     * @dev Returns the state of the proposal.
+     */
     function state(
         uint256 proposalId
     )
@@ -95,10 +105,15 @@ contract JellyGovernor is
         return super.state(proposalId);
     }
 
+    /**
+     * @dev Returns the exectuor for the Governor.
+     */
     function getExecutor() public view returns (address) {
         return _executor();
     }
-
+    /**
+     * @dev Returns the proposal threshold for the Governor.
+     */
     function proposalThreshold()
         public
         view
