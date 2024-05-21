@@ -24,7 +24,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
 
     event BuyWithSei(uint256 seiAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
-    event NativeToJellyRatioSet(uint256 usdToJellyRatio);
+    event NativeToJellyRatioSet(uint256 seiToJellyRatio);
 
     error PoolParty__CannotBuy();
     error PoolParty__NoValueSent();
@@ -70,7 +70,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
      * No return value
      */
 
-     //to do usd to jelly ratio
+     //to do sei to jelly ratio
     function buyWithSei() external payable nonReentrant canBuy {
 
         uint256 _amount=msg.value;
