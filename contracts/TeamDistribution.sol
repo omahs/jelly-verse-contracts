@@ -12,7 +12,7 @@ contract TeamDistribution is Ownable {
     uint256 constant JELLY_AMOUNT = 21_597_390;
     uint32 constant FREEZING_PERIOD = 6 * 30 days;
     uint32 constant VESTING_DURATION = 18 * 30 days;
-    uint8 constant NERF_PARAMETER = 10; // no nerf
+    uint8 constant NERF_PARAMETER = 0; 
 
     IERC20 public immutable jellyToken;
     address public chestContract;
