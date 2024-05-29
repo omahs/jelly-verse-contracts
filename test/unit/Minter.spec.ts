@@ -302,4 +302,34 @@ describe("Minter", function () {
       });
     });
   });
+
+  describe("#fundPoolParty", function () {
+    describe("success", function () {
+      it("should fund pool party", async function () {
+        
+
+        await expect( minter.fundPoolParty(deployer.address)).to.emit(minter, "PoolPartyFunded")
+        .withArgs(deployer.address);;
+        
+      });
+    });
+    describe("failure", function () {
+      it("should revert if a non-owner tries to fund", async function () {
+ 
+        await expect(
+          minter
+            .connect(otherAccount)
+            .fundPoolParty(deployer.address)
+        ).to.be.revertedWithCustomError(minter, "Ownable__CallerIsNotOwner");
+      });
+
+      it("should revert if already funded", async function () {
+        await minter.fundPoolParty(deployer.address);
+        await expect(
+          minter
+            .fundPoolParty(deployer.address)
+        ).to.be.revertedWithCustomError(minter, "Minter_AlreadyFunded");
+      });
+    });
+  });
 });
