@@ -8,7 +8,7 @@ fn minter(number_of_days_since_minting_started: I256) -> U256 {
         .expect("Value too large for i128");
 
     let days_f64 = days as f64;
-    let result = 900_000.0 * f64::exp(-0.0015 * days_f64);
+    let result = 656_567.0 * f64::exp(-0.0015 * days_f64);
 
     U256::from(result as u128)
 }

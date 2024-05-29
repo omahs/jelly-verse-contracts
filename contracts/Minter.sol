@@ -103,7 +103,7 @@ contract Minter is Ownable, ReentrancyGuard {
      */
     function startMinting() external onlyOwner onlyNotStarted {
         started = true;
-        lastMintedTimestamp = uint32(block.timestamp) - mintingPeriod;
+        lastMintedTimestamp = uint32(block.timestamp);
         mintingStartedTimestamp = uint32(block.timestamp);
 
         emit MintingStarted(msg.sender, block.timestamp);
@@ -123,7 +123,8 @@ contract Minter is Ownable, ReentrancyGuard {
         int256 daysSinceMintingStarted = int256(
             (block.timestamp - mintingStartedTimestamp) / 1 days
         );
-        uint256 mintAmount = calculateMintAmount(daysSinceMintingStarted);
+        uint256 mintAmountDaily = calculateMintAmount(daysSinceMintingStarted);
+        uint256 mintAmount = mintAmountDaily * mintingPeriod / 1 days;
         uint256 mintAmountWithDecimals = mintAmount * DECIMALS;
 
         uint256 epochId;
@@ -168,13 +169,13 @@ contract Minter is Ownable, ReentrancyGuard {
     function calculateMintAmount(
         int256 _daysSinceMintingStarted
     ) public pure returns (uint256) {
-        // 900_000 * e ^ (-0.0015 * n)
+        // 656_567 * e ^ (-0.0015 * n)
         SD59x18 exponentMultiplier = div(convert(K), convert(10000));
         SD59x18 exponent = mul(
             exponentMultiplier,
             convert(_daysSinceMintingStarted)
         );
-        uint256 mintAmount = intoUint256(mul(exp(exponent), sd(900_000)));
+        uint256 mintAmount = intoUint256(mul(exp(exponent), sd(656_567)));
 
         return mintAmount;
     }
