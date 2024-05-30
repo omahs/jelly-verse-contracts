@@ -11,10 +11,10 @@ contract InvestorDistribution is Ownable {
         uint96 amount;
     }
 
-    uint256 constant NUMBER_OF_INVESTORS = 87;
-    uint256 constant JELLY_AMOUNT = 107_477_975;
-    uint32 constant FREEZING_PERIOD = 18 * 30 days;
-    uint32 constant VESTING_DURATION = 6 * 30 days;
+    uint256 constant NUMBER_OF_INVESTORS = 114;
+    uint256 constant JELLY_AMOUNT = 169_890_391;
+    uint32 constant FREEZING_PERIOD = 6 * 30 days;
+    uint32 constant VESTING_DURATION = 18 * 30 days;
     uint8 constant NERF_PARAMETER = 10; // no nerf
 
     uint64 private constant DECIMALS = 1e18;
@@ -105,67 +105,67 @@ contract InvestorDistribution is Ownable {
     function _initialize() private {
         investors[0] = Investor({
             beneficiary: 0x0928a4Debc0297A643ECA744b41b09512A32c0e1,
-            amount: 2_000_000
+            amount: 1_704_750
         });
         investors[1] = Investor({
             beneficiary: 0x0e5E44D03996f14E469DEb2c0bE5b833bAC139a9,
-            amount: 2_000_000
+            amount: 1_100_000
         });
         investors[2] = Investor({
             beneficiary: 0x09520EB2382f9Fd25f6bE7B1b20A693a8f8b493d,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[3] = Investor({
             beneficiary: 0xB8c75DB43E891Da43E6B314D5F9949C9388cceE9,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[4] = Investor({
             beneficiary: 0xeBcC1Bf83EE1764a87f968CedD71b477Cab5e81d,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[5] = Investor({
             beneficiary: 0xc1ee290ab4586a75A95ef8CD3988431907Ddf058,
-            amount: 2_000_000
+            amount: 1_100_000
         });
         investors[6] = Investor({
             beneficiary: 0xf02B1cfc65662DC6Fec8a339bCDb12a65f43c609,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[7] = Investor({
             beneficiary: 0x72F3ee9Dc226578B88bd93276b8700B861aA4209,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[8] = Investor({
             beneficiary: 0x20D1c442367FFe623ed331F5945fDDeF594bc920,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[9] = Investor({
             beneficiary: 0xd8336c8Bc3Fa686c0b757294Bcc9038E79Cd6cE1,
-            amount: 2_000_000
+            amount: 1_100_000
         });
         investors[10] = Investor({
             beneficiary: 0x32479b83c4e58a5d523a61E19309759ead3d0DDa,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[11] = Investor({
             beneficiary: 0x23C538E1a4a88eE88Ef3A61844b046bF5f70238F,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[12] = Investor({
             beneficiary: 0x075f3cD4C6eB50a425bfCF42B6A3F3d1A40cC68f,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[13] = Investor({
             beneficiary: 0xb728aA268D3Cb7a62ecc03e4DBF307AE7FB841Ae,
-            amount: 2_000_000
+            amount: 1_100_000
         });
         investors[14] = Investor({
             beneficiary: 0x3b096530De8D29F9003A01846aA03612Ab91B805,
-            amount: 2_000_000
+            amount: 1_000_000
         });
         investors[15] = Investor({
             beneficiary: 0x7f8A9fAF5CF0796B856879242C879125fc9857EF,
-            amount: 1_933_500
+            amount: 1_000_000
         });
         investors[16] = Investor({
             beneficiary: 0x3DBAf3F4a434228546f0c08902b592995Bd0e6D2,
@@ -208,7 +208,7 @@ contract InvestorDistribution is Ownable {
             amount: 2_000_000
         });
         investors[26] = Investor({
-            beneficiary: 0xd8Ced559178ea66B23E2C0AD02E23aB20fe5785F,
+            beneficiary: 0xeBe2C253129169743158B9f6cFf1D137d98b1707,
             amount: 2_000_000
         });
         investors[27] = Investor({
@@ -216,7 +216,7 @@ contract InvestorDistribution is Ownable {
             amount: 2_000_000
         });
         investors[28] = Investor({
-            beneficiary: 0xA2879Be7E5B699496d6a41BF41D9505fF9Ba1804,
+            beneficiary: 0xEa4B3866e7A190d2047B500F81e67fD907d232D2,
             amount: 2_000_000
         });
         investors[29] = Investor({
@@ -280,11 +280,11 @@ contract InvestorDistribution is Ownable {
             amount: 1_600_000
         });
         investors[44] = Investor({
-            beneficiary: 0xB1600ac28dc130f7186b546a0cbDA15Bde57F7e9,
+            beneficiary: 0x3e4e6722A16b331C88E9646786bD2D16745ecE56,
             amount: 2_000_000
         });
         investors[45] = Investor({
-            beneficiary: 0xf763daA4Da2ee73529A0cf1F533F81e0860F6aFC,
+            beneficiary: 0xf64e999521a0013f42C6666Cd5BdD6Ba8243c452,
             amount: 700_000
         });
         investors[46] = Investor({
@@ -296,7 +296,7 @@ contract InvestorDistribution is Ownable {
             amount: 1_125_000
         });
         investors[48] = Investor({
-            beneficiary: 0x6A3b06129d5593768f85b0ec227031d169CbC0be,
+            beneficiary: 0x96f03607994580f47ab517027122EC5e402B2D21,
             amount: 1_375_000
         });
         investors[49] = Investor({
@@ -316,7 +316,7 @@ contract InvestorDistribution is Ownable {
             amount: 440_000
         });
         investors[53] = Investor({
-            beneficiary: 0x3793A90a843570bDd229ceF5d0bF9566b20a048E,
+            beneficiary: 0x9C853555fB16624Ba1E577268210ACf062C0dd0e,
             amount: 220_000
         });
         investors[54] = Investor({
@@ -341,7 +341,7 @@ contract InvestorDistribution is Ownable {
         });
         investors[59] = Investor({
             beneficiary: 0xc54DDEb4e7feBfB580942993f466C91FA37C0f11,
-            amount: 687_500
+            amount: 625_000
         });
         investors[60] = Investor({
             beneficiary: 0xd92e7dF42919862231E39cA87bCFbcb6f76B7eA2,
@@ -373,7 +373,7 @@ contract InvestorDistribution is Ownable {
         });
         investors[67] = Investor({
             beneficiary: 0x6582108c774B9394C6220c6C78a6B4bCdB7bd62E,
-            amount: 100_000
+            amount: 200_000
         });
         investors[68] = Investor({
             beneficiary: 0xe7a0b59817D12cD44DaA3dcE874BF598BeC3feD5,
@@ -396,11 +396,11 @@ contract InvestorDistribution is Ownable {
             amount: 68_750
         });
         investors[73] = Investor({
-            beneficiary: 0x6C1856AC12fa8bF9932270a06f87913d1498DE83,
+            beneficiary: 0x3bf3C003a1f9C759cE82E1Cf80064B081fb8A552,
             amount: 1_000_000
         });
         investors[74] = Investor({
-            beneficiary: 0xb0185100D77dB21dD5FebBCf724147D025B33A61,
+            beneficiary: 0xEa6b1aC9a240fC34A4cebd9c2348624C34f467A4,
             amount: 250_000
         });
         investors[75] = Investor({
@@ -433,7 +433,7 @@ contract InvestorDistribution is Ownable {
         });
         investors[82] = Investor({
             beneficiary: 0x7Da77A3b8485B7472Fc2A23C594B3406EFc563aC,
-            amount: 25_000
+            amount: 55_000
         });
         investors[83] = Investor({
             beneficiary: 0x44E04071b8eB38f1E8a177E98e2022DB6AAC93B5,
@@ -444,12 +444,120 @@ contract InvestorDistribution is Ownable {
             amount: 125_000
         });
         investors[85] = Investor({
-            beneficiary: 0xa014d79FeA4bC2b7Ea30a099f5408c60261b1349,
-            amount: 2_000_000
-        }); // change to real values
+            beneficiary: 0x0faA92aB469Db5D268fD37C2F1F5E39F72B0E3B3,
+            amount: 425_000
+        });
         investors[86] = Investor({
-            beneficiary: 0x623d61239c7d4309aE61951De4f4FE42ECf2Df77,
-            amount: 2_000_000
-        }); // change to real values
+            beneficiary: 0x84c1e9a8c5950AC3eEf6c9c755C6571a59300A10,
+            amount: 250_000
+        });
+        investors[87] = Investor({
+            beneficiary: 0x0e4D124687cF433A2BAD2467beae6eF1Ba1e0559,
+            amount: 53_000
+        }); //mvp
+        investors[88] = Investor({
+            beneficiary: 0x9342A65736a2E9C6a84A2AdABA55Ad1Dc1f3a418,
+            amount: 10_000
+        });
+        investors[89] = Investor({
+            beneficiary: 0x967F8C450829d77e1FEB135584efE31bE8F85887,
+            amount: 10_000
+        });
+        investors[90] = Investor({
+            beneficiary: 0xb3777f08DEbAEa4ef3d10f07d814c3f8a9207D71,
+            amount: 10_000
+        });
+        investors[91] = Investor({
+            beneficiary: 0xdd71c71d7E0806b46E5008C09a000382188842F5,
+            amount: 10_000
+        });
+        investors[92] = Investor({
+            beneficiary: 0xB227a130655f08348b6cd1eBE618b2d3481F9CBf,
+            amount: 10_000
+        });
+        investors[93] = Investor({
+            beneficiary: 0xE9110C571F6A4f846AB119329c054fda34912042,
+            amount: 10_000
+        });
+        investors[94] = Investor({
+            beneficiary: 0xD5dAaF51A908391B577a9cb3a358fb13587Ed96d,
+            amount: 666_666
+        });
+        investors[95] = Investor({
+            beneficiary: 0x02BF4802f7E44273D9fC7f00E78D96AbA7AF2b60,
+            amount: 1_000_000
+        });
+        investors[96] = Investor({
+            beneficiary: 0x7600598C5093ef6FC9ed51C24bE5C9f69FF2A750,
+            amount: 1_100_000
+        });
+        investors[97] = Investor({
+            beneficiary: 0x480C4c73b5F9f7f9CF74C9592CFBb8D1dDa0c911,
+            amount: 1_000_000
+        });
+        investors[98] = Investor({
+            beneficiary: 0xbd53128914bF94196c21D67fE6d6C9F123a59eF2,
+            amount: 1_000_000
+        });
+        investors[99] = Investor({
+            beneficiary: 0x3F2fEB79b7a7F646033e5816BF4A8Fa78E444f46,
+            amount: 1_000_000
+        });
+        investors[100] = Investor({
+            beneficiary: 0x7D27B4eb48026FfDECa408Dd435843C3579E35ec,
+            amount: 5_000_000
+        });
+        investors[101] = Investor({
+            beneficiary: 0xaDa434784Dd6C52F654d80d377AAB4Aaf13Ce506,
+            amount: 5_000_000
+        });
+        investors[102] = Investor({
+            beneficiary: 0xA8Efb8a08F37b852354f6C2Ee66CDb53A8396271,
+            amount: 5_000_000
+        });
+        investors[103] = Investor({
+            beneficiary: 0x710fEc1ED6456D4D5FdA3d2006E2A057A949154E,
+            amount: 5_000_000
+        });
+        investors[104] = Investor({
+            beneficiary: 0xEb214e10caf44e943ed3241b245EEbC2058B558a,
+            amount: 5_000_000
+        });
+        investors[105] = Investor({
+            beneficiary: 0xb8e696735b1dd8859A7E471F9380Eb6051366558,
+            amount: 5_000_000
+        });
+        investors[106] = Investor({
+            beneficiary: 0xcb5C7F3d573F8bd352F6a6b9077B14eEEbB8b678,
+            amount: 5_000_000
+        });
+        investors[107] = Investor({
+            beneficiary: 0x78D0E1fF6ca9ec4216De1c0b089b86F4AFEc0490,
+            amount: 5_000_000
+        });
+        investors[108] = Investor({
+            beneficiary: 0x1acfbF2D13c3bA85A0c76F8023b8796e0135D856,
+            amount: 5_000_000
+        });
+        investors[109] = Investor({
+            beneficiary: 0xE7e33dC04f38Ec5c667565083298E7eD5FDAAB96,
+            amount: 5_000_000
+        });
+        investors[110] = Investor({
+            beneficiary: 0x8B7609E835b61360C9Fc3e2a27889B703A884A37,
+            amount: 5_000_000
+        });
+        investors[111] = Investor({
+            beneficiary: 0x1db8b8eE9307a1E1233161955dE432011fa43FA2,
+            amount: 15_000_000
+        });
+        investors[112] = Investor({
+            beneficiary: 0xc7c9ebA38abF0Ac61DdC68D335eaF694F57276CB,
+            amount: 125_000
+        });
+         investors[113] = Investor({
+            beneficiary: 0x57bc8af36A7E900C438B0652ff2EEb24954a3e6d,
+            amount: 4_494_000
+        });
     }
 }

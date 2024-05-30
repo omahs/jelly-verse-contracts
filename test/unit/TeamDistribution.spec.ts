@@ -8,7 +8,7 @@ describe("TeamDistribution", function () {
   async function deployUnitFixture() {
     const [deployer, user, ...otherSigners] = await ethers.getSigners();
 
-    const totalAmount = ethers.utils.parseEther("110000000");
+    const totalAmount = ethers.utils.parseEther("21597390");
     const ERC20Factory = await ethers.getContractFactory("ERC20Token");
     const erc20 = await ERC20Factory.deploy("test", "test");
     erc20.mint(totalAmount);
@@ -103,8 +103,8 @@ describe("TeamDistribution", function () {
           .withArgs(constants.Zero, 15);
 
         expect(
-          await chest.balanceOf("0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D")
-        ).eq(13); //this will change
+          await chest.balanceOf("0xF9bB310816fe4C277DAe7a6308456f395cD345C2")
+        ).eq(1); //this will change
         expect(await erc20.balanceOf(TeamDistribution.address)).eq(
           constants.Zero
         );
@@ -116,8 +116,8 @@ describe("TeamDistribution", function () {
           .withArgs(constants.Zero, 10);
 
         expect(
-          await chest.balanceOf("0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D")
-        ).eq(9); //this will change
+          await chest.balanceOf("0xF9bB310816fe4C277DAe7a6308456f395cD345C2")
+        ).eq(0); //this will change
      
 
         await expect(TeamDistribution.distribute(5))
@@ -125,8 +125,8 @@ describe("TeamDistribution", function () {
         .withArgs(10, 5);
 
       expect(
-        await chest.balanceOf("0x76e43d3E07c204F25e3a46Ead7Ccc1b07611061D")
-      ).eq(13); //this will change
+        await chest.balanceOf("0xF9bB310816fe4C277DAe7a6308456f395cD345C2")
+      ).eq(1); //this will change
       });
     });
 
