@@ -47,7 +47,7 @@ contract ChestPowerCalculationDifferentialTest is Test {
     uint32 constant MAX_FREEZING_PERIOD_CHEST = 5 * 365 days;
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
-    uint256 private constant MIN_STAKING_AMOUNT = 1_000 ether;
+    uint256 private constant MIN_STAKING_AMOUNT = 100 ether;
 
     uint120 private constant MAX_BOOSTER = 2 * DECIMALS;
 

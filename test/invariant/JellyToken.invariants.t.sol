@@ -14,19 +14,17 @@ contract InvariantJellyToken is StdInvariant, Test {
     address internal defaultAdminRole;
     address internal vesting;
     address internal vestingJelly;
-    address internal allocator;
     address internal minter;
 
     function setUp() public {
         defaultAdminRole = makeAddr("defaultAdminRole");
         vesting = makeAddr("vesting");
-        allocator = makeAddr("allocator");
         minter = makeAddr("minter");
 
         jellyToken = new JellyToken(defaultAdminRole);
 
         vm.startPrank(defaultAdminRole);
-        jellyToken.premint(vesting, defaultAdminRole, allocator, minter);
+        jellyToken.premint(vesting, defaultAdminRole, minter);
         vm.stopPrank();
 
         targetSender(defaultAdminRole);
