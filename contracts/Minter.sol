@@ -121,7 +121,7 @@ contract Minter is Ownable, ReentrancyGuard {
 
         lastMintedTimestamp += mintingPeriod;
         int256 daysSinceMintingStarted = int256(
-            (block.timestamp - mintingStartedTimestamp) / 1 days
+            uint256(lastMintedTimestamp - mintingStartedTimestamp) / 1 days
         );
         uint256 mintAmountDaily = calculateMintAmount(daysSinceMintingStarted);
         uint256 mintAmount = mintAmountDaily * mintingPeriod / 1 days;
