@@ -110,7 +110,7 @@ describe("Minter", function () {
         const lastMintedTimestampOld = await minter.lastMintedTimestamp();
         const lastMintedTimestampNew =
           lastMintedTimestampOld + mintingPeriod;
-        const mintAmount = BigNumber.from("656567000000000000000000");
+        const mintAmount = BigNumber.from("4547963000000000000000000");
         
 
         let newBeneficiaries = [

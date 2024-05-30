@@ -210,7 +210,7 @@ export const investors: Investor[] = [
     amount: 440000
 },
 {
-    address: '0x3793A90a843570bDd229ceF5d0bF9566b20a048E',
+    address: '0x9C853555fB16624Ba1E577268210ACf062C0dd0e',
     amount: 220000
 },
 {
