@@ -11,4 +11,5 @@ import './deployStaktingRewardDistribution';
 import './deployTeamDistribution';
 import './deployInvestorDistribution';
 import './deployProtocol'
+import './getEvm'
 

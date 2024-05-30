@@ -49,7 +49,7 @@ fn power(
     booster_timestamp: U64,
 ) -> U256 {
     let decimals: U256 = U256::from(1_000_000_000_000_000_000u64);
-    let min_amount: U256 = U256::from(1_000_000_000_000_000_000_000u128);
+    let min_amount: U256 = U256::from(100_000_000_000_000_000_000u128);
     let unfreeze_time: U256 = cliff_timestamp + vesting_duration;
     let max_booster: U128 = U128::from(2_000_000_000_000_000_000u64);
 

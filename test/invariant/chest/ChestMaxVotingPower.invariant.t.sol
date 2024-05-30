@@ -9,7 +9,7 @@ import {ERC20Token} from "../../../contracts/test/ERC20Token.sol";
 // Voting Power Cap: Confirms that the voting power associated with any chest remains within the stipulated maximum threshold.
 
 contract InvariantChestMaxVotingPower is BaseSetup {
-    uint256 constant MAX_FREEZING_PERIOD = 157 weeks;
+    uint256 constant MAX_FREEZING_PERIOD =  3 * 365 days;
 
     uint256 maxVotingPower;
 
@@ -18,7 +18,7 @@ contract InvariantChestMaxVotingPower is BaseSetup {
         targetContract(address(chestHandler));
         // @dev this is the maximum voting power for regular chest in case fee and booster are constant
         uint256 maxStakingAmount = JELLY_MAX_SUPPLY - chest.fee();
-        uint256 maxFreezingPeriod = 157 weeks;
+        uint256 maxFreezingPeriod =  3 * 365 days;
         maxVotingPower =
             maxStakingAmount *
             maxFreezingPeriod *

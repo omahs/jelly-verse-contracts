@@ -34,7 +34,7 @@ contract Minter is Ownable, ReentrancyGuard {
 
     int256 constant K = -15;
     uint256 constant DECIMALS = 1e18;
-    uint256 constant POOL_PARTY_AMOUNT = (166666666667 * DECIMALS) / 10000;
+    uint256 constant POOL_PARTY_AMOUNT = (33_333_334 * DECIMALS);
 
     modifier onlyStarted() {
         if (started == false) {

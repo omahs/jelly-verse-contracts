@@ -47,7 +47,7 @@ contract ChestBoosterCalculationDifferentialTest is Test {
     uint8 constant MAX_NERF_PARAMETER = 10;
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
-    uint256 private constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
+    uint256 private constant MIN_STAKING_AMOUNT = 100 * DECIMALS;
 
     address jellyToken = makeAddr("jellyToken");
 

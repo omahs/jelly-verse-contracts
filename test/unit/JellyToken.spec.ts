@@ -89,18 +89,8 @@ export function shouldBehaveLikeJellyToken(): void {
             .premint(
               this.params.vestingTeamAddress,
               this.params.vestingInvestorsAddress,
-              this.params.allocatorAddress,
               this.params.minterAddress,
             );
-        });
-
-        it(`should have the totalSupply of 399_000_000 tokens`, async function () {
-          assert(
-            (await this.jellyToken.totalSupply()).eq(
-              ethers.utils.parseEther('399000000')
-            ),
-            'Total supply is not 399_000_000'
-          );
         });
 
         it(`should have the burnedSupply of 0 tokens`, async function () {
@@ -112,34 +102,25 @@ export function shouldBehaveLikeJellyToken(): void {
           );
         });
 
-        it(`should mint 133_000_000 tokens to the VestingTeam contract`, async function () {
+        it(`should mint 21597465 tokens to the VestingTeam contract`, async function () {
           assert(
             (
               await this.jellyToken.balanceOf(
                 this.params.vestingTeamAddress
               )
-            ).eq(ethers.utils.parseEther('133000000')),
-            'VestingTeam contract balance is not 133_000_000'
+            ).eq(ethers.utils.parseEther('21597465')),
+            'VestingTeam contract balance is not 21597465'
           );
         });
 
-        it(`should mint 133_000_000 tokens to the VestingInvestor contract`, async function () {
+        it(`should mint 169890961 tokens to the VestingInvestor contract`, async function () {
           assert(
             (
               await this.jellyToken.balanceOf(
                 this.params.vestingInvestorsAddress
               )
-            ).eq(ethers.utils.parseEther('133000000')),
-            'VestingInvestor contract balance is not 133_000_000'
-          );
-        });
-
-        it(`should mint 133_000_000 tokens to the Allocator contract`, async function () {
-          assert(
-            (
-              await this.jellyToken.balanceOf(this.params.allocatorAddress)
-            ).eq(ethers.utils.parseEther('133000000')),
-            'Allocator contract balance is not 133_000_000'
+            ).eq(ethers.utils.parseEther('169890961')),
+            'VestingInvestor contract balance is not 169890961'
           );
         });
 
@@ -160,7 +141,6 @@ export function shouldBehaveLikeJellyToken(): void {
               .premint(
                 this.params.vestingTeamAddress,
                 this.params.vestingInvestorsAddress,
-                this.params.allocatorAddress,
                 this.params.minterAddress,
               )
           )
@@ -168,7 +148,6 @@ export function shouldBehaveLikeJellyToken(): void {
             .withArgs(
               this.params.vestingTeamAddress,
               this.params.vestingInvestorsAddress,
-              this.params.allocatorAddress,
             );
         });
       });
@@ -181,7 +160,6 @@ export function shouldBehaveLikeJellyToken(): void {
               .premint(
                 this.params.vestingTeamAddress,
                 this.params.vestingInvestorsAddress,
-                this.params.allocatorAddress,
                 this.params.minterAddress,
               )
           ).to.be.revertedWith(
@@ -195,7 +173,6 @@ export function shouldBehaveLikeJellyToken(): void {
             .premint(
               this.params.vestingTeamAddress,
               this.params.vestingInvestorsAddress,
-              this.params.allocatorAddress,
               this.params.minterAddress,
             );
 
@@ -205,7 +182,6 @@ export function shouldBehaveLikeJellyToken(): void {
               .premint(
                 this.params.vestingTeamAddress,
                 this.params.vestingInvestorsAddress,
-                this.params.allocatorAddress,
                 this.params.minterAddress,
               )
           ).to.be.revertedWithCustomError(
