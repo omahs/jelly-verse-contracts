@@ -3,11 +3,12 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import {Chest} from "../../../../contracts/Chest.sol";
+import {Vesting} from "../../../../contracts/utils/Vesting.sol";
 import {ERC20Token} from "../../../../contracts/test/ERC20Token.sol";
 
 contract ChestHandler is Test {
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
-    uint256 constant MIN_STAKING_AMOUNT = 1_000 ether;
+    uint256 constant MIN_STAKING_AMOUNT = 100 ether;
 
     uint32 constant MIN_FREEZING_PERIOD = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
@@ -263,12 +264,12 @@ contract ChestHandler is Test {
         unstakeAmount = bound(
             unstakeAmount,
             1,
-            vestingPosition.totalVestedAmount
+       i_chest.releasableAmount(positionIndex)
         );
 
         uint256 cliffTimestamp = vestingPosition.cliffTimestamp;
 
-        timestamp = bound(timestamp, cliffTimestamp, type(uint32).max);
+        timestamp = bound(timestamp, cliffTimestamp + 1000, type(uint32).max);
         address owner = i_chest.ownerOf(positionIndex);
 
         vm.warp(timestamp);

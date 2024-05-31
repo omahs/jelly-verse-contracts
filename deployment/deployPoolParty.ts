@@ -4,8 +4,8 @@ import { PoolParty__factory } from '../typechain-types';
 
 task(`deploy-pool-party`, `Deploys the Pool contract`)
     .addParam(`jellyToken`, `The Jelly token address`)
-    .addParam(`usdToken`, `The WETH token address`)
-    .addParam(`usdToJellyRatio`, `Ratio of usd token to Jelly token`)
+    .addParam(`governance`, `Governance address`)
+    .addParam(`seiToJellyRatio`, `Ratio of Sei token to Jelly token`)
     .addParam(`vault`, `The Vault address`)
     .addParam(`poolId`, `Pool ID which will be joined`)
     .addParam(`owner`, `The multisig owner address`)
@@ -14,8 +14,8 @@ task(`deploy-pool-party`, `Deploys the Pool contract`)
         async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
             const {
                 jellyToken,
-                usdToken,
-                usdToJellyRatio,
+                governance,
+                seiToJellyRatio,
                 vault,
                 poolId,
                 owner,
@@ -24,7 +24,7 @@ task(`deploy-pool-party`, `Deploys the Pool contract`)
             const [deployer] = await hre.ethers.getSigners();
 
             console.log(
-                `ℹ️  Attempting to deploy the PoolParty smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, the ${usdToken} as the USD pegged token address, ${usdToJellyRatio} as the ratio of Usd Tokens To Jelly, ${vault} as the vault contract address, ${poolId} as the poolID which will be joined, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
+                `ℹ️  Attempting to deploy the PoolParty smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, the ${governance} as the governance address, ${seiToJellyRatio} as the ratio of Sei Tokens To Jelly, ${vault} as the vault contract address, ${poolId} as the poolID which will be joined, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
             );
 
             const PoolPartyFactory: PoolParty__factory = await hre.ethers.getContractFactory(
@@ -33,8 +33,8 @@ task(`deploy-pool-party`, `Deploys the Pool contract`)
 
             const poolParty = await PoolPartyFactory.deploy(
                 jellyToken,
-                usdToken,
-                usdToJellyRatio,
+                governance,
+                seiToJellyRatio,
                 vault,
                 poolId,
                 owner,
@@ -55,8 +55,8 @@ task(`deploy-pool-party`, `Deploys the Pool contract`)
                     address: poolParty.address,
                     constructorArguments: [
                         jellyToken,
-                        usdToken,
-                        usdToJellyRatio,
+                        governance,
+                        seiToJellyRatio,
                         vault,
                         poolId,
                         owner,
@@ -69,7 +69,7 @@ task(`deploy-pool-party`, `Deploys the Pool contract`)
                 );
 
                 console.log(
-                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${poolParty.address} ${jellyToken} ${usdToken} ${usdToJellyRatio} ${vault} ${poolId} ${owner} ${pendingOwner}`
+                    `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${poolParty.address} ${jellyToken} ${governance} ${seiToJellyRatio} ${vault} ${poolId} ${owner} ${pendingOwner}`
                 );
             }
 

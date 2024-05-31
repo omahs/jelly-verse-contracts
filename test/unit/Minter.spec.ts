@@ -61,7 +61,7 @@ describe("Minter", function () {
     describe("success", function () {
       it("should be able to calculate mint amount at 0 days since start", async function () {
         const daysSinceMintingStarted = 0;
-        const expectedMintAmount = "900000";
+        const expectedMintAmount = "656567";
         expect(
           await minter.calculateMintAmount(daysSinceMintingStarted)
         ).to.equal(expectedMintAmount);
@@ -69,7 +69,7 @@ describe("Minter", function () {
 
       it("should be able to calculate mint amount at 10 days since start", async function () {
         const daysSinceMintingStarted = 10;
-        const expectedMintAmount = "886600";
+        const expectedMintAmount = "646791";
         expect(
           await minter.calculateMintAmount(daysSinceMintingStarted)
         ).to.equal(expectedMintAmount);
@@ -77,7 +77,7 @@ describe("Minter", function () {
 
       it("should be able to calculate mint amount at 100 days since start", async function () {
         const daysSinceMintingStarted = 100;
-        const expectedMintAmount = "774637";
+        const expectedMintAmount = "565112";
         expect(
           await minter.calculateMintAmount(daysSinceMintingStarted)
         ).to.equal(expectedMintAmount);
@@ -85,7 +85,7 @@ describe("Minter", function () {
 
       it("should be able to calculate mint amount at 1000 days since start", async function () {
         const daysSinceMintingStarted = 1000;
-        const expectedMintAmount = "200817";
+        const expectedMintAmount = "146499";
         expect(
           await minter.calculateMintAmount(daysSinceMintingStarted)
         ).to.equal(expectedMintAmount);
@@ -110,7 +110,7 @@ describe("Minter", function () {
         const lastMintedTimestampOld = await minter.lastMintedTimestamp();
         const lastMintedTimestampNew =
           lastMintedTimestampOld + mintingPeriod;
-        const mintAmount = BigNumber.from("900000000000000000000000");
+        const mintAmount = BigNumber.from("4547963000000000000000000");
         
 
         let newBeneficiaries = [
@@ -125,6 +125,7 @@ describe("Minter", function () {
           ];
   
         await minter.setBeneficiaries(newBeneficiaries);
+        await time.increase(mintingPeriod + 1);
         await expect(minter.mint())
           .to.emit(minter, "JellyMinted")
           .withArgs(
@@ -148,7 +149,6 @@ describe("Minter", function () {
       });
       it("should revert if mint is called too soon", async function () {
         await minter.startMinting();
-        await minter.mint();
         await expect(minter.mint()).to.be.revertedWithCustomError(
           minter,
           "Minter_MintTooSoon"
@@ -174,9 +174,7 @@ describe("Minter", function () {
 
       it("should set lastMintedTimestamp corectlly", async function () {
         const currentTime = await time.latest();
-        const lastMintedTimestamp = BigNumber.from(currentTime)
-          .add(1)
-          .sub(await minter.mintingPeriod());
+        const lastMintedTimestamp = BigNumber.from(currentTime).add(1);
         await minter.startMinting();
         expect(await minter.lastMintedTimestamp()).to.equal(
           lastMintedTimestamp
@@ -299,6 +297,36 @@ describe("Minter", function () {
             .connect(otherAccount)
             .setStakingRewardsContract(newStakingRewardsContract)
         ).to.be.revertedWithCustomError(minter, "Ownable__CallerIsNotOwner");
+      });
+    });
+  });
+
+  describe("#fundPoolParty", function () {
+    describe("success", function () {
+      it("should fund pool party", async function () {
+        
+
+        await expect( minter.fundPoolParty(deployer.address)).to.emit(minter, "PoolPartyFunded")
+        .withArgs(deployer.address);;
+        
+      });
+    });
+    describe("failure", function () {
+      it("should revert if a non-owner tries to fund", async function () {
+ 
+        await expect(
+          minter
+            .connect(otherAccount)
+            .fundPoolParty(deployer.address)
+        ).to.be.revertedWithCustomError(minter, "Ownable__CallerIsNotOwner");
+      });
+
+      it("should revert if already funded", async function () {
+        await minter.fundPoolParty(deployer.address);
+        await expect(
+          minter
+            .fundPoolParty(deployer.address)
+        ).to.be.revertedWithCustomError(minter, "Minter_AlreadyFunded");
       });
     });
   });

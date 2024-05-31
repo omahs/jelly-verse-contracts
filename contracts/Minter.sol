@@ -26,7 +26,7 @@ contract Minter is Ownable, ReentrancyGuard {
     address public stakingRewardsContract;
     uint32 public lastMintedTimestamp;
     uint32 public mintingPeriod = 7 days;
-
+    bool public isFunded;
 
     bool public started;
 
@@ -34,6 +34,7 @@ contract Minter is Ownable, ReentrancyGuard {
 
     int256 constant K = -15;
     uint256 constant DECIMALS = 1e18;
+    uint256 constant POOL_PARTY_AMOUNT = (33_333_334 * DECIMALS);
 
     modifier onlyStarted() {
         if (started == false) {
@@ -74,11 +75,13 @@ contract Minter is Ownable, ReentrancyGuard {
     );
 
     event BeneficiariesChanged();
+    event PoolPartyFunded(address poolPartyContract);
 
     error Minter_MintingNotStarted();
     error Minter_MintingAlreadyStarted();
     error Minter_MintTooSoon();
     error Minter_ZeroAddress();
+    error Minter_AlreadyFunded();
 
     constructor(
         address _jellyToken,
@@ -100,7 +103,7 @@ contract Minter is Ownable, ReentrancyGuard {
      */
     function startMinting() external onlyOwner onlyNotStarted {
         started = true;
-        lastMintedTimestamp = uint32(block.timestamp) - mintingPeriod;
+        lastMintedTimestamp = uint32(block.timestamp);
         mintingStartedTimestamp = uint32(block.timestamp);
 
         emit MintingStarted(msg.sender, block.timestamp);
@@ -118,18 +121,17 @@ contract Minter is Ownable, ReentrancyGuard {
 
         lastMintedTimestamp += mintingPeriod;
         int256 daysSinceMintingStarted = int256(
-            (block.timestamp - mintingStartedTimestamp) / 1 days
+            uint256(lastMintedTimestamp - mintingStartedTimestamp) / 1 days
         );
-        uint256 mintAmount = calculateMintAmount(daysSinceMintingStarted);
+        uint256 mintAmountDaily = calculateMintAmount(daysSinceMintingStarted);
+        uint256 mintAmount = mintAmountDaily * mintingPeriod / 1 days;
         uint256 mintAmountWithDecimals = mintAmount * DECIMALS;
 
         uint256 epochId;
 
-
         for (uint16 i = 0; i < beneficiaries.length; i++) {
             uint256 weight = beneficiaries[i].weight;
             uint256 amount = (mintAmountWithDecimals * weight) / 1000;
-
 
             if (beneficiaries[i].beneficiary == stakingRewardsContract) {
                 IJellyToken(i_jellyToken).mint(address(this), amount);
@@ -167,13 +169,13 @@ contract Minter is Ownable, ReentrancyGuard {
     function calculateMintAmount(
         int256 _daysSinceMintingStarted
     ) public pure returns (uint256) {
-        // 900_000 * e ^ (-0.0015 * n)
+        // 656_567 * e ^ (-0.0015 * n)
         SD59x18 exponentMultiplier = div(convert(K), convert(10000));
         SD59x18 exponent = mul(
             exponentMultiplier,
             convert(_daysSinceMintingStarted)
         );
-        uint256 mintAmount = intoUint256(mul(exp(exponent), sd(900_000)));
+        uint256 mintAmount = intoUint256(mul(exp(exponent), sd(656_567)));
 
         return mintAmount;
     }
@@ -230,5 +232,15 @@ contract Minter is Ownable, ReentrancyGuard {
             beneficiaries.push(_beneficiaries[i]);
         }
         emit BeneficiariesChanged();
+    }
+
+    function fundPoolParty(address _contract) public onlyOwner {
+        if (isFunded) {
+            revert Minter_AlreadyFunded();
+        }
+        isFunded = true;
+        IJellyToken(i_jellyToken).mint(_contract, POOL_PARTY_AMOUNT);
+
+        emit PoolPartyFunded(_contract);
     }
 }

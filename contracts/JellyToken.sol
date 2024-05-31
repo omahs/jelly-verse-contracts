@@ -27,8 +27,7 @@ contract JellyToken is ERC20, AccessControl, ReentrancyGuard {
 
     event Preminted(
         address indexed vestingTeam,
-        address indexed vestingInvestor,
-        address indexed allocator
+        address indexed vestingInvestor
     );
 
     error JellyToken__AlreadyPreminted();
@@ -60,7 +59,6 @@ contract JellyToken is ERC20, AccessControl, ReentrancyGuard {
      *
      * @param _vestingTeam - address to mint tokens for the vesting team.
      * @param _vestingInvestor - address to mint tokens for the vesting investor.
-     * @param _allocator - address to mint tokens for the allocator.
      * @param _minterContract - address of the minter contract.
      *
      * No return, reverts on error.
@@ -68,25 +66,26 @@ contract JellyToken is ERC20, AccessControl, ReentrancyGuard {
     function premint(
         address _vestingTeam,
         address _vestingInvestor,
-        address _allocator,
         address _minterContract
     ) external onlyRole(MINTER_ROLE) onlyOnce nonReentrant {
         if (
             _vestingTeam == address(0) ||
             _vestingInvestor == address(0) ||
-            _allocator == address(0) ||
             _minterContract == address(0)
         ) revert JellyToken__ZeroAddress();
 
         _preminted = true;
 
-        _mint(_vestingTeam, 133_000_000 * 10 ** decimals());
-        _mint(_vestingInvestor, 133_000_000 * 10 ** decimals());
-        _mint(_allocator, 133_000_000 * 10 ** decimals());
+        _mint(_vestingTeam,( 21_597_390 + 15 * 5)  * 10 ** decimals());
+        _mint(_vestingInvestor, (169_890_391 + 114 * 5) * 10 ** decimals());
+        _mint(0x946360Fd13FD81C9E31Ec57280669dD6c04d8264, 10_000_000 * 10 ** decimals());
+        _mint(0x51dE7F3Ed10e243f9C4393c339d3693448ffaf38, 90_000_000 * 10 ** decimals());
+        _mint(0x29B4268EE453d5e843C5F75fEA31a93e39c5009e, 10_000_000 * 10 ** decimals());
+        _mint(0x6535CBF180F4065701810955a0d5266A4C1C8Cb6, 27_795_250 * 10 ** decimals());
 
         _grantRole(MINTER_ROLE, _minterContract);
 
-        emit Preminted(_vestingTeam, _vestingInvestor, _allocator);
+        emit Preminted(_vestingTeam, _vestingInvestor);
     }
 
     /**

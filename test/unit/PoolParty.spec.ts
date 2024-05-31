@@ -12,9 +12,9 @@ describe('PoolParty', function () {
   let owner: SignerWithAddress;
   let pendingOwner: SignerWithAddress;
   let jellyToken: MockContract;
-  let usdToken: MockContract;
+  let governance: string;
   let vaultContract: MockContract;
-  let usdToJellyRatio: number;
+  let seiToJellyRatio: number;
   let poolId: string;
 
   beforeEach(async function () {
@@ -23,9 +23,9 @@ describe('PoolParty', function () {
     owner = fixture.owner;
     pendingOwner = fixture.pendingOwner;
     jellyToken = fixture.jellyToken;
-    usdToken = fixture.usdToken;
+    governance = fixture.governance;
     vaultContract = fixture.vaultMockContract;
-    usdToJellyRatio = fixture.usdToJellyRatio;
+    seiToJellyRatio = fixture.seiToJellyRatio;
     poolId = fixture.poolId;
   });
 
@@ -48,14 +48,14 @@ describe('PoolParty', function () {
       expect(initialJellyTokenAddress).to.equal(jellyToken.address);
     });
 
-    it("should have the expected usd token address", async () => {
-      const initialWethAddress = await poolParty.usdToken();
-      expect(initialWethAddress).to.equal(usdToken.address);
+    it("should have the expected governanace address", async () => {
+      const initialWethAddress = await poolParty.governance();
+      expect(initialWethAddress).to.equal(governance);
     });
 
-    it("should have the expected usd to jelly ratio", async () => {
-      const initialNativeToJellyRatio = await poolParty.usdToJellyRatio();
-      expect(initialNativeToJellyRatio).to.equal(usdToJellyRatio);
+    it("should have the expected sei to jelly ratio", async () => {
+      const initialNativeToJellyRatio = await poolParty.seiToJellyRatio();
+      expect(initialNativeToJellyRatio).to.equal(seiToJellyRatio);
     });
 
     it("should have the expected valut address", async () => {
@@ -76,13 +76,13 @@ describe('PoolParty', function () {
 
   describe("#setUSDToJellyRatio", async function () {
     describe("success", async () => {
-      it("should set usd to token ration", async () => {
-        await poolParty.setUSDToJellyRatio(2);
-        expect(await poolParty.usdToJellyRatio()).to.be.equal(2);
+      it("should set sei to token ration", async () => {
+        await poolParty.setSeiToJellyRatio(2);
+        expect(await poolParty.seiToJellyRatio()).to.be.equal(2);
       });
 
       it("should emit NativeToJellyRatioSet event", async () => {
-        await expect(poolParty.setUSDToJellyRatio(2))
+        await expect(poolParty.setSeiToJellyRatio(2))
           .to.emit(poolParty, 'NativeToJellyRatioSet')
           .withArgs(2);
       });
@@ -91,7 +91,7 @@ describe('PoolParty', function () {
     describe("failure", async () => {
       it("should revert if not called by owner", async () => {
         await expect(
-          poolParty.connect(pendingOwner).setUSDToJellyRatio(2),
+          poolParty.connect(pendingOwner).setSeiToJellyRatio(2),
         ).to.be.revertedWithCustomError(
           poolParty,
           "Ownable__CallerIsNotOwner",
@@ -126,15 +126,15 @@ describe('PoolParty', function () {
     })
   });
 
-  describe("#buyWithUsd", async function () {
+  describe("#buyWithSei", async function () {
     describe("success", async () => {
       it("should emit BuyWithNative event", async () => {
-        const usdToJellyRatio = await poolParty.usdToJellyRatio();
+        const seiToJellyRatio = await poolParty.seiToJellyRatio();
         const amount = 1000;
-        console.log("usdToJellyRatio", usdToJellyRatio);
-        await expect(poolParty.buyWithUsd(amount))
-          .to.emit(poolParty, 'BuyWithUsd')
-          .withArgs(amount, usdToJellyRatio.mul(amount), owner.address);
+        console.log("seiToJellyRatio", seiToJellyRatio);
+        await expect(poolParty.buyWithSei({value:amount}))
+          .to.emit(poolParty, 'BuyWithSei')
+          .withArgs(amount, seiToJellyRatio.mul(amount), owner.address);
       });
     })
 
@@ -143,7 +143,7 @@ describe('PoolParty', function () {
         await poolParty.endBuyingPeriod();
         const amount = 1000;
         await expect(
-          poolParty.buyWithUsd(amount),
+          poolParty.buyWithSei({value:amount}),
         ).to.be.revertedWithCustomError(
           poolParty,
           "PoolParty__CannotBuy",
@@ -152,7 +152,7 @@ describe('PoolParty', function () {
 
       it("should revert if called with zero amount", async () => {
         await expect(
-          poolParty.buyWithUsd(0),
+          poolParty.buyWithSei({value:0}),
         ).to.be.revertedWithCustomError(
           poolParty,
           "PoolParty__NoValueSent",

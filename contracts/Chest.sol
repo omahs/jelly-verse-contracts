@@ -28,7 +28,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
     uint120 private constant WEEKLY_BOOSTER_INCREMENT = 6_410_256_410_256_410; // @dev 1 / 156 weeks
 
-    uint256 public constant MIN_STAKING_AMOUNT = 1_000 * DECIMALS;
+    uint256 public constant MIN_STAKING_AMOUNT = 100 * DECIMALS;
     uint120 public constant MAX_BOOSTER = 2 * DECIMALS;
 
     string constant BASE_SVG =
@@ -261,7 +261,7 @@ contract Chest is ERC721, Ownable, Vesting, ReentrancyGuard {
                     block.timestamp + MAX_FREEZING_PERIOD_REGULAR_CHEST
                 ) {
                     revert Chest__InvalidFreezingPeriod();
-                } else if (newCliffTimestamp < (block.timestamp - MIN_FREEZING_PERIOD)) {
+                } else if (newCliffTimestamp < (block.timestamp + MIN_FREEZING_PERIOD)) {
                     revert Chest__InvalidFreezingPeriod();
                 }
                 vestingPositions[tokenId].cliffTimestamp = newCliffTimestamp;

@@ -16,15 +16,15 @@ contract PoolParty is ReentrancyGuard, Ownable {
     using SafeERC20 for IJellyToken;
 
     address public immutable i_jellyToken;
-    address public immutable usdToken;
     bytes32 public immutable jellySwapPoolId;
     address public immutable jellySwapVault; // ───╮
     bool public isOver; // ────────────----------──╯
-    uint88 public usdToJellyRatio;
+    uint88 public seiToJellyRatio;
+    address public immutable governance;
 
-    event BuyWithUsd(uint256 usdAmount, uint256 jellyAmount, address buyer);
+    event BuyWithSei(uint256 seiAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
-    event NativeToJellyRatioSet(uint256 usdToJellyRatio);
+    event NativeToJellyRatioSet(uint256 seiToJellyRatio);
 
     error PoolParty__CannotBuy();
     error PoolParty__NoValueSent();
@@ -40,8 +40,8 @@ contract PoolParty is ReentrancyGuard, Ownable {
 
     constructor(
         address _jellyToken,
-        address _usdToken,
-        uint88 _usdToJellyRatio,
+        address _governance,
+        uint88 _seiToJellyRatio,
         address _jellySwapVault,
         bytes32 _jellySwapPoolId,
         address _owner,
@@ -51,37 +51,36 @@ contract PoolParty is ReentrancyGuard, Ownable {
             _jellyToken == address(0) ||
             _jellySwapVault == address(0) ||
             _jellySwapPoolId == 0 ||
-            _usdToken == address(0) ||
-            _usdToJellyRatio == 0
+            _governance == address(0) ||
+            _seiToJellyRatio == 0
         ) {
             revert PoolParty__AddressZero();
         }
         i_jellyToken = _jellyToken;
-        usdToJellyRatio = _usdToJellyRatio;
+        governance = _governance;
+        seiToJellyRatio = _seiToJellyRatio;
         jellySwapVault = _jellySwapVault;
         jellySwapPoolId = _jellySwapPoolId;
-        usdToken = _usdToken;
     }
 
     /**
-     * @notice Buys jelly tokens with USD pegged token
+     * @notice Buys jelly tokens with SEI tokens.
      *
-     * @param _amount amount of usd to be sold
      *
      * No return value
      */
-    function buyWithUsd(uint256 _amount) external payable nonReentrant canBuy {
+
+     //to do sei to jelly ratio
+    function buyWithSei() external payable nonReentrant canBuy {
+
+        uint256 _amount=msg.value;
+
         if (_amount == 0) {
             revert PoolParty__NoValueSent();
         }
 
-        IJellyToken(usdToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _amount
-        );
 
-        uint256 jellyAmount = _amount * usdToJellyRatio;
+        uint256 jellyAmount = _amount * seiToJellyRatio;
 
         (IERC20[] memory tokens, , ) = IVault(jellySwapVault).getPoolTokens(
             jellySwapPoolId
@@ -95,6 +94,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
                 maxAmountsIn[i] = jellyAmount;
             } else {
                 maxAmountsIn[i] = _amount;
+                tokens[i] = IERC20(address(0));
             }
 
             unchecked {
@@ -107,22 +107,21 @@ contract PoolParty is ReentrancyGuard, Ownable {
             maxAmountsIn,
             0
         );
-
+      
         IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest({
             assets: _convertERC20sToAssets(tokens),
             maxAmountsIn: maxAmountsIn,
             userData: userData,
-            fromInternalBalance: false // False if sending ERC20
+            fromInternalBalance: false 
         });
 
         address sender = address(this);
-        address recipient = address(0); // burning LP tokens
+        address recipient = governance; // send LP tokens to governance
 
         //approve jelly tokens to be spent by jellySwapVault
         IJellyToken(i_jellyToken).approve(jellySwapVault, jellyAmount);
-        IERC20(usdToken).approve(jellySwapVault, _amount);
 
-        IVault(jellySwapVault).joinPool(
+        IVault(jellySwapVault).joinPool{value:_amount}(
             jellySwapPoolId,
             sender,
             recipient,
@@ -131,7 +130,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
 
         IJellyToken(i_jellyToken).safeTransfer(msg.sender, jellyAmount);
 
-        emit BuyWithUsd(_amount, jellyAmount, msg.sender);
+        emit BuyWithSei(_amount, jellyAmount, msg.sender);
     }
 
     /**
@@ -155,15 +154,15 @@ contract PoolParty is ReentrancyGuard, Ownable {
      * @notice Sets native to jelly ratio.
      * @dev Only owner can call.
      *
-     * @param _usdToJellyRatio - ratio of native to jelly tokens.
+     * @param _seiToJellyRatio - ratio of native to jelly tokens.
      *
      * No return, reverts on error.
      */
-    function setUSDToJellyRatio(uint88 _usdToJellyRatio) external onlyOwner {
-        if (_usdToJellyRatio == 0) revert PoolParty__ZeroValue();
-        usdToJellyRatio = _usdToJellyRatio;
+    function setSeiToJellyRatio(uint88 _seiToJellyRatio) external onlyOwner {
+        if (_seiToJellyRatio == 0) revert PoolParty__ZeroValue();
+        seiToJellyRatio = _seiToJellyRatio;
 
-        emit NativeToJellyRatioSet(usdToJellyRatio);
+        emit NativeToJellyRatioSet(seiToJellyRatio);
     }
 
     function _convertERC20sToAssets(
