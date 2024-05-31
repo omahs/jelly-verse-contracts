@@ -60,7 +60,7 @@ contract ChestTest is Test {
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
     uint120 private constant WEEKLY_BOOSTER_INCREMENT = 6_410_256_410_256_410; // @dev 1 / 156 weeks
 
-    uint256 constant MIN_STAKING_AMOUNT = 100 * DECIMALS;
+    uint256 constant MIN_STAKING_AMOUNT = 1000 * DECIMALS;
 
     address immutable i_deployerAddress;
 
