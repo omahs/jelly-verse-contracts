@@ -32,7 +32,7 @@ contract BaseSetup is Test {
     uint120 private constant DECIMALS = 1e18;
     uint120 private constant INITIAL_BOOSTER = 1 * DECIMALS;
 
-    uint256 constant MIN_STAKING_AMOUNT = 100 * DECIMALS;
+    uint256 constant MIN_STAKING_AMOUNT = 1000 * DECIMALS;
 
     uint256 positionIndex;
     address ownerOfChest;

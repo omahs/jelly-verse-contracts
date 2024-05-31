@@ -58,7 +58,7 @@ contract ChestFuzzTest is Test {
     uint120 private constant MAX_BOOSTER = 2 * DECIMALS;
 
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 * DECIMALS;
-    uint256 constant MIN_STAKING_AMOUNT = 100 * DECIMALS;
+    uint256 constant MIN_STAKING_AMOUNT = 1000 * DECIMALS;
 
     address immutable i_deployerAddress;
 

@@ -8,7 +8,7 @@ import {ERC20Token} from "../../../../contracts/test/ERC20Token.sol";
 
 contract ChestHandler is Test {
     uint256 constant JELLY_MAX_SUPPLY = 1_000_000_000 ether;
-    uint256 constant MIN_STAKING_AMOUNT = 100 ether;
+    uint256 constant MIN_STAKING_AMOUNT = 1000 ether;
 
     uint32 constant MIN_FREEZING_PERIOD = 7 days;
     uint32 constant MAX_FREEZING_PERIOD_REGULAR_CHEST = 3 * 365 days;
