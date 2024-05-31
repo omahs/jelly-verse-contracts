@@ -12,5 +12,5 @@ import './deployTeamDistribution';
 import './deployInvestorDistribution';
 import './deployProtocol';
 import './postDeploymentScript';
-import './getEvm'
+import './deployProtocolV2';
 

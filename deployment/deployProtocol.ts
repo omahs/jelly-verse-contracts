@@ -658,10 +658,9 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
           "JellyToken"
         )) as JellyToken__factory;
       const jellyTokenContract: JellyToken = jellyTokenFactory.attach(jellyToken);
-      await jellyTokenContract.premint(TeamDistribution.address, InvestorDistribution.address, poolParty.address, minter.address);
-      await jellyTokenContract.grantRole(DEFAULT_ADMIN_ROLE, owner);
-      await jellyTokenContract.grantRole(MINTER_ROLE, minter.address);
-      // await jellyTokenContract.renounceRole(MINTER_ROLE, deployer.address); // TODO REMOVE commented out for tesiting purposes
+      await jellyTokenContract.premint(TeamDistribution.address, InvestorDistribution.address, minter.address);
+      await jellyTokenContract.grantRole(DEFAULT_ADMIN_ROLE, jellyTimelock.address);
+      await jellyTokenContract.renounceRole(MINTER_ROLE, deployer.address);
       await jellyTokenContract.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address);
 
       console.log(`✅ Jelly Token setup completed`);

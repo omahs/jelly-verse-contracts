@@ -32,7 +32,7 @@ import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { string } from "hardhat/internal/core/params/argumentTypes";
 
-task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
+task(`deploy-protocol-v2`, `Deploys the Jelly Swap Protocol`).setAction(
   async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
     const [deployer] = await hre.ethers.getSigners();
     const MINTER_ROLE =hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -49,6 +49,7 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
 
     owner = deployer.address;
     const jellyToken = ''; //TODO add jelly token address here
+    
     //Chest
     console.log(
       `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${fee} as the minting fee, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
@@ -525,11 +526,9 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
           "JellyToken"
         )) as JellyToken__factory;
       const jellyTokenContract: JellyToken = jellyTokenFactory.attach(jellyToken);
-      //TODO fix premint call
-      // await jellyTokenContract.premint(TeamDistribution.address, InvestorDistribution.address, poolParty.address, minter.address);
-      await jellyTokenContract.grantRole(DEFAULT_ADMIN_ROLE, owner);
-      await jellyTokenContract.grantRole(MINTER_ROLE, minter.address);
-      await jellyTokenContract.renounceRole(MINTER_ROLE, deployer.address); // TODO REMOVE commented out for tesiting purposes
+      await jellyTokenContract.premint(TeamDistribution.address, InvestorDistribution.address, minter.address);
+      await jellyTokenContract.grantRole(DEFAULT_ADMIN_ROLE, jellyTimelock.address);
+      await jellyTokenContract.renounceRole(MINTER_ROLE, deployer.address); 
       await jellyTokenContract.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address);
 
       console.log(`✅ Jelly Token setup completed`);
