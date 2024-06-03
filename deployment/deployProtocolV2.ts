@@ -43,13 +43,13 @@ task(`deploy-protocol-v2`, `Deploys the Jelly Swap Protocol`).setAction(
 
     const pendingOwner = constants.AddressZero;
     //Chest.sol
-    const fee = '50000000000000000000';
+    const fee = '5000000000000000000';
 
     let owner = deployer.address;
 
     owner = deployer.address;
-    const jellyToken = ''; //TODO add jelly token address here
-    
+    const jellyToken = '0xcb30bB0A3BBb2384CD79281a5627C76997cfc25F'; //TODO add jelly token address here
+
     //Chest
     console.log(
       `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${fee} as the minting fee, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
@@ -579,8 +579,5 @@ task(`deploy-protocol-v2`, `Deploys the Jelly Swap Protocol`).setAction(
     await tx.wait();
     console.log(`✅ Timelock admin role revoked from deployer`);
 
-    console.log(
-      `ℹ️  Attempting to verify the Jelly Governance smart contracts on Etherscan...`
-    );
   }
 );
