@@ -49,7 +49,8 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
 
     const pendingOwner = constants.AddressZero;
     //Chest.sol
-    const fee = 1000;
+    const fee = 0;
+    const timeFactor = 2;
 
     //Jelly Timelock
 
@@ -104,7 +105,7 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
       );
     }
 
-    let owner = deployer.address;
+    const owner = jellyTimelock.address;
     //Jely Token
     console.log(
       `ℹ️  Attempting to deploy the Jelly Token smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${deployer} as the Jelly Governace contract address (Timelock)`
@@ -140,21 +141,15 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
     );
 
     try {
-      // await hre.run("verify:verify", {
-      //   address: jellyTokenDeployer.address,
-      //   constructorArguments: [],
-      // });
+      await hre.run("verify:verify", {
+        address: jellyTokenDeployer.address,
+        constructorArguments: [],
+      });
 
-      // await hre.run("verify:verify", {
-      //   address: jellyToken,
-      //   constructorArguments: [owner],
-      // });
-
-      console.log(
-        `📝 Try to verify JellyToken manually with:\n
-                  npx hardhat verify --network ${hre.network.name} ${jellyTokenDeployer.address} &&\n
-                       npx hardhat verify --network ${hre.network.name} ${jellyToken} ${owner}`
-      );
+      await hre.run("verify:verify", {
+        address: jellyToken,
+        constructorArguments: [owner],
+      });
     } catch (error) {
       console.log(
         `❌ Failed to verify the Jelly Token smart contracts on Etherscan: ${error}`
@@ -162,15 +157,14 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
 
       console.log(
         `📝 Try to verify it manually with:\n
-                       npx hardhat verify --network ${hre.network.name} ${jellyTokenDeployer.address} && \n
+                       npx hardhat verify --network ${hre.network.name} ${jellyTokenDeployer.address} &&
                        npx hardhat verify --network ${hre.network.name} ${jellyToken} ${owner}`
       );
     }
 
-    owner = jellyTimelock.address;
     //Chest
     console.log(
-      `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${fee} as the minting fee, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
+      `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${fee} as the minting fee, ${timeFactor} as the time factor, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
     );
 
     const ChestFactory: Chest__factory = await hre.ethers.getContractFactory(
@@ -198,6 +192,7 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
         constructorArguments: [
           jellyToken,
           fee,
+          timeFactor,
           owner,
           pendingOwner,
         ],
@@ -208,7 +203,7 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
       );
 
       console.log(
-        `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${fee} ${owner} ${pendingOwner}`
+        `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${fee} ${timeFactor} ${owner} ${pendingOwner}`
       );
     }
 
@@ -252,7 +247,7 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
       );
     }
 
-    // Alocator/PoolParty
+    //Alocator
     console.log(
       `ℹ️  Attempting to deploy the PoolParty smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, the ${weth} as the WETH token address, ${nativeToJellyRatio} as the ratio of Native Tokens To Jelly, ${vault} as the vault contract address, ${poolId} as the poolID which will be joined, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
     );
@@ -300,8 +295,6 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
         `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${poolParty.address} ${jellyToken} ${weth} ${nativeToJellyRatio} ${vault} ${poolId} ${owner} ${pendingOwner}`
       );
     }
-
-    owner = deployer.address; //for LP and Staking Reward Distribution, Official Pools Register, Daily Snapshot, Minter
 
     console.log(
       `ℹ️  Attempting to deploy the LiquidityRewardDistributionsmart contract to the ${hre.network.name} blockchain using ${deployer.address} address, with ${jellyToken} as the token address, by passing the ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
@@ -494,6 +487,17 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
       );
     }
 
+    //seting the minter role and switch admin to timelock
+    const jellyTokenFactory: JellyToken__factory =
+      (await hre.ethers.getContractFactory(
+        "JellyToken"
+      )) as JellyToken__factory;
+    const jellyTokenContract: JellyToken = jellyTokenFactory.attach(jellyToken);
+    await jellyTokenContract.grantRole(DEFAULT_ADMIN_ROLE, owner);
+    await jellyTokenContract.grantRole(MINTER_ROLE, minter.address);
+    await jellyTokenContract.renounceRole(MINTER_ROLE, deployer.address);
+    await jellyTokenContract.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address);
+
     //Reward Vesting
     console.log(
       `ℹ️  Attempting to deploy the RewardVesting smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${owner} as the multisig owner address, ${LiquidityRewardDistribution.address} as the liquidity contract, ${StakingRewardDistribution.address} as the staking contract, ${jellyToken} as the token address, li ${pendingOwner} as the pending owner address if needed...`
@@ -537,16 +541,6 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
         `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${owner} ${pendingOwner} ${RewardVesting.address} ${LiquidityRewardDistribution.address} ${StakingRewardDistribution.address} ${jellyToken} `
       );
     }
-
-    console.log(
-      `ℹ️  Set RewardVesting contract addreses on LP and Staking Reward distribution Contracts...`
-    );
-    await LiquidityRewardDistribution
-    .connect(deployer).setVestingContract(RewardVesting.address);
-    await StakingRewardDistribution
-    .connect(deployer).setVestingContract(RewardVesting.address);
-    
-    console.log(`✅ Vesting Contract set on Distribution contracts`);
 
     console.log(
       `ℹ️  Attempting to deploy the TeamDistribution smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, with ${jellyToken} as the token address, by passing the ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
@@ -613,74 +607,6 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
 
       console.log(
         `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${InvestorDistribution.address} ${jellyToken} ${owner} ${pendingOwner}`
-      );
-    }
-
-    console.log(
-      `ℹ️  Attempting to set Chest on the InvestorDistribution and TeamDistribution smart contracts...`
-    );
-    try {
-      const setInvestorChestTx = await InvestorDistribution.connect(deployer).setChest(chest.address);
-      const setTeamChestTx = await TeamDistribution.connect(deployer).setChest(chest.address);
-      await setInvestorChestTx.wait();
-      await setTeamChestTx.wait();
-      console.log(`✅ Chest set on InvestorDistribution and TeamDistribution`);
-    } catch (error) {
-      console.log(
-        `❌ Failed to set Chest on the InvestorDistribution and TeamDistribution smart contracts: ${error}`
-      );
-    }
-
-    console.log(
-      `ℹ️  Attempting to distribute InvestorDistribution and TeamDistribution...`
-    );
-    try {
-      for (let i = 0; i < 10; i++) {
-        const tx = await InvestorDistribution.connect(deployer).distribute(20);
-        const tx2 = await TeamDistribution.connect(deployer).distribute(20);
-        await tx.wait();
-        await tx2.wait();
-      }
-      console.log(`✅ Chest set on InvestorDistribution and TeamDistribution`);
-    } catch (error) {
-      console.log(
-        `❌ Failed to set Chest on the InvestorDistribution and TeamDistribution smart contracts: ${error}`
-      );
-    }
-
-    console.log(
-      `ℹ️  Attempting to set up Jelly Token contract (premint, grant and revoke roles)...`
-    );
-    try {
-      //seting the minter role and switch admin to timelock
-      const jellyTokenFactory: JellyToken__factory =
-        (await hre.ethers.getContractFactory(
-          "JellyToken"
-        )) as JellyToken__factory;
-      const jellyTokenContract: JellyToken = jellyTokenFactory.attach(jellyToken);
-      await jellyTokenContract.premint(TeamDistribution.address, InvestorDistribution.address, minter.address);
-      await jellyTokenContract.grantRole(DEFAULT_ADMIN_ROLE, jellyTimelock.address);
-      await jellyTokenContract.renounceRole(MINTER_ROLE, deployer.address);
-      await jellyTokenContract.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address);
-
-      console.log(`✅ Jelly Token setup completed`);
-    } catch (error) {
-      console.log(
-        `❌ Failed to set up Jelly Token contract (premint, grant and revoke roles): ${error}`
-      );
-    }
-    
-    console.log(
-      `ℹ️  Attempting to start DailySnapshot and Minting...`
-    );
-    try {
-      await dailySnapshot.startSnapshotting();
-      await minter.startMinting();
-
-      console.log(`✅ DailySnapshot and Minting started`);
-    } catch (error) {
-      console.log(
-        `❌ Failed to start DailySnapshot and Minting: ${error}`
       );
     }
   }
