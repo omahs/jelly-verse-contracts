@@ -50,7 +50,6 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
     const pendingOwner = constants.AddressZero;
     //Chest.sol
     const fee = 0;
-    const timeFactor = 2;
 
     //Jelly Timelock
 
@@ -164,7 +163,7 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
 
     //Chest
     console.log(
-      `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${fee} as the minting fee, ${timeFactor} as the time factor, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
+      `ℹ️  Attempting to deploy the Chest smart contract to the ${hre.network.name} blockchain using ${deployer.address} address, by passing the ${jellyToken} as the Jelly token address, ${fee} as the minting fee, ${owner} as the multisig owner address, ${pendingOwner} as the pending owner address if needed...`
     );
 
     const ChestFactory: Chest__factory = await hre.ethers.getContractFactory(
@@ -192,7 +191,6 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
         constructorArguments: [
           jellyToken,
           fee,
-          timeFactor,
           owner,
           pendingOwner,
         ],
@@ -203,7 +201,7 @@ task(`deploy-protocol`, `Deploys the Jelly Swap Protocol`).setAction(
       );
 
       console.log(
-        `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${fee} ${timeFactor} ${owner} ${pendingOwner}`
+        `📝 Try to verify it manually with: npx hardhat verify --network ${hre.network.name} ${chest.address} ${jellyToken} ${fee} ${owner} ${pendingOwner}`
       );
     }
 
