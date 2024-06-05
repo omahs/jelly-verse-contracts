@@ -21,7 +21,7 @@ export async function unitPoolPartyFixture(): Promise<UnitAlloctorFixtureType> {
     const wSei = await deployMockJellyNoReverts(owner);
     const governance = owner.address;
     const vaultMockContract = await deployMockJellyVault(owner, jellyToken.address, wSei.address);
-    const seiToJellyRatio = 5;
+    const seiToJellyRatio = 5000;
     const poolId = "0x034e2d995b39a88ab9a532a9bf0deddac2c576ea0002000000000000000005d1";
 
     const PoolPartyFactory: PoolParty__factory = await ethers.getContractFactory("PoolParty");
