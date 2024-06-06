@@ -72,19 +72,24 @@ describe('PoolParty', function () {
       const initialIsOver = await poolParty.isOver();
       expect(initialIsOver).to.equal(false);
     });
+
+    it("should have the expected hasStarted flag", async () => {
+      const initialIsOver = await poolParty.hasStarted();
+      expect(initialIsOver).to.equal(false);
+    });
   });
 
   describe("#setUSDToJellyRatio", async function () {
     describe("success", async () => {
       it("should set sei to token ration", async () => {
-        await poolParty.setSeiToJellyRatio(2);
-        expect(await poolParty.seiToJellyRatio()).to.be.equal(2);
+        await poolParty.setSeiToJellyRatio(2000);
+        expect(await poolParty.seiToJellyRatio()).to.be.equal(2000);
       });
 
       it("should emit NativeToJellyRatioSet event", async () => {
-        await expect(poolParty.setSeiToJellyRatio(2))
+        await expect(poolParty.setSeiToJellyRatio(2000))
           .to.emit(poolParty, 'NativeToJellyRatioSet')
-          .withArgs(2);
+          .withArgs(2000);
       });
     })
 
@@ -127,6 +132,9 @@ describe('PoolParty', function () {
   });
 
   describe("#buyWithSei", async function () {
+    beforeEach(async () => {
+      await poolParty.startBuyingPeriod();
+    })
     describe("success", async () => {
       it("should emit BuyWithNative event", async () => {
         const seiToJellyRatio = await poolParty.seiToJellyRatio();
@@ -134,7 +142,7 @@ describe('PoolParty', function () {
         console.log("seiToJellyRatio", seiToJellyRatio);
         await expect(poolParty.buyWithSei({value:amount}))
           .to.emit(poolParty, 'BuyWithSei')
-          .withArgs(amount, seiToJellyRatio.mul(amount), owner.address);
+          .withArgs(amount, seiToJellyRatio.mul(amount/1000), owner.address);
       });
     })
 
@@ -156,6 +164,41 @@ describe('PoolParty', function () {
         ).to.be.revertedWithCustomError(
           poolParty,
           "PoolParty__NoValueSent",
+        );
+      });
+    })
+  });
+
+  describe("#startBuyingPeriod", async function () {
+    describe("success", async () => {
+      it("should set hasStarted flag to true", async () => {
+        expect(await poolParty.hasStarted()).to.be.equal(false);
+        await poolParty.startBuyingPeriod();
+        expect(await poolParty.hasStarted()).to.be.equal(true);
+      });
+
+      it("should emit Started event", async () => {
+        await expect(poolParty.startBuyingPeriod())
+          .to.emit(poolParty, 'Started');
+      });
+    })
+
+    describe("failure", async () => {
+      it("should revert if not called by owner", async () => {
+        await expect(
+          poolParty.connect(pendingOwner).startBuyingPeriod(),
+        ).to.be.revertedWithCustomError(
+          poolParty,
+          "Ownable__CallerIsNotOwner",
+        );
+      });
+
+      it("should revert if pool party hasnt started", async () => {
+        await expect(
+          poolParty.buyWithSei({value:1000}),
+        ).to.be.revertedWithCustomError(
+          poolParty,
+          "PoolParty__CannotBuy",
         );
       });
     })

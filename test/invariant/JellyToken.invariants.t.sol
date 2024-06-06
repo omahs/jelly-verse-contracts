@@ -9,7 +9,7 @@ import {JellyToken} from "../../contracts/JellyToken.sol";
 contract InvariantJellyToken is StdInvariant, Test {
     JellyToken public jellyToken;
 
-    uint256 internal constant cap = 1_000_000_000;
+    uint256 internal constant cap = 800_000_000;
 
     address internal defaultAdminRole;
     address internal vesting;

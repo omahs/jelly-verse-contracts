@@ -17,14 +17,16 @@ contract PoolParty is ReentrancyGuard, Ownable {
 
     address public immutable i_jellyToken;
     bytes32 public immutable jellySwapPoolId;
-    address public immutable jellySwapVault; // ───╮
+    address public immutable jellySwapVault; // ──-╮
     bool public isOver; // ────────────----------──╯
+    bool public hasStarted;
     uint88 public seiToJellyRatio;
     address public immutable governance;
 
     event BuyWithSei(uint256 seiAmount, uint256 jellyAmount, address buyer);
     event EndBuyingPeriod();
     event NativeToJellyRatioSet(uint256 seiToJellyRatio);
+    event Started();
 
     error PoolParty__CannotBuy();
     error PoolParty__NoValueSent();
@@ -32,7 +34,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
     error PoolParty__ZeroValue();
 
     modifier canBuy() {
-        if (isOver) {
+        if (isOver || !hasStarted) {
             revert PoolParty__CannotBuy();
         }
         _;
@@ -63,15 +65,26 @@ contract PoolParty is ReentrancyGuard, Ownable {
         jellySwapPoolId = _jellySwapPoolId;
     }
 
+
+
+    /**
+     * @notice Starts buying period.
+     * @dev Only owner can call.
+     *
+     * No return, reverts on error.
+     */
+    function startBuyingPeriod() external onlyOwner {
+        hasStarted = true;
+        emit Started();
+    }
+
     /**
      * @notice Buys jelly tokens with SEI tokens.
      *
      *
      * No return value
      */
-
-     //to do sei to jelly ratio
-    function buyWithSei() external payable nonReentrant canBuy {
+      function buyWithSei() external payable nonReentrant canBuy {
 
         uint256 _amount=msg.value;
 
@@ -80,7 +93,7 @@ contract PoolParty is ReentrancyGuard, Ownable {
         }
 
 
-        uint256 jellyAmount = _amount * seiToJellyRatio;
+        uint256 jellyAmount = _amount * seiToJellyRatio / 1000;
 
         (IERC20[] memory tokens, , ) = IVault(jellySwapVault).getPoolTokens(
             jellySwapPoolId

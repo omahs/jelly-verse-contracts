@@ -9,7 +9,7 @@ export function shouldBehaveLikeJellyToken(): void {
       ethers.utils.toUtf8Bytes('MINTER_ROLE')
     );
 
-    const cap = ethers.utils.parseEther('1000000000');
+    const cap = ethers.utils.parseEther('800000000');
 
     beforeEach(async function () {
       const { jellyToken } = await loadFixture(unitJellyTokenFixture);
@@ -32,10 +32,10 @@ export function shouldBehaveLikeJellyToken(): void {
         );
       });
 
-      it(`should set the cap to 1_000_000_000 tokens`, async function () {
+      it(`should set the cap to 800_000_000 tokens`, async function () {
         assert(
           (await this.jellyToken.cap()).eq(cap),
-          'Token cap is not 1_000_000_000'
+          'Token cap is not 800_000_000'
         );
       });
 
