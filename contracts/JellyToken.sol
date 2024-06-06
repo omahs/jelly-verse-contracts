@@ -46,7 +46,7 @@ contract JellyToken is ERC20, AccessControl, ReentrancyGuard {
             revert JellyToken__ZeroAddress();
         }
 
-        _cap = 1_000_000_000 * 10 ** decimals();
+        _cap = 800_000_000 * 10 ** decimals();
 
         _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdminRole);
         _grantRole(MINTER_ROLE, _defaultAdminRole);
