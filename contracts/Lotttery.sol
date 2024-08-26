@@ -14,31 +14,35 @@ import {IERC721} from "./vendor/openzeppelin/v4.9.0/token/ERC721/IERC721.sol";
 
 contract Lottery is Ownable {
 
-    uint96 public numberOfChests;
-    uint96 public numberOfDragonChests;
-    uint96 public numberOfGoldenChests;
-    uint96 public numberOfSilverChests;
-    uint96 public numberOfBronzeChests;
+    uint96 public numberOfRewards=372;
+    uint96 public numberOfDragonChests=2;
+    uint96 public numberOfGoldenChests=20;
+    uint96 public numberOfSilverChests=50;
+    uint96 public numberOfBronzeChests=100;
+    uint96 public numberOfJellyBits=200;
 
-    address public dragonBallContract;//immutable?
+    address public dragonBallContract;
     address public immutable chestContract;
     address public immutable jellyToken;
 
 
     uint256 public constant DRAGON_AMOUNT=  1_000_000;
-    uint256 public constant GOLDEN_AMOUNT = 500_000;
-    uint256 public constant SILVER_AMOUNT = 100_000;    
-    uint256 public constant BRONZE_AMOUNT = 50_000;
+    uint256 public constant GOLDEN_AMOUNT = 50_000;
+    uint256 public constant SILVER_AMOUNT = 10_000;    
+    uint256 public constant BRONZE_AMOUNT = 5_000;
+    uint256 public constant JELLY_AMOUNT = 1_000;
 
     uint64 private constant DECIMALS = 1e18;
+    uint32 private constant FREEZE_PERIOD = 30 days;
 
 
-    event ChestAwarded(uint96 chestId);
-    event ChestsAdded(uint96 numberOfDragonChests, uint96 numberOfGoldenChests, uint96 numberOfSilverChests, uint96 numberOfBronzeChests);
+    event ChestsAdded(uint96 numberOfDragonChests, uint96 numberOfGoldenChests, uint96 numberOfSilverChests, uint96 numberOfBronzeChests, uint96 numberOfJellyBits);
     event DragonChestAwarded();
     event GoldenChestAwarded();
     event SilverChestAwarded();
     event BronzeChestAwarded();
+    event JellyBitsAwarded();
+    event PrizeAwarded();
 
     error Lottery__LenMissmatch();
     error Lottery__NotOwner();
@@ -86,7 +90,7 @@ contract Lottery is Ownable {
 
         _awardChest();
 
-        
+        emit PrizeAwarded();
     }
 
     /**
@@ -99,18 +103,19 @@ contract Lottery is Ownable {
      *
      * No return only owner can call
      */
-    function addChests(uint96 _numberOfDragonChests,uint96 _numberOfGoldenChests, uint96 _numberOfSilverChests, uint96 _numberOfBronzeChests) public onlyOwner {
+    function addChests(uint96 _numberOfDragonChests,uint96 _numberOfGoldenChests, uint96 _numberOfSilverChests, uint96 _numberOfBronzeChests, uint96 _numberOfJellyBits) public onlyOwner {
         numberOfDragonChests += _numberOfDragonChests;
         numberOfGoldenChests += _numberOfGoldenChests;
         numberOfSilverChests += _numberOfSilverChests;
         numberOfBronzeChests += _numberOfBronzeChests;
-        numberOfChests += _numberOfDragonChests + _numberOfGoldenChests + _numberOfSilverChests + _numberOfBronzeChests;
+        numberOfJellyBits += _numberOfJellyBits;
+        numberOfRewards += _numberOfDragonChests + _numberOfGoldenChests + _numberOfSilverChests + _numberOfBronzeChests + _numberOfJellyBits;
 
-        emit ChestsAdded(_numberOfDragonChests, _numberOfGoldenChests, _numberOfSilverChests, _numberOfBronzeChests);
+        emit ChestsAdded(_numberOfDragonChests, _numberOfGoldenChests, _numberOfSilverChests, _numberOfBronzeChests, _numberOfJellyBits);
     }
 
     function _getRadomNumber() internal view returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % numberOfChests;
+        return uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % numberOfRewards;
     }
 
     function _awardChest() internal {
@@ -124,40 +129,51 @@ contract Lottery is Ownable {
         } else if (randomNumber < numberOfDragonChests + numberOfGoldenChests + numberOfSilverChests) {
             _awardSilverChest();
             numberOfSilverChests--;
-        } else {
+        } else if (randomNumber < numberOfDragonChests + numberOfGoldenChests + numberOfSilverChests + numberOfBronzeChests) {
             _awardBronzeChest();
             numberOfBronzeChests--;
-        } 
-        numberOfChests--;
+        } else {
+            _awardJellyBits();
+            numberOfJellyBits--;
+        }
+        numberOfRewards--;
+
+
     }
 
     
 
     function _awardDragonChest() internal {
         IERC20(jellyToken).approve(chestContract, DRAGON_AMOUNT * DECIMALS + IChest(chestContract).fee());
-        IChest(chestContract).stake(DRAGON_AMOUNT * DECIMALS, msg.sender, 0);
+        IChest(chestContract).stake(DRAGON_AMOUNT * DECIMALS, msg.sender, FREEZE_PERIOD);
 
         emit DragonChestAwarded();
     }
 
     function _awardGoldenChest() internal {
         IERC20(jellyToken).approve(chestContract, GOLDEN_AMOUNT * DECIMALS + IChest(chestContract).fee());
-        IChest(chestContract).stake(GOLDEN_AMOUNT * DECIMALS, msg.sender, 0);
+        IChest(chestContract).stake(GOLDEN_AMOUNT * DECIMALS, msg.sender, FREEZE_PERIOD);
 
         emit GoldenChestAwarded();
     }
 
     function _awardSilverChest() internal {
         IERC20(jellyToken).approve(chestContract, SILVER_AMOUNT * DECIMALS + IChest(chestContract).fee());
-        IChest(chestContract).stake(SILVER_AMOUNT * DECIMALS, msg.sender, 0);
+        IChest(chestContract).stake(SILVER_AMOUNT * DECIMALS, msg.sender, FREEZE_PERIOD);
 
         emit SilverChestAwarded();
     }
 
     function _awardBronzeChest() internal {
         IERC20(jellyToken).approve(chestContract, BRONZE_AMOUNT * DECIMALS + IChest(chestContract).fee());
-        IChest(chestContract).stake(BRONZE_AMOUNT * DECIMALS, msg.sender, 0);
+        IChest(chestContract).stake(BRONZE_AMOUNT * DECIMALS, msg.sender, FREEZE_PERIOD);
 
         emit BronzeChestAwarded();
+    }
+
+    function _awardJellyBits() internal {
+        IERC20(jellyToken).transfer(msg.sender, JELLY_AMOUNT * DECIMALS);
+
+        emit JellyBitsAwarded();
     }
 }

@@ -13,8 +13,9 @@ contract DragonBall is ERC721, Ownable {
     mapping(uint256 => uint8) public numberOfBall;
     address public lotteryContract;
 
-    event NewBall(uint256 index, uint8 numberOfBall);
+    event NewBall(uint256 index, uint8 numberOfBall,address beneficiary);
     event BallBurned(uint256 tokenId);
+    event LotteryContractSet(address lotteryContract);
 
     error DragonBall_NotAllowed();
     constructor(
@@ -35,7 +36,7 @@ contract DragonBall is ERC721, Ownable {
         numberOfBall[index] = _numberOfBall;
         index++;
 
-        emit NewBall(index, _numberOfBall);
+        emit NewBall(index-1, _numberOfBall, _beneficiary);
     }
 
     /**
@@ -72,6 +73,8 @@ contract DragonBall is ERC721, Ownable {
      */
     function setLotteryContract(address _lotteryContract) public onlyOwner {
         lotteryContract = _lotteryContract;
+
+        emit LotteryContractSet(_lotteryContract);
     }
 
    
